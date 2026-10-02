@@ -25,7 +25,7 @@ final class Session
         $secure = Request::isSecure();
 
         session_set_cookie_params([
-            'lifetime' => (int) Config::get('session.lifetime', 7200),
+            'lifetime' => max(300, (int) Setting::int('session_lifetime', (int) Config::get('session.lifetime', 7200))),
             'path'     => '/',
             'domain'   => '',
             'secure'   => $secure,

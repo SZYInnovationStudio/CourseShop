@@ -40,7 +40,7 @@ $adminUser      = Auth::user();
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title><?= e($htmlTitle) ?></title>
     <meta name="robots" content="noindex, nofollow">
     <meta name="csrf-token" content="<?= e(Csrf::token()) ?>">

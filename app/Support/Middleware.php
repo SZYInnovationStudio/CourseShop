@@ -127,7 +127,6 @@ final class Middleware
             '/account/email',
             '/account/email/send',
             '/account/email/verify',
-            '/account/email/skip',
             '/logout',
             '/captcha',
             // 账号申诉入口不要求绑定邮箱

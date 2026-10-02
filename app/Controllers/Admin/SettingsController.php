@@ -248,7 +248,6 @@ final class SettingsController extends AdminController
                 'fields' => [
                     ['key' => 'register_enabled', 'label' => '开放新用户注册', 'type' => 'bool', 'default' => true, 'hint' => '关闭后前台将不再显示注册入口，也无法注册。'],
                     ['key' => 'force_email_bind', 'label' => '强制绑定邮箱', 'type' => 'bool', 'default' => false, 'hint' => '开启后，除管理员外未绑定邮箱的账号无法使用站内功能。'],
-                    ['key' => 'allow_multi_device', 'label' => '允许多设备同时在线', 'type' => 'bool', 'default' => true],
                     ['key' => 'login_fail_captcha_threshold', 'label' => '登录失败触发验证码阈值', 'type' => 'number', 'min' => 1, 'max_value' => 100, 'default' => 3, 'hint' => '同一账号/IP 连续失败达到该次数后强制图形验证码。'],
                     ['key' => 'login_max_fail', 'label' => '连续失败上限', 'type' => 'number', 'min' => 1, 'max_value' => 10000, 'default' => 10, 'hint' => '达到上限后临时锁定。'],
                     ['key' => 'login_lock_minutes', 'label' => '锁定时长（分钟）', 'type' => 'number', 'min' => 1, 'max_value' => 1440, 'default' => 10],
@@ -267,10 +266,9 @@ final class SettingsController extends AdminController
             ],
             'headers' => [
                 'label' => '安全响应头',
-                'desc'  => '全局 HTTP 安全响应头的开关与内容安全策略（CSP）。',
+                'desc'  => '内容安全策略（CSP）。X-Content-Type-Options、X-Frame-Options、Referrer-Policy 等基线安全头始终下发，无法关闭。',
                 'fields' => [
-                    ['key' => 'security_headers_enabled', 'label' => '启用全局安全响应头', 'type' => 'bool', 'default' => true, 'hint' => '关闭后不再下发 CSP、X-Frame-Options 等安全头。'],
-                    ['key' => 'security_csp', 'label' => '内容安全策略（CSP）', 'type' => 'textarea', 'max' => 2000, 'default' => SecurityHeaders::DEFAULT_CSP, 'hint' => '留空则使用内置默认策略；如站点嵌入了第三方资源导致异常，可在此调整或清空。'],
+                    ['key' => 'security_csp', 'label' => '内容安全策略（CSP）', 'type' => 'textarea', 'max' => 2000, 'default' => SecurityHeaders::DEFAULT_CSP, 'hint' => '留空或清空则回退内置默认策略；如站点嵌入了第三方资源导致异常，可在此调整。'],
                 ],
             ],
             'mail' => [
@@ -309,8 +307,6 @@ final class SettingsController extends AdminController
                 'desc'  => '视频访问签名与存储方式。',
                 'fields' => [
                     ['key' => 'video_signed_ttl', 'label' => '访问签名有效期（秒）', 'type' => 'number', 'min' => 60, 'max_value' => 86400, 'default' => 1800],
-                    ['key' => 'video_storage_driver', 'label' => '存储驱动', 'type' => 'select', 'default' => 'local', 'options' => ['local' => '本地磁盘', 'oss' => '阿里云 OSS', 'cos' => '腾讯云 COS', 's3' => 'AWS S3'], 'hint' => '目前仅「本地磁盘」可用，对象存储将在后续版本支持。'],
-                    ['key' => 'video_preview_frame', 'label' => '自动截取首帧作为封面', 'type' => 'bool', 'default' => true, 'hint' => '需要服务器安装 ffmpeg。'],
                     ['key' => 'ffmpeg_path', 'label' => 'ffmpeg 路径', 'type' => 'text', 'max' => 255, 'default' => '', 'hint' => '留空则自动在 PATH 中查找。'],
                     ['key' => 'video_hls_enabled', 'label' => '启用 HLS 转码', 'type' => 'bool', 'default' => true, 'hint' => '开启后章节视频可异步转码为 HLS（m3u8），播放自动流式加载；未转码时回退 mp4。'],
                     ['key' => 'video_hls_segment_seconds', 'label' => 'HLS 分片时长（秒）', 'type' => 'number', 'min' => 2, 'max_value' => 60, 'default' => 10],

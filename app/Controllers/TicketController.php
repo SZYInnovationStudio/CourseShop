@@ -161,6 +161,8 @@ final class TicketController extends Controller
 
         $this->view('tickets.show', [
             'pageTitle'  => '工单详情',
+            // 返回固定回工单列表
+            'backUrl'    => url('/tickets'),
             'ticket'     => $ticket,
             'replies'    => $replies,
             'attachments' => $grouped,

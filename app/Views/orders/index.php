@@ -58,7 +58,7 @@ $windowStart = max(1, $windowEnd - 4);
     <?php else: ?>
         <div class="card">
             <div class="table-wrap">
-                <table class="table">
+                <table class="table table--cards">
                     <thead>
                     <tr>
                         <th>课程</th>
@@ -80,19 +80,19 @@ $windowStart = max(1, $windowEnd - 4);
                         $canPay     = in_array($status, [Order::STATUS_PENDING, Order::STATUS_PAYING], true);
                         ?>
                         <tr>
-                            <td>
+                            <td data-label="课程">
                                 <a href="<?= url('/order/' . $orderNo) ?>"><?= e($order['course_title']) ?></a>
                             </td>
-                            <td class="text-faint"><?= e($orderNo) ?></td>
-                            <td class="price"><?= price_html((int) $order['amount']) ?></td>
-                            <td><?= e($payLabel) ?></td>
-                            <td>
+                            <td data-label="订单号" class="text-faint"><?= e($orderNo) ?></td>
+                            <td data-label="金额" class="price"><?= price_html((int) $order['amount']) ?></td>
+                            <td data-label="支付方式"><?= e($payLabel) ?></td>
+                            <td data-label="状态">
                                 <span class="badge <?= e($statusBadges[$status] ?? 'badge') ?>">
                                     <?= e(Order::label($status)) ?>
                                 </span>
                             </td>
-                            <td class="text-faint"><?= e($order['created_at']) ?></td>
-                            <td>
+                            <td data-label="下单时间" class="text-faint"><?= e($order['created_at']) ?></td>
+                            <td data-label="操作" class="table__cell--actions">
                                 <div class="btn-group">
                                     <a class="btn btn--outline btn--sm" href="<?= url('/order/' . $orderNo) ?>">详情</a>
                                     <?php if ($canPay): ?>

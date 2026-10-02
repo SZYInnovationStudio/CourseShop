@@ -154,6 +154,8 @@ final class OrderController extends Controller
 
         $this->view('orders.show', [
             'pageTitle'      => '订单详情',
+            // 返回固定回订单列表
+            'backUrl'        => url('/orders'),
             'order'          => $order,
             'statusLabel'    => Order::label((string) $order['status']),
             'payTypeLabel'   => self::PAY_TYPE_LABELS,

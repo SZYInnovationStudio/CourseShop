@@ -18,6 +18,17 @@ use RuntimeException;
 final class TicketStorage
 {
     /**
+     * 无论后台如何配置都禁止的扩展名（可被当作脚本/页面执行）
+     *
+     * @var array<int, string>
+     */
+    private const FORBIDDEN_EXTENSIONS = [
+        'php', 'php3', 'php4', 'php5', 'php7', 'php8', 'phtml', 'pht', 'phar', 'phps',
+        'shtml', 'html', 'htm', 'xhtml', 'svg', 'js', 'mjs', 'cgi', 'pl', 'py',
+        'asp', 'aspx', 'jsp', 'jspx', 'sh', 'bat', 'cmd', 'exe', 'com', 'htaccess',
+    ];
+
+    /**
      * 本地附件根目录
      */
     public static function localRoot(): string
@@ -88,7 +99,10 @@ final class TicketStorage
             return strtolower(ltrim(trim($item), '.'));
         }, explode(',', $raw)), static fn (string $item): bool => $item !== '');
 
-        return $list === [] ? ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'zip', 'rar', '7z', 'txt'] : array_values($list);
+        // 始终剔除危险扩展名，避免后台误配置导致可执行文件被上传
+        $list = array_values(array_diff($list, self::FORBIDDEN_EXTENSIONS));
+
+        return $list === [] ? ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'zip', 'rar', '7z', 'txt'] : $list;
     }
 
     /**

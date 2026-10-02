@@ -130,6 +130,13 @@ final class Monitor
             return;
         }
 
+        // SSRF 防护：仅允许上报到公网地址，拒绝回环 / 内网 / 保留地址
+        if (!self::isPublicWebhookUrl($url)) {
+            Logger::warning('监控 Webhook 地址指向内网或保留地址，已拒绝上报', ['url' => $url]);
+
+            return;
+        }
+
         $timeout = max(1, (int) self::conf('timeout', 3));
         $json    = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
@@ -166,5 +173,39 @@ final class Monitor
         ]);
 
         @file_get_contents($url, false, $context);
+    }
+
+    /**
+     * 判断 Webhook 地址是否指向公网主机
+     *
+     * 通过解析主机名得到 IP，拒绝回环、私有与保留地址，防止被用于 SSRF。
+     */
+    private static function isPublicWebhookUrl(string $url): bool
+    {
+        $host = parse_url($url, PHP_URL_HOST);
+
+        if (!is_string($host) || $host === '') {
+            return false;
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
+            $ips = [$host];
+        } else {
+            $resolved = gethostbynamel($host);
+
+            if ($resolved === false || $resolved === []) {
+                return false;
+            }
+
+            $ips = $resolved;
+        }
+
+        foreach ($ips as $ip) {
+            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

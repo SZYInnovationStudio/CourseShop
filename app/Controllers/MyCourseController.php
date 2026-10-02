@@ -122,6 +122,8 @@ final class MyCourseController extends Controller
 
         $this->view('learn.show', [
             'pageTitle'  => (string) $context['chapter']['title'] . ' - ' . (string) $context['course']['title'],
+            // 学习页返回固定回课程目录，避免切换章节后逐条回退历史
+            'backUrl'    => url('/course/' . $courseId),
             'course'     => $context['course'],
             'chapters'   => $context['chapters'],
             'chapter'    => $context['chapter'],

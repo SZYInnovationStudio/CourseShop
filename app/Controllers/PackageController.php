@@ -77,6 +77,8 @@ final class PackageController extends Controller
         $this->view('packages.show', [
             'pageTitle'      => (string) $package['title'],
             'bodyClass'      => 'page-package',
+            // 返回固定回套餐列表
+            'backUrl'        => url('/packages'),
             'package'        => $package,
             'courses'        => $courses,
             'ownedIds'       => $ownedIds,

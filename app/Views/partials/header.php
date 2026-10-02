@@ -18,6 +18,18 @@ $user      = Auth::user();
 $canSwitchTheme = Setting::bool('theme_allow_user_switch', true);
 $canRegister    = Setting::bool('register_enabled', true);
 
+// 主导航已覆盖的顶级页面：底部导航 / 顶部导航已提供入口，
+// 这些页面不再渲染返回箭头，避免出现「无处可返」的冗余按钮
+$rootPaths   = ['/', '/courses', '/packages', '/my/courses', '/tickets', '/account'];
+$currentPath = rtrim($current, '/');
+$currentPath = $currentPath === '' ? '/' : $currentPath;
+$isRootPage  = in_array($currentPath, $rootPaths, true);
+
+// 固定返回目标（如学习页固定返回课程目录）
+// 设置后返回按钮不再逐条回退历史，避免在同类页面之间反复返回
+$backUrl   = trim((string) ($backUrl ?? ''));
+$backLabel = $backUrl !== '' ? '返回' : '返回上一页';
+
 /** 导航高亮 */
 $activeClass = static function (string $path) use ($current): string {
     if ($path === '/') {
@@ -29,12 +41,15 @@ $activeClass = static function (string $path) use ($current): string {
 ?>
 <header class="site-header">
     <div class="container site-header__inner">
-        <button type="button" class="nav-back" data-history-back aria-label="返回上一页" title="返回">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M15 18l-6-6 6-6"></path>
-            </svg>
-        </button>
+        <?php if (!$isRootPage): ?>
+            <button type="button" class="nav-back" data-history-back<?= $backUrl !== '' ? ' data-back-url="' . e($backUrl) . '"' : '' ?>
+                    aria-label="<?= e($backLabel) ?>" title="<?= e($backLabel) ?>">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M15 18l-6-6 6-6"></path>
+                </svg>
+            </button>
+        <?php endif; ?>
 
         <a class="brand" href="<?= url('/') ?>">
             <?php if ($siteLogo !== ''): ?>
@@ -117,37 +132,45 @@ $activeClass = static function (string $path) use ($current): string {
                 </button>
             <?php endif; ?>
 
-            <button type="button" class="nav-toggle" data-nav-toggle aria-label="打开菜单" aria-expanded="false" aria-controls="site-drawer">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <path d="M3 6h18M3 12h18M3 18h18"></path>
-                </svg>
+            <button type="button" class="nav-toggle" data-nav-toggle aria-label="打开菜单" aria-expanded="false" aria-controls="site-drawer"
+                    data-label-open="打开菜单" data-label-close="关闭菜单">
+                <span class="nav-toggle__icons" aria-hidden="true">
+                    <svg class="nav-toggle__icon nav-toggle__icon--menu" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M3 6h18M3 12h18M3 18h18"></path>
+                    </svg>
+                    <svg class="nav-toggle__icon nav-toggle__icon--close" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M6 6l12 12M18 6 6 18"></path>
+                    </svg>
+                </span>
             </button>
         </div>
     </div>
 
     <div class="site-drawer" id="site-drawer" data-drawer>
-        <div class="container">
-            <a class="site-drawer__link<?= $activeClass('/') ?>" href="<?= url('/') ?>">首页</a>
-            <a class="site-drawer__link<?= $activeClass('/courses') ?>" href="<?= url('/courses') ?>">全部课程</a>
-            <a class="site-drawer__link<?= $activeClass('/packages') ?>" href="<?= url('/packages') ?>">优惠套餐</a>
+        <div class="site-drawer__panel">
+            <div class="container">
+                <a class="site-drawer__link<?= $activeClass('/') ?>" href="<?= url('/') ?>">首页</a>
+                <a class="site-drawer__link<?= $activeClass('/courses') ?>" href="<?= url('/courses') ?>">全部课程</a>
+                <a class="site-drawer__link<?= $activeClass('/packages') ?>" href="<?= url('/packages') ?>">优惠套餐</a>
 
-            <?php if ($user === null): ?>
-                <a class="site-drawer__link" href="<?= url('/login') ?>">登录</a>
-                <?php if ($canRegister): ?>
-                    <a class="site-drawer__link" href="<?= url('/register') ?>">注册</a>
+                <?php if ($user === null): ?>
+                    <a class="site-drawer__link" href="<?= url('/login') ?>">登录</a>
+                    <?php if ($canRegister): ?>
+                        <a class="site-drawer__link" href="<?= url('/register') ?>">注册</a>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <a class="site-drawer__link" href="<?= url('/my/courses') ?>">我的课程</a>
+                    <a class="site-drawer__link" href="<?= url('/tickets') ?>">我的工单</a>
+                    <a class="site-drawer__link" href="<?= url('/account') ?>">账户设置</a>
+                    <?php if (Auth::isAdmin()): ?>
+                        <a class="site-drawer__link" href="<?= url('/admin') ?>">管理后台</a>
+                    <?php endif; ?>
+                    <form method="post" action="<?= url('/logout') ?>">
+                        <?= csrf_field() ?>
+                        <button class="site-drawer__link" type="submit">退出登录</button>
+                    </form>
                 <?php endif; ?>
-            <?php else: ?>
-                <a class="site-drawer__link" href="<?= url('/my/courses') ?>">我的课程</a>
-                <a class="site-drawer__link" href="<?= url('/tickets') ?>">我的工单</a>
-                <a class="site-drawer__link" href="<?= url('/account') ?>">账户设置</a>
-                <?php if (Auth::isAdmin()): ?>
-                    <a class="site-drawer__link" href="<?= url('/admin') ?>">管理后台</a>
-                <?php endif; ?>
-                <form method="post" action="<?= url('/logout') ?>">
-                    <?= csrf_field() ?>
-                    <button class="site-drawer__link" type="submit">退出登录</button>
-                </form>
-            <?php endif; ?>
+            </div>
         </div>
     </div>
 </header>

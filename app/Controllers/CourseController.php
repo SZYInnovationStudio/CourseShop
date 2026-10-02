@@ -87,6 +87,8 @@ final class CourseController extends Controller
         $this->view('courses.show', [
             'pageTitle'      => (string) $course['title'],
             'bodyClass'      => 'page-course',
+            // 返回固定回课程列表，避免从「相关课程」连续跳转后逐条回退
+            'backUrl'        => url('/courses'),
             'course'         => $course,
             'chapters'       => $chapters,
             'tags'           => $tags,

@@ -98,7 +98,7 @@ $selectedTags = is_array($selectedTags) ? array_map('intval', $selectedTags) : [
                             </div>
                         <?php endif; ?>
                     </div>
-                    <p class="form-hint">留空则使用第一章节视频首帧。</p>
+                    <p class="form-hint">留空则使用课程标题首字的占位封面。</p>
                 </div>
             </div>
 

@@ -76,6 +76,8 @@
 
     /* 动效 */
     --transition: 180ms ease;
+    /* 非线性缓出：起步快、收尾慢，用于展开类动画 */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     --container: 1200px;
 }
 
@@ -128,6 +130,7 @@ html {
 body {
     margin: 0;
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     background: var(--color-bg);
@@ -271,8 +274,10 @@ pre {
 .site-header {
     position: sticky;
     top: 0;
-    z-index: 50;
+    /* 需高于底部导航(55)与购买栏(56)，展开的抽屉浮层才能盖住它们 */
+    z-index: 58;
     background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    -webkit-backdrop-filter: saturate(140%) blur(10px);
     backdrop-filter: saturate(140%) blur(10px);
     border-bottom: 1px solid var(--color-border);
 }
@@ -292,7 +297,14 @@ pre {
     font-weight: 700;
     color: var(--color-text);
     letter-spacing: -0.02em;
-    flex: 0 0 auto;
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+.brand > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .brand:hover { color: var(--color-text); }
@@ -300,6 +312,7 @@ pre {
 .brand__logo {
     height: 32px;
     width: auto;
+    flex: none;
 }
 
 .site-nav {
@@ -350,20 +363,87 @@ pre {
 
 .nav-toggle:hover { color: var(--color-text); }
 
+/* 汉堡 / 关闭图标叠加，由 aria-expanded 驱动旋转淡入淡出 */
+.nav-toggle__icons {
+    position: relative;
+    display: block;
+    width: 18px;
+    height: 18px;
+}
+
+.nav-toggle__icon {
+    position: absolute;
+    inset: 0;
+    transition: opacity 180ms ease, transform 320ms var(--ease-out);
+}
+
+.nav-toggle__icon--close {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.6);
+}
+
+.nav-toggle[aria-expanded="true"] .nav-toggle__icon--menu {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.6);
+}
+
+.nav-toggle[aria-expanded="true"] .nav-toggle__icon--close {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+}
+
 @media (min-width: 768px) {
     .site-nav { display: flex; }
     .nav-toggle { display: none; }
 }
 
-/* 移动端抽屉 */
+/* 移动端抽屉：独立浮层，自页头下方平滑展开并遮挡正文 */
 .site-drawer {
-    display: none;
-    border-top: 1px solid var(--color-border);
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    display: grid;
+    grid-template-rows: 0fr;
     background: var(--color-surface);
-    padding: var(--space-3) 0 var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    pointer-events: none;
+    /* 收起时延后隐藏 visibility，避免动画被中途掐断 */
+    transition:
+        grid-template-rows 420ms var(--ease-out),
+        transform 420ms var(--ease-out),
+        opacity 200ms ease,
+        visibility 0s linear 420ms;
 }
 
-.site-drawer.is-open { display: block; }
+/* grid 行高 0fr ↔ 1fr：无需固定高度即可做高度自适应展开 */
+.site-drawer__panel {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.site-drawer > .site-drawer__panel > .container {
+    padding-top: var(--space-3);
+    padding-bottom: var(--space-4);
+}
+
+.site-drawer.is-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+    transition:
+        grid-template-rows 420ms var(--ease-out),
+        transform 420ms var(--ease-out),
+        opacity 260ms ease,
+        visibility 0s;
+}
 
 .site-drawer__link {
     display: block;
@@ -376,11 +456,39 @@ pre {
 
 .site-drawer__link:hover { background: var(--color-bg-alt); }
 
+/* 抽屉遮罩：独立浮层，压暗正文；层级高于底部导航(55)/购买栏(56)，低于页头(58) */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 57;
+    background: rgba(20, 26, 22, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 260ms ease;
+}
+
+/* 展开时接管指针事件：首次点击只关闭抽屉，不会穿透点到下方链接 */
+body.menu-open::before {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 @media (min-width: 768px) {
     .site-drawer { display: none !important; }
 }
 
 /* ---------------- 按钮 ---------------- */
+/* 触摸反馈统一由自定义样式提供，去除移动端点击时的默认高亮 */
+.btn,
+.chip,
+.course-card,
+.pagination__item,
+.pay-option,
+.site-nav__link,
+.settings-nav__link,
+.user-menu__trigger { -webkit-tap-highlight-color: transparent; }
+
 .btn {
     display: inline-flex;
     align-items: center;
@@ -628,7 +736,7 @@ pre {
 
 .form-grid > .form-group--full { grid-column: 1 / -1; }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .form-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
@@ -1732,7 +1840,7 @@ a.chapter-item__title:hover { color: var(--color-primary-strong); }
    ============================================================ */
 .admin-body { background: var(--color-bg-alt); }
 
-.admin-shell { display: flex; min-height: 100vh; }
+.admin-shell { display: flex; min-height: 100vh; min-height: 100dvh; }
 
 /* ---------------- 侧边栏 ---------------- */
 .admin-sidebar {
@@ -1745,6 +1853,7 @@ a.chapter-item__title:hover { color: var(--color-primary-strong); }
     position: sticky;
     top: 0;
     height: 100vh;
+    height: 100dvh;
 }
 
 .admin-sidebar__head {
@@ -2089,6 +2198,7 @@ button.admin-nav__link {
 /* ---------------- 后台登录 ---------------- */
 .admin-auth {
     min-height: 100vh;
+    min-height: 100dvh;
     display: grid;
     place-items: center;
     padding: var(--space-5);
@@ -2276,7 +2386,7 @@ input[type="file"].input::file-selector-button:hover {
     text-transform: uppercase;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .settings-layout { grid-template-columns: minmax(0, 1fr); }
     .settings-nav { flex-direction: row; flex-wrap: wrap; }
 }
@@ -2294,6 +2404,7 @@ input[type="file"].input::file-selector-button:hover {
         width: 260px;
         flex-basis: 260px;
         height: 100vh;
+        height: 100dvh;
         transform: translateX(-100%);
         transition: transform var(--transition);
         box-shadow: var(--shadow-lg);
@@ -2313,6 +2424,9 @@ input[type="file"].input::file-selector-button:hover {
     }
 
     .admin-sidebar.is-open ~ .admin-scrim { opacity: 1; visibility: visible; }
+
+    /* 抽屉展开时锁定背景滚动 */
+    body.admin-menu-open { overflow: hidden; }
 
     .admin-topbar { padding: 0 var(--space-4); }
     .admin-topbar__toggle { display: inline-flex; }
@@ -2632,9 +2746,11 @@ html { overflow-x: hidden; }
 
     .bottom-nav__item:active { transform: scale(0.94); }
 
-    /* ---- 课程详情：用购买栏替代底部导航 ---- */
-    body.page-course { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
-    body.page-course .bottom-nav { display: none; }
+    /* ---- 课程 / 套餐详情：用购买栏替代底部导航 ---- */
+    body.page-course,
+    body.page-package { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+    body.page-course .bottom-nav,
+    body.page-package .bottom-nav { display: none; }
 
     .buy-bar {
         position: fixed;
@@ -2672,6 +2788,11 @@ html { overflow-x: hidden; }
     .select { min-height: 44px; }
     .textarea { min-height: 120px; }
 
+    /* iOS 上 16px 以下的输入框聚焦会触发页面自动缩放，这里统一放大到 16px */
+    .input,
+    .select,
+    .textarea { font-size: 16px; }
+
     .chip {
         display: inline-flex;
         align-items: center;
@@ -2696,6 +2817,44 @@ html { overflow-x: hidden; }
     .chip:active,
     .course-card:active,
     .pay-option:active { transform: scale(0.985); }
+
+    /* ---- 数据表格：移动端卡片化（订单列表等） ---- */
+    .table--cards thead { display: none; }
+
+    .table--cards,
+    .table--cards tbody,
+    .table--cards tr,
+    .table--cards td { display: block; width: 100%; }
+
+    .table--cards tr {
+        padding: var(--space-3) 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .table--cards tr:last-child { border-bottom: 0; }
+    .table--cards tbody tr:hover { background: transparent; }
+
+    .table--cards td {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-4);
+        padding: var(--space-1) 0;
+        border-bottom: 0;
+        text-align: right;
+    }
+
+    .table--cards td::before {
+        content: attr(data-label);
+        flex: 0 0 auto;
+        color: var(--color-text-muted);
+        font-size: var(--text-sm);
+        text-align: left;
+    }
+
+    .table--cards td > * { min-width: 0; }
+    .table--cards td.table__cell--actions { padding-top: var(--space-3); }
+    .table--cards td.table__cell--actions::before { align-self: center; }
 
     /* ---- 筛选 / 排序：行内筛选栏变底部抽屉 ---- */
     .filter-trigger {
@@ -2766,6 +2925,7 @@ html { overflow-x: hidden; }
 
     /* 抽屉打开时锁定背景滚动 */
     body.sheet-open { overflow: hidden; }
+    body.menu-open { overflow: hidden; }
 
     /* ---- 账户设置：分组列表（竖排 + 右箭头） ---- */
     .settings-layout { grid-template-columns: minmax(0, 1fr); }

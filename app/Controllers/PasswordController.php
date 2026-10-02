@@ -65,15 +65,17 @@ final class PasswordController extends Controller
             $this->fail($back, '图形验证码不正确或已过期。', $old);
         }
 
+        // 节流：同一邮箱在间隔内重复请求时返回与成功一致的中性提示，
+        // 且不因邮箱是否存在而变化，避免被用来枚举账号
+        if (EmailVerification::recentCount($email, EmailVerification::PURPOSE_RESET, self::RESEND_INTERVAL) > 0) {
+            $this->success($back, $this->sentMessage($email));
+        }
+
         $user = User::findByEmail($email);
 
         // 邮箱不存在时不发信，但返回一致的提示，避免泄露账号是否存在
         if ($user === null) {
             $this->success($back, $this->sentMessage($email));
-        }
-
-        if (EmailVerification::recentCount($email, EmailVerification::PURPOSE_RESET, self::RESEND_INTERVAL) > 0) {
-            $this->fail($back, '验证码发送过于频繁，请稍后再试。', $old);
         }
 
         $issued = EmailVerification::issue((int) $user['id'], $email, EmailVerification::PURPOSE_RESET);

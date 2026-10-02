@@ -145,7 +145,7 @@ $courseContent = trim((string) ($course['content'] ?? ''));
                 </div>
 
                 <?php if ($hasAccess): ?>
-                    <a class="btn btn--lg btn--block" href="<?= url('/my/courses') ?>">开始学习</a>
+                    <a class="btn btn--lg btn--block" href="<?= url('/course/' . $courseId . '/learn') ?>">开始学习</a>
                     <p class="form-hint text-center">你已拥有这门课程</p>
                 <?php elseif (Auth::check()): ?>
                     <form method="post" action="<?= url('/order/create') ?>">
@@ -207,7 +207,7 @@ $courseContent = trim((string) ($course['content'] ?? ''));
 
     <div class="buy-bar__action">
         <?php if ($hasAccess): ?>
-            <a class="btn btn--lg btn--block" href="<?= url('/my/courses') ?>">开始学习</a>
+            <a class="btn btn--lg btn--block" href="<?= url('/course/' . $courseId . '/learn') ?>">开始学习</a>
         <?php elseif (Auth::check()): ?>
             <form method="post" action="<?= url('/order/create') ?>">
                 <?= csrf_field() ?>

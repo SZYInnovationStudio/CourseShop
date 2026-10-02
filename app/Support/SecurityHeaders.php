@@ -64,10 +64,7 @@ final class SecurityHeaders
             return;
         }
 
-        if (!Setting::bool('security_headers_enabled', true)) {
-            return;
-        }
-
+        // 基线安全头始终下发，避免被误关后站点裸奔
         header('X-Content-Type-Options: nosniff');
         header('X-Frame-Options: SAMEORIGIN');
         header('Referrer-Policy: strict-origin-when-cross-origin');

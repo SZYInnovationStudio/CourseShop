@@ -78,14 +78,13 @@ final class VideoStorage
     /** 允许的视频扩展名白名单 */
     private const ALLOWED_EXTENSIONS = ['mp4', 'm4v', 'webm', 'mov'];
 
-    /** 允许的视频 MIME 白名单（octet-stream 为部分环境下的兜底识别结果） */
+    /** 允许的视频 MIME 白名单 */
     private const ALLOWED_MIMES = [
         'video/mp4',
         'video/x-m4v',
         'video/webm',
         'video/quicktime',
         'video/x-matroska',
-        'application/octet-stream',
     ];
 
     /**
@@ -141,7 +140,9 @@ final class VideoStorage
         }
 
         $mime = self::detectMime($tmp);
-        if ($mime !== '' && !in_array($mime, self::ALLOWED_MIMES, true)) {
+        // finfo 在部分环境会把合法视频识别为 application/octet-stream，
+        // 此时退化为按容器魔数（magic bytes）判定，避免仅凭 MIME 放行非视频内容
+        if ($mime !== '' && !in_array($mime, self::ALLOWED_MIMES, true) && !self::hasVideoSignature($tmp)) {
             throw new RuntimeException('视频内容与扩展名不符，已拒绝保存。');
         }
 
@@ -193,6 +194,35 @@ final class VideoStorage
         return $mime;
     }
 
+    /**
+     * 校验文件头是否为已知视频容器签名（ISO BMFF / EBML）
+     *
+     * 用于 finfo 将合法视频误判为 application/octet-stream 时的兜底判定。
+     */
+    private static function hasVideoSignature(string $file): bool
+    {
+        $handle = @fopen($file, 'rb');
+
+        if ($handle === false) {
+            return false;
+        }
+
+        $header = (string) fread($handle, 16);
+        fclose($handle);
+
+        if (strlen($header) < 8) {
+            return false;
+        }
+
+        // ISO BMFF（mp4 / m4v / mov）：第 4-7 字节为 ftyp
+        if (substr($header, 4, 4) === 'ftyp') {
+            return true;
+        }
+
+        // Matroska / WebM：EBML 魔数 1A 45 DF A3
+        return str_starts_with($header, "\x1A\x45\xDF\xA3");
+    }
+
     private static function uploadErrorMessage(int $error): string
     {
         return match ($error) {
@@ -210,7 +240,7 @@ final class VideoStorage
      */
     public static function urlTtl(): int
     {
-        return max(60, (int) Config::get('video.url_ttl', 7200));
+        return max(60, (int) Setting::int('video_signed_ttl', (int) Config::get('video.url_ttl', 7200)));
     }
 
     /**

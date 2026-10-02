@@ -71,27 +71,97 @@
     });
 
     /* ---------------- 移动端抽屉（前台导航 / 后台侧边栏） ---------------- */
-    function bindDrawer(toggleSelector, drawerSelector) {
+    function bindDrawer(toggleSelector, drawerSelector, options) {
+        var config = options || {};
         var drawer = document.querySelector(drawerSelector);
         if (!drawer) {
             return;
         }
 
-        document.querySelectorAll(toggleSelector).forEach(function (toggle) {
-            toggle.addEventListener('click', function () {
-                var opened = drawer.classList.toggle('is-open');
+        var toggles = document.querySelectorAll(toggleSelector);
+        var bodyClass = config.bodyClass || '';
 
-                document.querySelectorAll(toggleSelector).forEach(function (item) {
-                    if (item.hasAttribute('aria-expanded')) {
-                        item.setAttribute('aria-expanded', opened ? 'true' : 'false');
-                    }
-                });
+        function setOpen(open) {
+            drawer.classList.toggle('is-open', open);
+
+            toggles.forEach(function (item) {
+                if (item.hasAttribute('aria-expanded')) {
+                    item.setAttribute('aria-expanded', open ? 'true' : 'false');
+                }
+
+                // 提供 data-label-open / data-label-close 时同步无障碍标签
+                var label = item.getAttribute(open ? 'data-label-close' : 'data-label-open');
+                if (label) {
+                    item.setAttribute('aria-label', label);
+                }
+            });
+
+            // 遮罩（body::before）与背景滚动锁定都挂在 body 上
+            if (bodyClass !== '') {
+                document.body.classList.toggle(bodyClass, open);
+            }
+        }
+
+        toggles.forEach(function (toggle) {
+            toggle.addEventListener('click', function () {
+                setOpen(!drawer.classList.contains('is-open'));
             });
         });
+
+        if (!config.dismissable) {
+            return;
+        }
+
+        // 点击时忽略的区域（触发按钮所在容器），默认前台页头
+        var ignoreSelector = config.ignoreSelector || '.site-header';
+
+        // Esc 关闭
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && drawer.classList.contains('is-open')) {
+                setOpen(false);
+            }
+        });
+
+        // 点击抽屉、触发区与忽略区域以外的位置（含遮罩）关闭
+        document.addEventListener('click', function (event) {
+            if (!drawer.classList.contains('is-open')) {
+                return;
+            }
+
+            if (ignoreSelector && event.target.closest(ignoreSelector)) {
+                return;
+            }
+
+            if (drawer.contains(event.target)) {
+                return;
+            }
+
+            setOpen(false);
+        });
+
+        // 放大到桌面断点后自动收起，避免残留的背景滚动锁定
+        var breakpoint = config.breakpoint || 768;
+        var desktop = window.matchMedia('(min-width: ' + breakpoint + 'px)');
+        var onBreakpoint = function (event) {
+            if (event.matches) {
+                setOpen(false);
+            }
+        };
+
+        if (typeof desktop.addEventListener === 'function') {
+            desktop.addEventListener('change', onBreakpoint);
+        } else if (typeof desktop.addListener === 'function') {
+            desktop.addListener(onBreakpoint);
+        }
     }
 
-    bindDrawer('[data-nav-toggle]', '[data-drawer]');
-    bindDrawer('[data-admin-toggle]', '[data-admin-sidebar]');
+    bindDrawer('[data-nav-toggle]', '[data-drawer]', { bodyClass: 'menu-open', dismissable: true });
+    bindDrawer('[data-admin-toggle]', '[data-admin-sidebar]', {
+        bodyClass: 'admin-menu-open',
+        dismissable: true,
+        ignoreSelector: '.admin-topbar',
+        breakpoint: 1024
+    });
 
     /* ---------------- 顶部用户下拉菜单 ---------------- */
     (function () {
@@ -605,6 +675,20 @@
                 closeSheet();
             }
         });
+
+        // 放大到桌面断点时收起抽屉，避免残留的滚动锁与遮罩
+        var desktop = window.matchMedia('(min-width: 768px)');
+        var onBreakpoint = function (event) {
+            if (event.matches) {
+                closeSheet();
+            }
+        };
+
+        if (typeof desktop.addEventListener === 'function') {
+            desktop.addEventListener('change', onBreakpoint);
+        } else if (typeof desktop.addListener === 'function') {
+            desktop.addListener(onBreakpoint);
+        }
     })();
 
     /* ---------------- 顶部返回按钮 ---------------- */
@@ -614,14 +698,47 @@
             return;
         }
 
-        // 首页不显示返回；存在可回退历史时才显示
-        var path = window.location.pathname;
-        if (path !== '/' && path !== '' && window.history.length > 1) {
-            back.classList.add('is-visible');
-        }
+        // 服务端只在非顶级页面渲染该按钮，出现即显示；
+        // 页面可指定固定返回目标（如学习页返回课程目录），避免反复回退历史
+        var target = back.getAttribute('data-back-url') || '';
+        back.classList.add('is-visible');
 
         back.addEventListener('click', function () {
+            if (target !== '') {
+                window.location.assign(target);
+                return;
+            }
+
             window.history.back();
+        });
+    })();
+
+    /* ---------------- 数字输入框：阻止滚轮/方向键误改数值 ---------------- */
+    (function () {
+        // type="number" 的输入框在聚焦时，鼠标滚轮划过、按 ↑/↓ 都会静默 ±step，
+        // 例如价格 10 会被悄悄改成 9.99。这里拦截这两个非显式输入的操作。
+        function isNumberInput(el) {
+            return !!el && el.tagName === 'INPUT' && el.type === 'number';
+        }
+
+        document.addEventListener('wheel', function (event) {
+            // 仅拦截聚焦状态（原生步进只在此状态下触发），未聚焦时不影响页面滚动
+            if (!isNumberInput(event.target) || event.target !== document.activeElement) {
+                return;
+            }
+
+            event.preventDefault();
+            event.target.blur();
+        }, { passive: false });
+
+        document.addEventListener('keydown', function (event) {
+            if (!isNumberInput(event.target)) {
+                return;
+            }
+
+            if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+                event.preventDefault();
+            }
         });
     })();
 

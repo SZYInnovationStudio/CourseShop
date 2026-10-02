@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Support\Auth;
 use App\Support\Config;
 use App\Support\Csrf;
+use App\Support\Logger;
 use App\Support\Mailer;
 use App\Support\Request;
 use App\Support\Response;
@@ -293,9 +294,13 @@ final class AccountController extends Controller
             $this->success(url('/account/email'), sprintf('验证码已发送至 %s，%d 分钟内有效。', mask_email($email), $ttl), $old);
         }
 
-        // 本地开发未配置 SMTP 时，直接回显验证码便于联调
+        // 邮件发送失败：调试模式下仅将验证码写入受控日志，不在接口回显，
+        // 避免任何人借此获取他人邮箱的验证码
         if ((bool) Config::get('app.debug', false)) {
-            $this->success(url('/account/email'), '【开发模式】邮件未发送，本次验证码为 ' . $issued['code'] . '。', $old);
+            Logger::warning('邮箱绑定验证码发送失败（调试模式已写入日志）', [
+                'email' => $email,
+                'code'  => (string) $issued['code'],
+            ]);
         }
 
         $this->fail(url('/account/email'), '验证码发送失败，请稍后重试或联系管理员。', $old);

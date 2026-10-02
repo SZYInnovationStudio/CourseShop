@@ -17,7 +17,7 @@ $siteName = Setting::string('site_name', 'CourseShop');
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex,nofollow">
     <title>正在跳转到支付页面 - <?= e($siteName) ?></title>
     <link rel="stylesheet" href="<?= asset('assets/css/app.css') ?>">
