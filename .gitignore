@@ -1,0 +1,33 @@
+# 环境与本地运行时
+.env
+/.dev/
+
+# 安装标记（随环境生成，入库会导致新克隆跳过安装向导）
+/storage/installed.lock
+
+# 公开上传（运行时生成，不应入库）
+/public/uploads/*
+
+# 上传与运行数据
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/cache/*
+!/storage/cache/.gitkeep
+/storage/uploads/videos/*
+!/storage/uploads/videos/.gitkeep
+/storage/uploads/covers/*
+!/storage/uploads/covers/.gitkeep
+/storage/uploads/avatars/*
+!/storage/uploads/avatars/.gitkeep
+/storage/uploads/tickets/*
+!/storage/uploads/tickets/.gitkeep
+/storage/private/*
+!/storage/private/.gitkeep
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+*.pid

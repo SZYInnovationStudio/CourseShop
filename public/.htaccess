@@ -1,0 +1,17 @@
+# Apache 伪静态规则
+# 若使用 Nginx，请参考 README 中的 Nginx 配置片段。
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # 已存在的文件与目录直接返回
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # 其余请求全部交给入口文件
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# 禁止目录列举
+Options -Indexes

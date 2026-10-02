@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="CourseShop">
+    <rect width="64" height="64" rx="14" fill="#4F6F52"/>
+    <path d="M32 15 7 26.5 32 38l25-11.5z" fill="#FFFFFF"/>
+    <path d="M19 32.5V42c0 4.2 5.8 7.5 13 7.5S45 46.2 45 42v-9.5l-13 6z" fill="#FFFFFF" opacity="0.82"/>
+    <path d="M52 29v13" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+</svg>
