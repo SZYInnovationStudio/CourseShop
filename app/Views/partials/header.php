@@ -40,7 +40,7 @@ $activeClass = static function (string $path) use ($current): string {
             <?php if ($siteLogo !== ''): ?>
                 <img class="brand__logo" src="<?= e(url($siteLogo)) ?>" alt="<?= e($siteName) ?>">
             <?php else: ?>
-                <span class="brand__mark"><?= e(mb_substr($siteName, 0, 1)) ?></span>
+                <img class="brand__logo" src="<?= e(favicon_url()) ?>" alt="<?= e($siteName) ?>">
                 <span><?= e($siteName) ?></span>
             <?php endif; ?>
         </a>

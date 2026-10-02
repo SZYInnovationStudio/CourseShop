@@ -297,19 +297,6 @@ pre {
 
 .brand:hover { color: var(--color-text); }
 
-.brand__mark {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-sm);
-    background: var(--color-primary);
-    color: var(--color-primary-contrast);
-    font-size: var(--text-sm);
-    font-weight: 700;
-}
-
 .brand__logo {
     height: 32px;
     width: auto;
