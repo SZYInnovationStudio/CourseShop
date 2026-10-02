@@ -150,9 +150,9 @@ final class AccountController extends Controller
         }
 
         $backUrl         = url('/account?tab=password');
-        $currentPassword = (string) Request::string('current_password');
-        $newPassword     = (string) Request::string('password');
-        $confirmPassword = (string) Request::string('password_confirmation');
+        $currentPassword = Request::raw('current_password');
+        $newPassword     = Request::raw('password');
+        $confirmPassword = Request::raw('password_confirmation');
 
         $validator = $this->validator(Request::all())
             ->required('current_password', '当前密码')
@@ -225,7 +225,7 @@ final class AccountController extends Controller
         }
 
         $backUrl  = url('/account?tab=danger');
-        $password = (string) Request::string('password');
+        $password = Request::raw('password');
 
         $validator = $this->validator(Request::all())
             ->required('password', '密码');
@@ -370,8 +370,14 @@ final class AccountController extends Controller
             $this->success(url('/account?tab=security'), '两步验证已处于开启状态。');
         }
 
-        $secret = Totp::generateSecret();
-        Session::set(self::TWO_FACTOR_SETUP_KEY, $secret);
+        // 复用会话中已有的待确认密钥，避免校验失败重定向回本页时刷新二维码、
+        // 使用户已扫码的密钥失效；仅在用户主动要求重新生成时更换。
+        $secret = (string) Session::get(self::TWO_FACTOR_SETUP_KEY, '');
+
+        if ($secret === '' || Request::bool('regenerate')) {
+            $secret = Totp::generateSecret();
+            Session::set(self::TWO_FACTOR_SETUP_KEY, $secret);
+        }
 
         $account = (string) ($user['email'] ?? '') !== ''
             ? (string) $user['email']
@@ -430,7 +436,7 @@ final class AccountController extends Controller
         }
 
         $backUrl  = url('/account?tab=security');
-        $password = (string) Request::string('password');
+        $password = Request::raw('password');
 
         if ($password === '') {
             $this->fail($backUrl, '请输入当前密码以关闭两步验证。');

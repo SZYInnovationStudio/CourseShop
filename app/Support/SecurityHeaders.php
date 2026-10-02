@@ -23,13 +23,14 @@ final class SecurityHeaders
 {
     /** 默认内容安全策略（在后台未自定义时使用） */
     public const DEFAULT_CSP = "default-src 'self'; "
-        . "script-src 'self'; "
+        // hls.js 按需从 jsDelivr 懒加载（Safari/iOS 走原生 HLS，不加载），故放行该 CDN 脚本源
+        . "script-src 'self' https://cdn.jsdelivr.net; "
         . "style-src 'self' 'unsafe-inline'; "
         . "img-src 'self' data: https:; "
         . "font-src 'self' data:; "
         . "media-src 'self' blob: https:; "
         . "connect-src 'self'; "
-        . "worker-src 'self'; "
+        . "worker-src 'self' blob:; "
         . "manifest-src 'self'; "
         . "object-src 'none'; "
         . "base-uri 'self'; "
@@ -125,11 +126,10 @@ final class SecurityHeaders
     }
 
     /**
-     * 当前请求是否走 HTTPS（兼容反向代理）
+     * 当前请求是否走 HTTPS（兼容可信反向代理）
      */
     private static function isSecure(): bool
     {
-        return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-            || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+        return Request::isSecure();
     }
 }

@@ -22,6 +22,13 @@ final class Transcoder
     private static bool $probed = false;
 
     /**
+     * 心跳回调的最小间隔（秒）
+     *
+     * 转码过程中用于周期性地向队列续租，避免长任务因预留超时被重复领取。
+     */
+    private const HEARTBEAT_INTERVAL = 30;
+
+    /**
      * 定位可用的 ffmpeg 可执行文件（找不到返回 null）
      *
      * 优先级：后台设置 ffmpeg_path → .env VIDEO_FFMPEG_PATH → PATH 中的 ffmpeg
@@ -74,11 +81,27 @@ final class Transcoder
     }
 
     /**
-     * HLS 播放列表的存储键
+     * HLS 播放列表的存储键（文件名内嵌转码任务 ID）
      */
-    public static function outputKey(int $chapterId): string
+    public static function outputKey(int $chapterId, int $transcodeId): string
     {
-        return 'hls/chapter-' . $chapterId . '/index.m3u8';
+        return 'hls/chapter-' . $chapterId . '/' . self::playlistName($transcodeId);
+    }
+
+    /**
+     * HLS 播放列表文件名：同一章节多次转码时互不覆盖
+     */
+    private static function playlistName(int $transcodeId): string
+    {
+        return 'index-' . $transcodeId . '.m3u8';
+    }
+
+    /**
+     * ts 分片文件名前缀（同样内嵌转码任务 ID）
+     */
+    private static function segmentPrefix(int $transcodeId): string
+    {
+        return 'seg-' . $transcodeId . '-';
     }
 
     /**
@@ -92,17 +115,21 @@ final class Transcoder
     /**
      * 转码为 HLS（VOD 播放列表 + ts 分片）
      *
+     * @param int           $transcodeId  转码任务 ID，用于隔离同章节多次转码的产物
      * @param int           $totalSeconds 源视频总时长，用于估算进度（0 表示未知）
      * @param callable|null $onProgress   进度回调，参数为 0-100 的整数
+     * @param callable|null $onHeartbeat  心跳回调，转码过程中周期性触发（长任务续租用）
      * @return string HLS 播放列表存储键
      *
      * @throws RuntimeException 转码失败
      */
     public static function transcodeToHls(
         int $chapterId,
+        int $transcodeId,
         string $sourceFile,
         int $totalSeconds = 0,
-        ?callable $onProgress = null
+        ?callable $onProgress = null,
+        ?callable $onHeartbeat = null
     ): string {
         $binary = self::binary();
 
@@ -115,11 +142,11 @@ final class Transcoder
         }
 
         $directory = self::outputDirectory($chapterId);
-        self::resetDirectory($directory);
+        self::prepareDirectory($directory, $transcodeId);
 
-        $playlist       = $directory . '/index.m3u8';
-        $segmentPattern = $directory . '/seg-%03d.ts';
-        $logFile        = $directory . '/ffmpeg.log';
+        $playlist       = $directory . '/' . self::playlistName($transcodeId);
+        $segmentPattern = $directory . '/' . self::segmentPrefix($transcodeId) . '%03d.ts';
+        $logFile        = $directory . '/ffmpeg-' . $transcodeId . '.log';
 
         // 使用数组形式传参，由 PHP 负责转义，避免命令注入
         $command = [
@@ -159,6 +186,9 @@ final class Transcoder
         $buffer   = '';
         $exitCode = null;
 
+        // 心跳计时：即使源视频时长未知（无进度输出），也能周期性续租
+        $lastHeartbeat = time();
+
         while (true) {
             $chunk = fread($pipes[1], 8192);
 
@@ -177,6 +207,11 @@ final class Transcoder
             if (!$status['running']) {
                 $exitCode = (int) $status['exitcode'];
                 break;
+            }
+
+            if ($onHeartbeat !== null && time() - $lastHeartbeat >= self::HEARTBEAT_INTERVAL) {
+                $lastHeartbeat = time();
+                $onHeartbeat();
             }
 
             // 避免空转占满 CPU
@@ -216,7 +251,7 @@ final class Transcoder
             $onProgress(100);
         }
 
-        return self::outputKey($chapterId);
+        return self::outputKey($chapterId, $transcodeId);
     }
 
     /**
@@ -253,22 +288,31 @@ final class Transcoder
     }
 
     /**
-     * 清空并重建输出目录（重新转码时删除旧分片）
+     * 准备输出目录，并仅清理「本任务」的旧产物
+     *
+     * 播放列表与分片文件名均内嵌转码任务 ID，因此同一章节的多次转码可安全共存：
+     * 这里只删除本任务的残留文件，不会误删其它任务（含正在进行的转码）的产物。
      */
-    private static function resetDirectory(string $directory): void
+    private static function prepareDirectory(string $directory, int $transcodeId): void
     {
-        if (is_dir($directory)) {
-            foreach (glob($directory . '/*') ?: [] as $file) {
-                if (is_file($file)) {
-                    @unlink($file);
-                }
-            }
-
-            return;
+        if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+            throw new RuntimeException('无法创建转码输出目录，请检查写入权限。');
         }
 
-        if (!mkdir($directory, 0755, true) && !is_dir($directory)) {
-            throw new RuntimeException('无法创建转码输出目录，请检查写入权限。');
+        // 清理同任务的旧分片
+        $prefix = self::segmentPrefix($transcodeId);
+
+        foreach (glob($directory . '/' . $prefix . '*.ts') ?: [] as $file) {
+            if (is_file($file)) {
+                @unlink($file);
+            }
+        }
+
+        // 清理同任务的旧播放列表
+        $playlist = $directory . '/' . self::playlistName($transcodeId);
+
+        if (is_file($playlist)) {
+            @unlink($playlist);
         }
     }
 

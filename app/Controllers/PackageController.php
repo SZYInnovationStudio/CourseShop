@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Models\Enrollment;
 use App\Models\Package;
 use App\Support\Auth;
+use App\Support\Payment\PaymentManager;
 use App\Support\Request;
 
 /**
@@ -71,14 +72,19 @@ final class PackageController extends Controller
 
         $hasAll = count($ownedIds) === count($courses);
 
+        $gateway = PaymentManager::gateway();
+
         $this->view('packages.show', [
-            'pageTitle'    => (string) $package['title'],
-            'bodyClass'    => 'page-package',
-            'package'      => $package,
-            'courses'      => $courses,
-            'ownedIds'     => $ownedIds,
-            'hasAll'       => $hasAll,
-            'coursesTotal' => $coursesTotal,
+            'pageTitle'      => (string) $package['title'],
+            'bodyClass'      => 'page-package',
+            'package'        => $package,
+            'courses'        => $courses,
+            'ownedIds'       => $ownedIds,
+            'hasAll'         => $hasAll,
+            'coursesTotal'   => $coursesTotal,
+            // 按当前实际可用的支付通道展示，避免与订单页提示不一致（CS-26）
+            'paymentMethods' => $gateway->methods(),
+            'paymentEnabled' => $gateway->enabled(),
         ]);
     }
 }

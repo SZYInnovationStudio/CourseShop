@@ -238,8 +238,10 @@ final class OrderController extends AdminController
 
         $status = (string) $order['status'];
 
-        // 网关已支付但本地未同步 → 补单开通
-        if ($gatewayStatus === 'paid' && in_array($status, [Order::STATUS_PENDING, Order::STATUS_PAYING], true)) {
+        // 网关已支付但本地未同步 → 补单开通（含被超时关闭但实际已收款的订单，CS-05）
+        if ($gatewayStatus === 'paid'
+            && in_array($status, [Order::STATUS_PENDING, Order::STATUS_PAYING, Order::STATUS_CLOSED], true)
+        ) {
             $changed = Order::markPaid(
                 $orderId,
                 (string) ($result['trade_no'] ?? ''),

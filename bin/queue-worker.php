@@ -132,7 +132,8 @@ while ($running) {
                     $log('任务 #' . $jobId . ' 类型未知（' . $type . '），已标记为永久失败。');
                 } else {
                     try {
-                        $handler($payload);
+                        // 传入任务 ID：长任务（如视频转码）可用 Queue::renew() 续租
+                        $handler($payload, $jobId);
                         $updateQueue(static fn () => Queue::complete($jobId), '完成任务 #' . $jobId);
                         $processed++;
 

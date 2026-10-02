@@ -84,6 +84,25 @@ final class Queue
     }
 
     /**
+     * 续租（心跳）：刷新任务预留时间
+     *
+     * 视频转码等长任务应周期性调用，否则预留超过 RESERVATION_TIMEOUT 后
+     * 会被其它消费者重复领取同一任务。
+     */
+    public static function renew(int $id): void
+    {
+        if ($id <= 0) {
+            return;
+        }
+
+        Database::execute(
+            'UPDATE `jobs` SET `reserved_at` = NOW(), `updated_at` = NOW()
+              WHERE `id` = ? AND `reserved_at` IS NOT NULL AND `failed_at` IS NULL',
+            [$id]
+        );
+    }
+
+    /**
      * 任务执行成功，出队
      */
     public static function complete(int $id): void

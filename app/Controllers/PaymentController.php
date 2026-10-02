@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Models\Order;
 use App\Models\PaymentLog;
+use App\Support\Logger;
 use App\Support\OrderNotifier;
 use App\Support\Payment\PaymentManager;
 use App\Support\Request;
@@ -20,6 +21,11 @@ use App\Support\Response;
 final class PaymentController extends Controller
 {
     /**
+     * 回调载荷大小上限（字节）：超出则只记录摘要，避免匿名请求用超大 body 放大日志（CS-11）
+     */
+    private const MAX_PAYLOAD_BYTES = 20000;
+
+    /**
      * 易支付异步通知
      *
      * 无论成功与否都必须输出纯文本：处理成功返回 success，其余返回 fail
@@ -31,8 +37,6 @@ final class PaymentController extends Controller
 
         $orderNo = (string) ($params['out_trade_no'] ?? '');
         $raw     = (string) json_encode($params, JSON_UNESCAPED_UNICODE);
-
-        PaymentLog::record(null, $orderNo, 'notify', 'recv', $raw, Request::ip());
 
         $gateway = PaymentManager::gateway();
 
@@ -46,10 +50,25 @@ final class PaymentController extends Controller
             Response::text('fail');
         }
 
+        if (strlen($raw) > self::MAX_PAYLOAD_BYTES) {
+            PaymentLog::record(
+                null,
+                $orderNo,
+                'notify',
+                'fail',
+                sprintf('通知载荷过大（%d 字节），已忽略', strlen($raw)),
+                Request::ip()
+            );
+            Response::text('fail');
+        }
+
         if ($orderNo === '' || !$gateway->verifySign($params)) {
             PaymentLog::record(null, $orderNo, 'notify', 'fail', '签名校验失败', Request::ip());
             Response::text('fail');
         }
+
+        // 仅在签名通过后记录完整原文，避免未验证数据污染日志（CS-11）
+        PaymentLog::record(null, $orderNo, 'notify', 'recv', $raw, Request::ip());
 
         $order = Order::findByNo($orderNo);
 
@@ -85,7 +104,7 @@ final class PaymentController extends Controller
             Response::text('fail');
         }
 
-        // 幂等：重复通知只会成功开通一次
+        // 幂等：重复通知只会成功开通一次；已关闭订单也会按网关实收补单开通
         $changed = Order::markPaid(
             (int) $order['id'],
             isset($params['trade_no']) ? (string) $params['trade_no'] : null,
@@ -93,10 +112,33 @@ final class PaymentController extends Controller
             $raw
         );
 
-        PaymentLog::record((int) $order['id'], $orderNo, 'notify', 'success', $changed ? '支付成功，已开通' : '重复通知，已忽略', Request::ip());
-
         if ($changed) {
+            PaymentLog::record((int) $order['id'], $orderNo, 'notify', 'success', '支付成功，已开通', Request::ip());
             OrderNotifier::notifyPaid($order);
+
+            Response::text('success');
+        }
+
+        // 未发生状态流转：区分「真正的重复通知」与「状态冲突」（如订单已退款）（CS-05）
+        $current       = Order::findById((int) $order['id']);
+        $currentStatus = (string) ($current['status'] ?? '');
+
+        if (in_array($currentStatus, [Order::STATUS_PAID, Order::STATUS_COMPLETED], true)) {
+            PaymentLog::record((int) $order['id'], $orderNo, 'notify', 'success', '重复通知，已忽略', Request::ip());
+        } else {
+            // 网关显示已收款但本地状态无法流转：记录异常并告警，供人工核查（仍回复 success 停止网关重试）
+            Logger::warning(
+                '支付通知状态冲突：订单号 ' . $orderNo . '，网关显示已收款，本地状态 '
+                . $currentStatus . '，通知金额 ' . $notifiedAmount . ' 分'
+            );
+            PaymentLog::record(
+                (int) $order['id'],
+                $orderNo,
+                'notify',
+                'fail',
+                '状态冲突：网关已收款，本地订单状态为 ' . Order::label($currentStatus),
+                Request::ip()
+            );
         }
 
         Response::text('success');
@@ -110,6 +152,11 @@ final class PaymentController extends Controller
         $params  = array_merge($_GET, $_POST);
         $gateway = PaymentManager::gateway();
         $raw     = (string) json_encode($params, JSON_UNESCAPED_UNICODE);
+
+        // 回跳为匿名可访问，限制待记录原文的大小，避免日志被放大（CS-11）
+        if (strlen($raw) > self::MAX_PAYLOAD_BYTES) {
+            $raw = mb_strcut($raw, 0, self::MAX_PAYLOAD_BYTES, 'UTF-8') . '…（已截断）';
+        }
 
         $order = Order::findByNo($orderNo);
 

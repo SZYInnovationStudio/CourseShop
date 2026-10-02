@@ -199,7 +199,8 @@ final class Course
     /**
      * 当前用户对该课程可试看的章节 ID 列表
      *
-     * 已购用户无需试看；课程未开启试看时返回空数组。
+     * 已购用户无需试看；章节级「试看」标记始终生效，不受课程开关影响，
+     * 课程级「允许试看」只额外放行前 N 节。
      *
      * @param  array<string, mixed>            $course
      * @param  array<int, array<string, mixed>> $chapters
@@ -207,11 +208,28 @@ final class Course
      */
     public static function previewIdsFor(array $course, array $chapters, bool $hasAccess): array
     {
-        if ($hasAccess || (int) ($course['preview_enabled'] ?? 0) !== 1) {
+        if ($hasAccess) {
             return [];
         }
 
-        return self::previewChapterIds($chapters, (int) ($course['preview_chapter_count'] ?? 0));
+        // 章节级「试看」标记始终生效
+        $ids = [];
+
+        foreach ($chapters as $chapter) {
+            if ((int) ($chapter['is_preview'] ?? 0) === 1) {
+                $ids[] = (int) $chapter['id'];
+            }
+        }
+
+        // 课程级「允许试看」开启时，前 N 节同样可试看
+        if ((int) ($course['preview_enabled'] ?? 0) === 1) {
+            $ids = array_merge(
+                $ids,
+                self::previewChapterIds($chapters, (int) ($course['preview_chapter_count'] ?? 0))
+            );
+        }
+
+        return array_values(array_unique($ids));
     }
 
     /**
@@ -411,6 +429,48 @@ final class Course
         }
 
         return $affected;
+    }
+
+    /**
+     * 获取因存在有效授权或未结清订单而不能删除的课程 ID（CS-09）
+     *
+     * 课程一旦被软删除，Course::find() 便查不到，已购学员会立即失去学习权限。
+     * 因此对「仍有有效授权」或「存在待支付/支付中订单」的课程禁止删除，
+     * 引导管理员先下架（下架不影响已购学员）。
+     *
+     * @param  array<int, int> $ids
+     * @return array<int, int>
+     */
+    public static function deleteBlockedIds(array $ids): array
+    {
+        $ids = Ids::normalize($ids);
+        if ($ids === []) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+        // 仍有有效授权的课程
+        $enrolled = Database::select(
+            "SELECT DISTINCT `course_id` FROM `enrollments`
+              WHERE `course_id` IN ({$placeholders})
+                AND `status` = 1 AND `deleted_at` IS NULL
+                AND (`expire_at` IS NULL OR `expire_at` > NOW())",
+            $ids
+        );
+
+        // 存在未结清订单（待支付 / 支付中）的课程
+        $unsettled = Database::select(
+            "SELECT DISTINCT `course_id` FROM `orders`
+              WHERE `course_id` IN ({$placeholders})
+                AND `status` IN (?, ?) AND `deleted_at` IS NULL",
+            array_merge($ids, [Order::STATUS_PENDING, Order::STATUS_PAYING])
+        );
+
+        return array_values(array_unique(array_map(
+            static fn (array $row): int => (int) $row['course_id'],
+            array_merge($enrolled, $unsettled)
+        )));
     }
 
     /**

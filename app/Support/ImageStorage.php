@@ -83,16 +83,16 @@ final class ImageStorage
     /**
      * 处理某个图片字段的文件上传
      *
-     * 未选择文件时返回 null（由调用方沿用文本框地址）；选择文件时保存新图，
-     * 并在旧值为本系统管理的图片时将其删除。
+     * 未选择文件时返回 null（由调用方沿用文本框地址）；选择文件时保存新图。
+     * 被替换的旧图**不在此处删除**：调用方应在数据库写入成功后再调用
+     * {@see self::delete()}，否则一旦保存失败，记录会指向已被删除的旧图（CS-20）。
      *
-     * @param  string      $fileKey  $_FILES 中的字段名（如 cover_file）
-     * @param  string      $subdir   存储子目录（logo / covers）
-     * @param  string|null $oldValue 旧的图片值（根相对路径或外链）
+     * @param  string $fileKey $_FILES 中的字段名（如 cover_file）
+     * @param  string $subdir  存储子目录（logo / covers）
      * @return string|null 新图片的根相对路径；未上传时为 null
      * @throws RuntimeException 校验或落盘失败
      */
-    public static function saveUploaded(string $fileKey, string $subdir, ?string $oldValue = null): ?string
+    public static function saveUploaded(string $fileKey, string $subdir): ?string
     {
         $file = Request::file($fileKey);
 
@@ -100,13 +100,7 @@ final class ImageStorage
             return null;
         }
 
-        $path = self::store($file, $subdir);
-
-        if ($oldValue !== null && $oldValue !== '') {
-            self::delete($oldValue);
-        }
-
-        return $path;
+        return self::store($file, $subdir);
     }
 
     /**

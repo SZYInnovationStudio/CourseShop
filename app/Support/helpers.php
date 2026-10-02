@@ -145,6 +145,47 @@ if (!function_exists('format_money')) {
     }
 }
 
+if (!function_exists('yuan_to_cents')) {
+    /**
+     * 元 -> 分（严格解析，失败返回 null）
+     *
+     * 仅接受十进制金额字符串：可选正负号 + 整数部分 + 最多两位小数，
+     * 例如 "12"、"12.5"、"12.50"、"0"。空串按 0 处理。
+     * "1e3"、"abc"、"12.345"、超出整数范围的超大数值一律返回 null，
+     * 交由调用方提示错误，避免把非法输入静默当作免费（0）。
+     *
+     * 采用字符串拼接而非浮点运算，杜绝精度误差与溢出导致的金额错误。
+     */
+    function yuan_to_cents(string $raw): ?int
+    {
+        $raw = trim($raw);
+
+        if ($raw === '') {
+            return 0;
+        }
+
+        if (preg_match('/^([+-]?)(\d+)(?:\.(\d{1,2}))?$/', $raw, $matches) !== 1) {
+            return null;
+        }
+
+        $integerPart = ltrim($matches[2], '0');
+        $fraction    = str_pad($matches[3] ?? '', 2, '0');
+
+        $cents = ($integerPart === '' ? '0' : $integerPart) . $fraction;
+        $cents = ltrim($cents, '0');
+        $cents = $cents === '' ? '0' : $cents;
+
+        if ($matches[1] === '-') {
+            $cents = '-' . $cents;
+        }
+
+        // 超出平台整数范围（金额过大）时判为非法
+        $value = filter_var($cents, FILTER_VALIDATE_INT);
+
+        return $value === false ? null : $value;
+    }
+}
+
 if (!function_exists('price_html')) {
     /**
      * 分 -> 带符号价格，0 显示「免费」

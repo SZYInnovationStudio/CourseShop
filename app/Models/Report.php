@@ -9,9 +9,9 @@ use App\Support\Database;
 /**
  * 经营报表
  *
- * 统计口径：
- * - 营收：已支付 / 已完成订单，按「支付时间」归集
- * - 退款：已退款订单，按「退款时间」归集
+ * 统计口径（以「曾收款」为准，避免订单被软删除或状态流转后营收凭空消失）：
+ * - 营收：凡 paid_at 落在区间的订单（不论当前状态与是否软删除）按支付时间归集
+ * - 退款：凡 refunded_at 落在区间的订单，按退款时间归集
  * - 订单数：按下单时间归集
  * 金额一律为「分」（int）。
  */
@@ -42,14 +42,14 @@ final class Report
 
         $paidOrders = (int) Database::scalar(
             'SELECT COUNT(*) FROM `orders`
-              WHERE `deleted_at` IS NULL AND `status` IN (?, ?) AND `paid_at` >= ? AND `paid_at` <= ?',
-            [Order::STATUS_PAID, Order::STATUS_COMPLETED, $start, $end]
+              WHERE `paid_at` >= ? AND `paid_at` <= ?',
+            [$start, $end]
         );
 
         $revenue = (int) Database::scalar(
             'SELECT COALESCE(SUM(`amount`), 0) FROM `orders`
-              WHERE `deleted_at` IS NULL AND `status` IN (?, ?) AND `paid_at` >= ? AND `paid_at` <= ?',
-            [Order::STATUS_PAID, Order::STATUS_COMPLETED, $start, $end]
+              WHERE `paid_at` >= ? AND `paid_at` <= ?',
+            [$start, $end]
         );
 
         $createdOrders = (int) Database::scalar(
@@ -60,14 +60,14 @@ final class Report
 
         $refundOrders = (int) Database::scalar(
             'SELECT COUNT(*) FROM `orders`
-              WHERE `deleted_at` IS NULL AND `status` = ? AND `refunded_at` >= ? AND `refunded_at` <= ?',
-            [Order::STATUS_REFUNDED, $start, $end]
+              WHERE `refunded_at` >= ? AND `refunded_at` <= ?',
+            [$start, $end]
         );
 
         $refundAmount = (int) Database::scalar(
             'SELECT COALESCE(SUM(`refund_amount`), 0) FROM `orders`
-              WHERE `deleted_at` IS NULL AND `status` = ? AND `refunded_at` >= ? AND `refunded_at` <= ?',
-            [Order::STATUS_REFUNDED, $start, $end]
+              WHERE `refunded_at` >= ? AND `refunded_at` <= ?',
+            [$start, $end]
         );
 
         $newUsers = (int) Database::scalar(
@@ -77,7 +77,8 @@ final class Report
 
         return [
             'revenue'        => $revenue,
-            'net_revenue'    => max(0, $revenue - $refundAmount),
+            // 允许为负：退款可能多于区间营收（例如退款集中在某一天），截负会掩盖真实经营状况
+            'net_revenue'    => $revenue - $refundAmount,
             'paid_orders'    => $paidOrders,
             'created_orders' => $createdOrders,
             'refund_orders'  => $refundOrders,
@@ -100,9 +101,9 @@ final class Report
         $rows = Database::select(
             'SELECT DATE(`paid_at`) AS `day`, COUNT(*) AS `orders`, COALESCE(SUM(`amount`), 0) AS `revenue`
                FROM `orders`
-              WHERE `deleted_at` IS NULL AND `status` IN (?, ?) AND `paid_at` >= ? AND `paid_at` <= ?
+              WHERE `paid_at` >= ? AND `paid_at` <= ?
               GROUP BY DATE(`paid_at`)',
-            [Order::STATUS_PAID, Order::STATUS_COMPLETED, $start, $end]
+            [$start, $end]
         );
 
         $map = [];
@@ -145,9 +146,9 @@ final class Report
         $rows = Database::select(
             'SELECT DATE(`refunded_at`) AS `day`, COUNT(*) AS `orders`, COALESCE(SUM(`refund_amount`), 0) AS `amount`
                FROM `orders`
-              WHERE `deleted_at` IS NULL AND `status` = ? AND `refunded_at` >= ? AND `refunded_at` <= ?
+              WHERE `refunded_at` >= ? AND `refunded_at` <= ?
               GROUP BY DATE(`refunded_at`)',
-            [Order::STATUS_REFUNDED, $start, $end]
+            [$start, $end]
         );
 
         $map = [];
@@ -188,15 +189,14 @@ final class Report
         [$start, $end] = self::bounds($from, $to);
 
         return Database::select(
-            'SELECT o.`course_id`, MAX(o.`course_title`) AS `course_title`,
+            'SELECT o.`course_id`, o.`package_id`, MAX(o.`course_title`) AS `course_title`,
                     COUNT(*) AS `orders`, COALESCE(SUM(o.`amount`), 0) AS `revenue`
                FROM `orders` o
-              WHERE o.`deleted_at` IS NULL AND o.`status` IN (?, ?)
-                AND o.`paid_at` >= ? AND o.`paid_at` <= ?
-              GROUP BY o.`course_id`
+              WHERE o.`paid_at` >= ? AND o.`paid_at` <= ?
+              GROUP BY o.`course_id`, o.`package_id`
               ORDER BY `revenue` DESC, `orders` DESC
               LIMIT ' . max(1, $limit),
-            [Order::STATUS_PAID, Order::STATUS_COMPLETED, $start, $end]
+            [$start, $end]
         );
     }
 
@@ -214,12 +214,11 @@ final class Report
                     COUNT(*) AS `orders`, COALESCE(SUM(o.`amount`), 0) AS `revenue`
                FROM `orders` o
                LEFT JOIN `users` u ON u.`id` = o.`user_id`
-              WHERE o.`deleted_at` IS NULL AND o.`status` IN (?, ?)
-                AND o.`paid_at` >= ? AND o.`paid_at` <= ?
+              WHERE o.`paid_at` >= ? AND o.`paid_at` <= ?
               GROUP BY o.`user_id`, u.`username`, u.`nickname`
               ORDER BY `revenue` DESC, `orders` DESC
               LIMIT ' . max(1, $limit),
-            [Order::STATUS_PAID, Order::STATUS_COMPLETED, $start, $end]
+            [$start, $end]
         );
     }
 
@@ -235,10 +234,10 @@ final class Report
         return Database::select(
             'SELECT `pay_type`, COUNT(*) AS `orders`, COALESCE(SUM(`amount`), 0) AS `revenue`
                FROM `orders`
-              WHERE `deleted_at` IS NULL AND `status` IN (?, ?) AND `paid_at` >= ? AND `paid_at` <= ?
+              WHERE `paid_at` >= ? AND `paid_at` <= ?
               GROUP BY `pay_type`
               ORDER BY `revenue` DESC',
-            [Order::STATUS_PAID, Order::STATUS_COMPLETED, $start, $end]
+            [$start, $end]
         );
     }
 

@@ -70,7 +70,9 @@ final class SettingsController extends AdminController
 
         $this->validateGroup($fields, $backUrl);
 
-        $values = [];
+        $values   = [];
+        $replaced = [];
+
         foreach ($fields as $field) {
             $key  = (string) $field['key'];
             $type = (string) ($field['type'] ?? 'text');
@@ -80,18 +82,21 @@ final class SettingsController extends AdminController
                 continue;
             }
 
-            // 图片字段：上传优先于地址，成功后替换旧图
+            // 图片字段：上传优先于地址；被替换的旧图在设置写入成功后再清理（CS-20）
             if ($type === 'image') {
                 $current = Setting::string($key, '');
 
                 try {
                     $uploaded = ImageStorage::saveUploaded(
                         $key . '_file',
-                        (string) ($field['subdir'] ?? 'covers'),
-                        $current
+                        (string) ($field['subdir'] ?? 'covers')
                     );
                 } catch (RuntimeException $e) {
                     $this->fail($backUrl, $e->getMessage(), Request::all());
+                }
+
+                if ($uploaded !== null) {
+                    $replaced[] = $current;
                 }
 
                 $values[$key] = $uploaded ?? Request::string($key);
@@ -110,6 +115,11 @@ final class SettingsController extends AdminController
 
         Setting::setMany($values);
         Setting::flush();
+
+        // 设置已落库，此时才删除被替换的旧图（CS-20）
+        foreach ($replaced as $old) {
+            ImageStorage::delete($old);
+        }
 
         Log::recordOperation('settings.update', 'settings', null, [
             'group'  => $group,

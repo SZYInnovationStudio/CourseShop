@@ -22,8 +22,7 @@ final class Session
 
         session_name((string) Config::get('session.name', 'courseshop_session'));
 
-        $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-            || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+        $secure = Request::isSecure();
 
         session_set_cookie_params([
             'lifetime' => (int) Config::get('session.lifetime', 7200),

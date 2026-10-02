@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Support\Captcha;
 use App\Support\Config;
 use App\Support\Csrf;
+use App\Support\Logger;
 use App\Support\Mailer;
 use App\Support\Request;
 use App\Support\Setting;
@@ -82,10 +83,13 @@ final class PasswordController extends Controller
             $this->success($this->resetUrl($email), $this->sentMessage($email, $ttl));
         }
 
-        // 本地开发未配置 SMTP 时，直接回显验证码便于联调
+        // 邮件发送失败：调试模式下仅把验证码写入受控日志（不得在公开接口回显，
+        // 否则任何人可借此重置他人密码），开发联调请从 storage/logs/ 取码。
         if ((bool) Config::get('app.debug', false)) {
-            User::logLogin((int) $user['id'], (string) $user['username'], 'success', '找回密码验证码已下发（开发模式回显）');
-            $this->success($this->resetUrl($email), '【开发模式】邮件未发送，本次验证码为 ' . $issued['code'] . '。');
+            Logger::warning('找回密码验证码邮件发送失败（调试模式已写入日志）', [
+                'email' => $email,
+                'code'  => (string) $issued['code'],
+            ]);
         }
 
         $this->fail($back, '验证码发送失败，请稍后重试或联系管理员。', $old);
@@ -113,8 +117,8 @@ final class PasswordController extends Controller
 
         $email           = strtolower(Request::string('email'));
         $code            = trim(Request::string('code'));
-        $password        = (string) Request::string('password');
-        $confirmPassword = (string) Request::string('password_confirm');
+        $password        = Request::raw('password');
+        $confirmPassword = Request::raw('password_confirm');
         $back            = url('/password/reset?email=' . rawurlencode($email));
         $old             = ['email' => $email];
 

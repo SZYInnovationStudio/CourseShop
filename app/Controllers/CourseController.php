@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Support\Auth;
+use App\Support\Payment\PaymentManager;
 use App\Support\Request;
 
 /**
@@ -81,15 +82,20 @@ final class CourseController extends Controller
         $hasAccess = Enrollment::hasAccess($userId, $courseId);
         $previewIds = Course::previewIdsFor($course, $chapters, $hasAccess);
 
+        $gateway = PaymentManager::gateway();
+
         $this->view('courses.show', [
-            'pageTitle'  => (string) $course['title'],
-            'bodyClass'  => 'page-course',
-            'course'     => $course,
-            'chapters'   => $chapters,
-            'tags'       => $tags,
-            'related'    => $related,
-            'hasAccess'  => $hasAccess,
-            'previewIds' => $previewIds,
+            'pageTitle'      => (string) $course['title'],
+            'bodyClass'      => 'page-course',
+            'course'         => $course,
+            'chapters'       => $chapters,
+            'tags'           => $tags,
+            'related'        => $related,
+            'hasAccess'      => $hasAccess,
+            'previewIds'     => $previewIds,
+            // 按当前实际可用的支付通道展示，避免与订单页提示不一致（CS-26）
+            'paymentMethods' => $gateway->methods(),
+            'paymentEnabled' => $gateway->enabled(),
         ]);
     }
 }

@@ -82,7 +82,7 @@ final class VideoTranscode
     }
 
     /**
-     * 已转码完成、可直接播放的 HLS 存储键（index.m3u8）
+     * 已转码完成、可直接播放的 HLS 存储键（形如 hls/chapter-12/index-5.m3u8）
      */
     public static function readyOutput(int $chapterId): ?string
     {
@@ -100,6 +100,19 @@ final class VideoTranscode
         $output = is_string($output) ? trim($output) : '';
 
         return $output !== '' ? $output : null;
+    }
+
+    /**
+     * 已就绪的 HLS 播放列表文件名（形如 index-5.m3u8）
+     *
+     * 播放列表文件名内嵌转码任务 ID，用于同一章节多次转码时互不覆盖，
+     * 后台渲染播放器地址时必须以实际文件名签发，而不能硬编码 index.m3u8。
+     */
+    public static function readyPlaylistFile(int $chapterId): ?string
+    {
+        $output = self::readyOutput($chapterId);
+
+        return $output !== null ? basename($output) : null;
     }
 
     /**
@@ -174,20 +187,22 @@ final class VideoTranscode
     {
         $progress = max(0, min(99, $progress));
 
+        // 仅允许「转码中」的任务更新进度，避免已被作废的旧任务写回覆盖新任务
         Database::execute(
             'UPDATE `video_transcodes` SET `progress` = ?, `updated_at` = NOW()
-              WHERE `id` = ? AND `deleted_at` IS NULL',
-            [$progress, $id]
+              WHERE `id` = ? AND `status` = ? AND `deleted_at` IS NULL',
+            [$progress, $id, self::STATUS_RUNNING]
         );
     }
 
     public static function markSuccess(int $id, string $outputPath): void
     {
+        // 仅允许「转码中」的任务发布产物，防止被 supersedeActive() 作废的旧任务覆盖发布
         Database::execute(
             'UPDATE `video_transcodes`
                 SET `status` = ?, `progress` = 100, `output_path` = ?, `error` = NULL, `updated_at` = NOW()
-              WHERE `id` = ? AND `deleted_at` IS NULL',
-            [self::STATUS_SUCCESS, $outputPath, $id]
+              WHERE `id` = ? AND `status` = ? AND `deleted_at` IS NULL',
+            [self::STATUS_SUCCESS, $outputPath, $id, self::STATUS_RUNNING]
         );
     }
 

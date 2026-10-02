@@ -14,6 +14,7 @@ use App\Support\AccountNotifier;
 use App\Support\Auth;
 use App\Support\Csrf;
 use App\Support\Csv;
+use App\Support\Permission;
 use App\Support\Request;
 
 /**
@@ -105,7 +106,7 @@ final class UserController extends AdminController
         $username = Request::string('username');
         $nickname = Request::string('nickname');
         $email    = strtolower(Request::string('email'));
-        $password = (string) Request::input('password', '');
+        $password = Request::raw('password');
         $isAdmin  = Request::string('is_admin', '0');
 
         $old = [
@@ -652,12 +653,14 @@ final class UserController extends AdminController
     /**
      * 目标用户是否为管理员
      *
+     * 与 Permission::isAdminUser 口径保持一致（is_admin 标记 / 主角色 / RBAC 后台角色），
+     * 避免仅通过 RBAC 获得后台角色的管理员绕过「仅超级管理员可管理管理员」的保护。
+     *
      * @param array<string, mixed> $user
      */
     private static function isAdminUser(array $user): bool
     {
-        return (int) ($user['is_admin'] ?? 0) === 1
-            || in_array((string) ($user['role'] ?? ''), ['admin', 'super_admin'], true);
+        return Permission::isAdminUser($user);
     }
 
     /**

@@ -10,6 +10,7 @@ use App\Models\PaymentLog;
 use App\Models\Refund;
 use App\Support\Auth;
 use App\Support\Csrf;
+use App\Support\Logger;
 use App\Support\OrderNotifier;
 use App\Support\Payment\PaymentManager;
 use App\Support\Request;
@@ -98,7 +99,8 @@ final class RefundController extends AdminController
         // 仅支持全额退款：退款金额取订单实付金额（本系统不提供部分退款）
         $amount = max(0, (int) $order['amount']);
 
-        $refundId = Refund::create(
+        // 原子创建：同一订单同一时刻只允许一个待处理退款单，防止并发重复发起（CS-10）
+        $refundId = Refund::createIfIdle(
             $id,
             (string) $order['order_no'],
             (int) $order['user_id'],
@@ -106,6 +108,10 @@ final class RefundController extends AdminController
             $reason,
             (int) (Auth::id() ?? 0)
         );
+
+        if ($refundId === null) {
+            $this->fail($backUrl, '该订单已存在待处理的退款单，请勿重复发起。');
+        }
 
         Log::recordOperation('refund.create', 'refund', $refundId, [
             'order_no' => (string) $order['order_no'],
@@ -123,8 +129,17 @@ final class RefundController extends AdminController
         Csrf::check();
 
         $refundId = (int) $id;
-        $refund   = $this->requirePendingRefund($refundId);
         $backUrl  = url('/admin/refunds');
+
+        $refund = Refund::find($refundId);
+
+        if ($refund === null) {
+            $this->fail($backUrl, '退款单不存在或已被删除。');
+        }
+
+        if (!in_array((string) $refund['status'], Refund::ACTIVE_STATUSES, true)) {
+            $this->fail($backUrl, '该退款单已处理，无法重复操作。');
+        }
 
         $order = Order::findById((int) $refund['order_id']);
 
@@ -138,13 +153,28 @@ final class RefundController extends AdminController
             $this->fail($backUrl, '支付通道未启用或未配置，无法执行退款。');
         }
 
+        $operator = (int) (Auth::id() ?? 0);
+
+        // 原子抢占处理权：并发审批时只有一个请求能进入网关调用，避免重复退款（CS-10）
+        if (!Refund::claim($refundId, $operator)) {
+            $this->fail($backUrl, '该退款单正在处理中或已被其他管理员处理，请刷新后重试。');
+        }
+
         $orderNo = (string) $order['order_no'];
         $amount  = (int) $refund['amount'];
 
         try {
             $result = $gateway->refund($orderNo, $amount, (string) ($refund['reason'] ?? ''));
         } catch (Throwable $e) {
+            // 释放处理权回到待审核，允许核实网关状态后重试；同时告警对账（CS-10）
+            Refund::release($refundId);
+
             PaymentLog::record((int) $order['id'], $orderNo, 'refund', 'fail', $e->getMessage(), Request::ip());
+
+            Logger::error(
+                '退款网关调用异常，已释放退款单待重试：退款单 ' . (string) $refund['refund_no']
+                . '，订单号 ' . $orderNo . '，错误：' . $e->getMessage()
+            );
 
             Log::recordOperation('refund.approve', 'refund', $refundId, [
                 'order_no' => $orderNo,
@@ -152,7 +182,7 @@ final class RefundController extends AdminController
                 'message'  => $e->getMessage(),
             ]);
 
-            $this->fail($backUrl, '调用支付网关退款失败：' . $e->getMessage());
+            $this->fail($backUrl, '调用支付网关退款失败：' . $e->getMessage() . '（已记录告警，可在退款管理中重试）');
         }
 
         $ok      = (bool) ($result['ok'] ?? false);
@@ -163,7 +193,7 @@ final class RefundController extends AdminController
 
         if (!$ok) {
             // 网关拒绝：退款单置为失败，保留 api_result 供排查
-            Refund::markFailed($refundId, $rawJson, (int) (Auth::id() ?? 0));
+            Refund::markFailed($refundId, $rawJson, $operator);
 
             Log::recordOperation('refund.approve', 'refund', $refundId, [
                 'order_no' => $orderNo,
@@ -174,15 +204,25 @@ final class RefundController extends AdminController
             $this->fail($backUrl, '支付网关退款失败：' . $message);
         }
 
-        // 退款成功：退款单置成功 + 订单置已退款（撤销课程授权）+ 邮件通知
-        Refund::markSuccess($refundId, $rawJson, (int) (Auth::id() ?? 0));
+        // 退款成功：先记录退款单成功，再更新订单并撤销授权
+        $refundMarked = Refund::markSuccess($refundId, $rawJson, $operator);
 
-        Order::markRefunded(
+        $orderMarked = Order::markRefunded(
             (int) $order['id'],
             $amount,
-            'admin:' . (int) (Auth::id() ?? 0),
+            'admin:' . $operator,
             '管理员确认退款（退款单 ' . (string) $refund['refund_no'] . '）'
         );
+
+        // 网关已实际退款，本地任一步骤失败都需告警人工对账（CS-10）
+        if (!$refundMarked || !$orderMarked) {
+            Logger::error(
+                '退款网关已成功但本地状态更新不完整，需人工核查：退款单 ' . (string) $refund['refund_no']
+                . '，订单号 ' . $orderNo
+                . '，退款单更新=' . ($refundMarked ? '成功' : '失败')
+                . '，订单更新=' . ($orderMarked ? '成功' : '失败')
+            );
+        }
 
         $updated = Order::findById((int) $order['id']);
         if ($updated !== null) {

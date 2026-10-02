@@ -124,22 +124,24 @@ final class ChapterController extends AdminController
 
         $data = $this->validatedData($editUrl);
 
-        Chapter::update($chapterId, $courseId, $data);
-
-        // 选择了新视频则替换；未选择则保留原视频
+        // 先完成新视频落盘，再写入文本，避免上传失败时留下「文本已改、视频未换」的半更新（CS-20）
         try {
             $stored = VideoStorage::storeUpload(Request::file('video'), $courseId, $chapterId);
         } catch (RuntimeException $e) {
             $this->fail($editUrl, $e->getMessage());
         }
 
+        Chapter::update($chapterId, $courseId, $data);
+
         if ($stored !== null) {
             $oldPath = (string) ($chapter['video_path'] ?? '');
-            // 扩展名变化时旧文件不会被覆盖，需要显式删除
+
+            Chapter::setVideo($chapterId, $courseId, $stored['path'], $stored['disk'], $stored['size']);
+
+            // 数据库已切换到新视频，此时才删除旧文件；新文件名带随机后缀，不会覆盖旧文件
             if ($oldPath !== '' && $oldPath !== $stored['path']) {
                 VideoStorage::delete($oldPath);
             }
-            Chapter::setVideo($chapterId, $courseId, $stored['path'], $stored['disk'], $stored['size']);
 
             // 源视频已变化，旧的 HLS 产物与进行中的任务全部作废，并重新入队
             VideoStorage::deleteHls($chapterId);

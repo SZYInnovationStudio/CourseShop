@@ -133,6 +133,8 @@ return static function (Router $router): void {
 
     // ---------------- 我的课程与学习 ----------------
     $router->get('/my/courses', [MyCourseController::class, 'index'], ['auth']);
+    // 未带章节号时跳转到第一个可播放章节，避免直接 404
+    $router->get('/course/{courseId}/learn', [MyCourseController::class, 'learnEntry'], ['auth']);
     $router->get('/course/{courseId}/learn/{chapterId}', [MyCourseController::class, 'learn'], ['auth']);
     $router->post('/course/{courseId}/learn/{chapterId}/progress', [MyCourseController::class, 'saveProgress'], ['auth']);
     // 视频流：登录 + 签名双重校验，签名校验在控制器内完成（防盗链）

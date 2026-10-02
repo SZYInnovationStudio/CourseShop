@@ -102,13 +102,23 @@ final class PackageController extends AdminController
 
         $packageId = (int) $id;
 
-        if (Package::find($packageId) === null) {
+        $existing = Package::find($packageId);
+
+        if ($existing === null) {
             $this->fail(url('/admin/packages'), '套餐不存在或已被删除。');
         }
+
+        $oldCover = (string) ($existing['cover'] ?? '');
 
         $data = $this->validated($packageId);
 
         Package::update($packageId, $data);
+
+        // 数据库已切换引用，此时才删除被替换的旧封面（CS-20）
+        $newCover = (string) ($data['cover'] ?? '');
+        if ($oldCover !== '' && $oldCover !== $newCover) {
+            ImageStorage::delete($oldCover);
+        }
 
         Package::syncCourses($packageId, $this->courseIdsFromRequest());
 
@@ -205,11 +215,17 @@ final class PackageController extends AdminController
         }
 
         $price = $this->yuanToCents($priceRaw);
+        if ($price === null) {
+            $this->fail($backUrl, '套餐售价必须为有效金额，最多两位小数。', $input);
+        }
         if ($price < 0) {
             $this->fail($backUrl, '套餐售价不能为负数。', $input);
         }
 
         $originalPrice = $this->yuanToCents($originalRaw);
+        if ($originalPrice === null) {
+            $this->fail($backUrl, '划线价必须为有效金额，最多两位小数。', $input);
+        }
         if ($originalPrice < 0) {
             $this->fail($backUrl, '划线价不能为负数。', $input);
         }
@@ -218,15 +234,9 @@ final class PackageController extends AdminController
             $this->fail($backUrl, '划线价不能低于套餐售价。', $input);
         }
 
-        // 封面上传优先于地址；上传成功后替换旧的受管图片
-        $oldCover = null;
-        if ($packageId !== null) {
-            $existingPackage = Package::find($packageId);
-            $oldCover = $existingPackage === null ? null : (string) ($existingPackage['cover'] ?? '');
-        }
-
+        // 封面上传优先于地址；被替换的旧封面在数据库写入成功后再清理（见 store / update）
         try {
-            $uploadedCover = ImageStorage::saveUploaded('cover_file', 'covers', $oldCover);
+            $uploadedCover = ImageStorage::saveUploaded('cover_file', 'covers');
         } catch (RuntimeException $e) {
             $this->fail($backUrl, $e->getMessage(), $input);
         }
@@ -250,15 +260,10 @@ final class PackageController extends AdminController
     }
 
     /**
-     * 元 -> 分（接受小数，空值按 0 处理）
+     * 元 -> 分（接受最多两位小数，空值按 0 处理，格式非法返回 null）
      */
-    private function yuanToCents(string $raw): int
+    private function yuanToCents(string $raw): ?int
     {
-        $raw = trim($raw);
-        if ($raw === '' || !is_numeric($raw)) {
-            return 0;
-        }
-
-        return (int) round((float) $raw * 100);
+        return yuan_to_cents($raw);
     }
 }

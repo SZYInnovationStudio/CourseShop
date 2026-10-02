@@ -49,8 +49,9 @@ final class TranscodeVideoJob
      * 执行任务
      *
      * @param array<string, mixed> $payload
+     * @param int                  $jobId 队列任务 ID，用于长任务续租（0 表示不可续租）
      */
-    public static function handle(array $payload): void
+    public static function handle(array $payload, int $jobId = 0): void
     {
         $chapterId   = (int) ($payload['chapter_id'] ?? 0);
         $transcodeId = (int) ($payload['transcode_id'] ?? 0);
@@ -66,8 +67,21 @@ final class TranscodeVideoJob
         }
 
         $transcode = VideoTranscode::find($transcodeId);
-        // 任务已被取消 / 已被更新的任务取代 / 记录被删除
-        if ($transcode === null || (string) $transcode['status'] !== VideoTranscode::STATUS_PENDING) {
+        // 记录被删除 / 已成功 / 已被 supersedeActive() 作废：静默结束
+        if ($transcode === null) {
+            return;
+        }
+
+        $status = (string) $transcode['status'];
+
+        if ($status === VideoTranscode::STATUS_SUCCESS || $status === VideoTranscode::STATUS_FAILED) {
+            return;
+        }
+
+        // 状态为 running：上一次执行已中断（预留超时被回收后重新领取），
+        // 若不处理，记录会永久停留在「转码中」。这里标记失败，允许用户重新提交。
+        if ($status === VideoTranscode::STATUS_RUNNING) {
+            VideoTranscode::markFailed($transcodeId, '上一次转码执行中断，请重新提交转码。');
             return;
         }
 
@@ -84,13 +98,25 @@ final class TranscodeVideoJob
 
         VideoTranscode::markRunning($transcodeId);
 
+        // 转码是长任务：进入后先续租一次，避免刚开始就接近预留超时
+        if ($jobId > 0) {
+            Queue::renew($jobId);
+        }
+
         try {
             $output = Transcoder::transcodeToHls(
                 $chapterId,
+                $transcodeId,
                 $source,
                 (int) ($chapter['duration'] ?? 0),
                 static function (int $progress) use ($transcodeId): void {
                     VideoTranscode::updateProgress($transcodeId, $progress);
+                },
+                // 心跳：源视频时长未知（无进度输出）时同样能周期性续租
+                static function () use ($jobId): void {
+                    if ($jobId > 0) {
+                        Queue::renew($jobId);
+                    }
                 }
             );
 

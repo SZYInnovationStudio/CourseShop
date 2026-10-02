@@ -10,6 +10,8 @@ declare(strict_types=1);
  * @var array<int, bool> $ownedIds 已拥有课程的 ID 集合
  * @var bool $hasAll 是否已拥有套餐内全部课程
  * @var int $coursesTotal 套餐内课程原价合计
+ * @var array<string, string> $paymentMethods 可用支付方式（键为通道标识，值为展示名）
+ * @var bool $paymentEnabled 支付网关是否可用
  */
 
 use App\Support\Auth;
@@ -38,6 +40,8 @@ $packageContent = trim((string) ($package['content'] ?? ''));
             <div class="course-hero__cover">
                 <?php if (!empty($package['cover'])): ?>
                     <img src="<?= e($package['cover']) ?>" alt="<?= e($package['title']) ?>">
+                <?php else: ?>
+                    <span class="course-card__placeholder"><?= e(mb_substr((string) $package['title'], 0, 2)) ?></span>
                 <?php endif; ?>
             </div>
 
@@ -125,11 +129,17 @@ $packageContent = trim((string) ($package['content'] ?? ''));
                 <ul class="buy-card__list">
                     <li><span aria-hidden="true">&#10003;</span> 一次开通套餐内 <?= $courseCount ?> 门课程</li>
                     <li><span aria-hidden="true">&#10003;</span> 购买后永久有效，随时回看</li>
-                    <li><span aria-hidden="true">&#10003;</span> 支持微信支付 / 支付宝</li>
+                    <?php if ($paymentEnabled && $paymentMethods !== []): ?>
+                        <li><span aria-hidden="true">&#10003;</span> 支持<?= e(implode(' / ', array_values($paymentMethods))) ?></li>
+                    <?php endif; ?>
                     <?php if ($saved > 0): ?>
                         <li><span aria-hidden="true">&#10003;</span> 相比单独购买立省 &yen;<?= format_money($saved) ?></li>
                     <?php endif; ?>
                 </ul>
+
+                <?php if ($price > 0 && (!$paymentEnabled || $paymentMethods === [])): ?>
+                    <p class="form-hint">支付通道维护中，暂不可在线购买，请稍后再试。</p>
+                <?php endif; ?>
             </div>
         </aside>
     </div>

@@ -12,6 +12,7 @@ use App\Support\Auth;
 use App\Support\Captcha;
 use App\Support\Csrf;
 use App\Support\LoginThrottle;
+use App\Support\Permission;
 use App\Support\Request;
 use App\Support\Response;
 use App\Support\Session;
@@ -278,7 +279,10 @@ final class TicketController extends Controller
         }
 
         $isOwner = (int) $ticket['user_id'] === (int) $user['id'];
-        if (!$isOwner && !Auth::isAdmin()) {
+
+        // 非工单所有者必须是拥有工单查看权限的后台人员（CS-08）：
+        // 仅有后台身份但未获 ticket.view 的角色，不得下载他人上传的申诉材料。
+        if (!$isOwner && !Permission::can('ticket.view')) {
             abort(403, '无权访问该附件。');
         }
 
@@ -309,7 +313,7 @@ final class TicketController extends Controller
         Csrf::check();
 
         $username = Request::string('username');
-        $password = (string) Request::input('password', '');
+        $password = Request::raw('password');
         $content  = trim((string) Request::input('content', ''));
         $old      = ['username' => $username, 'content' => $content];
 

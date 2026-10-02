@@ -282,7 +282,7 @@ final class OrderController extends Controller
 
         $newAmount = max(0, $base - $discount);
 
-        if (!Order::applyCoupon((int) $order['id'], (int) $coupon['id'], $base, $newAmount, $discount)) {
+        if (!Order::applyCoupon((int) $order['id'], (int) $coupon['id'], $userId, $base, $newAmount, $discount)) {
             $this->fail($backUrl, '优惠券应用失败，请刷新后重试。');
         }
 
@@ -292,6 +292,22 @@ final class OrderController extends Controller
             'discount'  => $discount,
             'amount'    => $newAmount,
         ], JSON_UNESCAPED_UNICODE), Request::ip());
+
+        // 全额抵扣：应付为 0，无需再走支付网关，直接核销优惠券并开通订单（CS-06）
+        if ($newAmount === 0) {
+            $opened = Order::markPaid((int) $order['id'], null, null, '优惠券全额抵扣，直接开通');
+
+            if ($opened) {
+                $paidOrder = Order::findById((int) $order['id']);
+                if ($paidOrder !== null) {
+                    OrderNotifier::notifyPaid($paidOrder);
+                }
+
+                $this->success(url('/my/courses'), '优惠券已全额抵扣，订单已开通，开始学习吧！');
+            }
+
+            $this->success($backUrl, '优惠券已应用，请查看订单状态。');
+        }
 
         $this->success($backUrl, '优惠券已应用，应付金额已更新。');
     }

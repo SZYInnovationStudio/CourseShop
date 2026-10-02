@@ -23,7 +23,15 @@ final class Search
     private static ?bool $fulltextReady = null;
 
     /**
-     * 当前数据库是否可用课程全文索引（需同时满足：支持 ngram 且索引存在）
+     * 当前数据库是否可用课程全文索引
+     *
+     * 需同时满足三个条件：
+     *   1) 数据库支持 ngram 分词器（仅 MySQL 提供，MariaDB 无此系统变量）；
+     *   2) 全文索引 `ft_courses_search` 存在；
+     *   3) 该索引确实使用了 ngram 解析器（`WITH PARSER ngram`）。
+     *
+     * 条件 3 不可省略：若索引由默认解析器建立，对中文无法正确切词，
+     * 此时 MATCH 查询会漏掉结果，必须回退到 LIKE。
      */
     public static function fulltextReady(): bool
     {
@@ -43,10 +51,38 @@ final class Search
                 ['courses', self::COURSE_INDEX]
             );
 
-            return self::$fulltextReady = $indexCount > 0;
+            if ($indexCount <= 0) {
+                return self::$fulltextReady = false;
+            }
+
+            return self::$fulltextReady = self::indexUsesNgramParser();
         } catch (Throwable) {
             return self::$fulltextReady = false;
         }
+    }
+
+    /**
+     * 判断 `ft_courses_search` 索引是否使用 ngram 解析器
+     *
+     * SHOW CREATE TABLE 会把每个索引单独成行，形如：
+     *   FULLTEXT KEY `ft_courses_search` (`title`,`summary`) /*!50100 WITH PARSER `ngram` *\/
+     */
+    private static function indexUsesNgramParser(): bool
+    {
+        $row = Database::first('SHOW CREATE TABLE `courses`');
+        $createSql = is_array($row) ? (string) ($row['Create Table'] ?? '') : '';
+
+        if ($createSql === '') {
+            return false;
+        }
+
+        foreach (preg_split('/\r?\n/', $createSql) ?: [] as $line) {
+            if (str_contains($line, self::COURSE_INDEX)) {
+                return preg_match('/WITH\s+PARSER\s+`?ngram`?/i', $line) === 1;
+            }
+        }
+
+        return false;
     }
 
     /**

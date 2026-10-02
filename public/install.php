@@ -24,9 +24,9 @@ $step      = (int) ($_GET['step'] ?? 1);
 $errors    = [];
 $old       = [];
 
-// 兜底防护：安装锁文件缺失但库中已存在管理员时，同样视为「已安装」，
-// 阻止重新执行安装（schema.sql 以 DROP TABLE 开头，会清空线上数据）。
-$blockedByData = !$installed && Installer::hasExistingAdmin();
+// 兜底防护：安装锁文件缺失时，只要 .env 已存在（说明站点曾部署过）或库中已有管理员，
+// 同样视为「已安装」，阻止重新执行安装（schema.sql 以 DROP TABLE 开头，会清空线上数据）。
+$blockedByData = !$installed && (Installer::envExists() || Installer::hasExistingAdmin());
 $installLocked = $installed || $blockedByData;
 
 // ----------------------------------------------------------------------
@@ -283,7 +283,7 @@ $stepLabels = [1 => '环境检查', 2 => '数据库配置', 3 => '创建管理�
         <div class="card">
             <div class="card__body">
                 <h2 class="card__header" style="margin-top:0;">数据库配置</h2>
-                <p class="form-hint">填写 MySQL / MariaDB 连接信息。若数据库不存在，向导会自动创建；已存在的表将被重新建立（原数据会被清空）。</p>
+                <p class="form-hint">填写 MySQL / MariaDB 连接信息。若数据库不存在，向导会自动创建；为保护数据，若目标库已存在本站数据表，安装将被拒绝。</p>
                 <form method="post" action="install.php?step=2">
                     <?= Csrf::field() ?>
                     <input type="hidden" name="action" value="install_database">

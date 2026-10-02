@@ -189,18 +189,28 @@ final class CouponController extends AdminController
 
         // 折扣券按百分比（1-99）解析，满减券按「元」解析并转为「分」
         if ($type === Coupon::TYPE_PERCENT) {
+            if (preg_match('/^\d+$/', trim($valueRaw)) !== 1) {
+                $this->fail($backUrl, '折扣百分比需为 1-99 的整数。', $input);
+            }
+
             $value = (int) $valueRaw;
             if ($value < 1 || $value > 99) {
                 $this->fail($backUrl, '折扣百分比需在 1-99 之间。', $input);
             }
         } else {
             $value = $this->yuanToCents($valueRaw);
+            if ($value === null) {
+                $this->fail($backUrl, '减免金额必须为有效金额，最多两位小数。', $input);
+            }
             if ($value <= 0) {
                 $this->fail($backUrl, '减免金额需大于 0。', $input);
             }
         }
 
         $minAmount = $this->yuanToCents($minAmountRaw);
+        if ($minAmount === null) {
+            $this->fail($backUrl, '最低可用金额必须为有效金额，最多两位小数。', $input);
+        }
         if ($minAmount < 0) {
             $this->fail($backUrl, '最低可用金额不能为负数。', $input);
         }
@@ -225,16 +235,11 @@ final class CouponController extends AdminController
     }
 
     /**
-     * 元 -> 分（接受小数，负数原样返回以便上层校验）
+     * 元 -> 分（接受最多两位小数，空值按 0 处理，格式非法返回 null）
      */
-    private function yuanToCents(string $raw): int
+    private function yuanToCents(string $raw): ?int
     {
-        $raw = trim($raw);
-        if ($raw === '' || !is_numeric($raw)) {
-            return 0;
-        }
-
-        return (int) round((float) $raw * 100);
+        return yuan_to_cents($raw);
     }
 
     /**

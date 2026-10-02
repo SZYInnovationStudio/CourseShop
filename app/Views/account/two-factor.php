@@ -42,6 +42,11 @@ declare(strict_types=1);
                 </div>
                 <p class="form-hint">类型选择「基于时间（TOTP）」，位数 6 位，周期 30 秒。</p>
             </div>
+
+            <p class="form-hint">
+                验证器无法扫描？可
+                <a href="<?= url('/account/2fa/setup?regenerate=1') ?>">重新生成密钥</a>。
+            </p>
         </div>
     </div>
 

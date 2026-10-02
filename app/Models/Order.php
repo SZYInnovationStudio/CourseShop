@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Support\Database;
 use App\Support\Ids;
+use App\Support\Logger;
 use App\Support\Search;
 use App\Support\Setting;
 
@@ -85,7 +86,135 @@ final class Order
             (string) ($data['expire_at'] ?? self::defaultExpireAt()),
         ];
 
-        return Database::insert($sql, $params);
+        // 订单与商品快照必须同时成功：快照是付款开通 / 退款撤销的课程范围依据
+        return (int) Database::transaction(static function () use ($sql, $params, $courseId, $packageId, $data): int {
+            $orderId = Database::insert($sql, $params);
+
+            self::snapshotItems($orderId, $courseId, $packageId, (string) ($data['course_title'] ?? ''));
+
+            return $orderId;
+        });
+    }
+
+    /**
+     * 写入订单商品快照（下单时课程清单）
+     *
+     * 课程订单 1 行；套餐订单为套餐内每个课程各 1 行，均记录课程 ID 与名称 / 价格快照。
+     * 之后付款开通与退款撤销均以该快照为准，不再实时读取套餐当前内容（CS-04）。
+     */
+    private static function snapshotItems(int $orderId, int $courseId, int $packageId, string $fallbackTitle): void
+    {
+        if ($packageId > 0) {
+            foreach (Package::courseIds($packageId) as $id) {
+                $course = Course::find($id);
+
+                Database::execute(
+                    'INSERT INTO `order_items` (`order_id`, `item_type`, `course_id`, `package_id`, `title`, `price`, `created_at`)
+                     VALUES (?, ?, ?, ?, ?, ?, NOW())',
+                    [$orderId, 'package', $id, $packageId, (string) ($course['title'] ?? ''), (int) ($course['price'] ?? 0)]
+                );
+            }
+
+            return;
+        }
+
+        if ($courseId > 0) {
+            $course = Course::find($courseId);
+
+            Database::execute(
+                'INSERT INTO `order_items` (`order_id`, `item_type`, `course_id`, `package_id`, `title`, `price`, `created_at`)
+                 VALUES (?, ?, ?, NULL, ?, ?, NOW())',
+                [$orderId, 'course', $courseId, (string) ($course['title'] ?? $fallbackTitle), (int) ($course['price'] ?? 0)]
+            );
+        }
+    }
+
+    /**
+     * 订单覆盖的课程 ID（优先取下单时的商品快照）
+     *
+     * @param array<string, mixed> $order
+     * @return array<int, int>
+     */
+    private static function courseIdsForOrder(array $order): array
+    {
+        $orderId = (int) ($order['id'] ?? 0);
+
+        if ($orderId > 0) {
+            $rows = Database::select(
+                'SELECT `course_id` FROM `order_items` WHERE `order_id` = ? AND `course_id` IS NOT NULL',
+                [$orderId]
+            );
+
+            $ids = array_map(static fn (array $row): int => (int) $row['course_id'], $rows);
+
+            if ($ids !== []) {
+                return array_values(array_unique($ids));
+            }
+        }
+
+        // 历史订单（无快照）回退：套餐取当前套餐课程，普通订单取订单课程
+        $packageId = (int) ($order['package_id'] ?? 0);
+        if ($packageId > 0) {
+            return Package::courseIds($packageId);
+        }
+
+        $courseId = (int) ($order['course_id'] ?? 0);
+
+        return $courseId > 0 ? [$courseId] : [];
+    }
+
+    /**
+     * 除指定订单外，用户是否还有其它「已支付 / 已完成」的订单覆盖该课程
+     *
+     * 覆盖来源：直购该课程的订单、商品快照含该课程的套餐订单；
+     * 历史套餐订单（无快照）按套餐当前课程表回退判断。用于退款时避免误撤销授权（CS-03）。
+     */
+    private static function hasOtherPaidSource(int $userId, int $courseId, int $excludeOrderId): bool
+    {
+        if ($userId <= 0 || $courseId <= 0) {
+            return false;
+        }
+
+        $paid = self::STATUS_PAID;
+        $done = self::STATUS_COMPLETED;
+
+        // 1) 其它直购该课程的订单
+        $direct = (int) Database::scalar(
+            'SELECT COUNT(*) FROM `orders`
+              WHERE `user_id` = ? AND `course_id` = ? AND `status` IN (?, ?)
+                AND `id` <> ? AND `deleted_at` IS NULL',
+            [$userId, $courseId, $paid, $done, $excludeOrderId]
+        );
+
+        if ($direct > 0) {
+            return true;
+        }
+
+        // 2) 其它已支付套餐订单的商品快照覆盖该课程
+        $packaged = (int) Database::scalar(
+            'SELECT COUNT(*)
+               FROM `order_items` oi
+               INNER JOIN `orders` o ON o.`id` = oi.`order_id`
+              WHERE o.`user_id` = ? AND oi.`course_id` = ? AND oi.`package_id` IS NOT NULL
+                AND o.`status` IN (?, ?) AND o.`id` <> ? AND o.`deleted_at` IS NULL',
+            [$userId, $courseId, $paid, $done, $excludeOrderId]
+        );
+
+        if ($packaged > 0) {
+            return true;
+        }
+
+        // 3) 历史套餐订单（无快照）回退：套餐当前仍包含该课程
+        $legacy = (int) Database::scalar(
+            'SELECT COUNT(*)
+               FROM `orders` o
+               INNER JOIN `package_courses` pc ON pc.`package_id` = o.`package_id`
+              WHERE o.`user_id` = ? AND pc.`course_id` = ? AND o.`package_id` IS NOT NULL
+                AND o.`status` IN (?, ?) AND o.`id` <> ? AND o.`deleted_at` IS NULL',
+            [$userId, $courseId, $paid, $done, $excludeOrderId]
+        );
+
+        return $legacy > 0;
     }
 
     /**
@@ -223,8 +352,9 @@ final class Order
     /**
      * 标记订单已支付并开通课程（幂等）
      *
-     * 仅当订单当前处于 pending / paying 时才会写入，
-     * 重复的支付回调不会重复开通课程、重复累计销量。
+     * 允许 pending / paying / closed 三种状态写入：
+     * 「已收款但被超时关闭」的订单也需按网关实收补单开通，避免钱已收、课未开（CS-05）。
+     * refunded 订单不在此列。重复的支付回调不会重复开通课程、重复累计销量。
      *
      * @return bool 本次调用是否真正完成了状态流转
      */
@@ -237,11 +367,11 @@ final class Order
         }
 
         return (bool) Database::transaction(static function () use ($order, $tradeNo, $apiTradeNo, $raw): bool {
-            // 条件更新保证幂等：只有仍处于待支付/支付中的订单才会被更新
+            // 条件更新保证幂等：待支付 / 支付中 / 已关闭（补单）的订单才会被更新
             $affected = Database::execute(
                 'UPDATE `orders`
                     SET `status` = ?, `trade_no` = ?, `api_trade_no` = ?, `paid_at` = NOW(), `notify_raw` = ?
-                  WHERE `id` = ? AND `status` IN (?, ?)',
+                  WHERE `id` = ? AND `status` IN (?, ?, ?)',
                 [
                     self::STATUS_PAID,
                     $tradeNo,
@@ -250,6 +380,7 @@ final class Order
                     (int) $order['id'],
                     self::STATUS_PENDING,
                     self::STATUS_PAYING,
+                    self::STATUS_CLOSED,
                 ]
             );
 
@@ -259,38 +390,39 @@ final class Order
 
             $userId    = (int) $order['user_id'];
             $packageId = (int) ($order['package_id'] ?? 0);
+            $wasClosed = (string) $order['status'] === self::STATUS_CLOSED;
 
-            if ($packageId > 0) {
-                // 套餐订单：一次性开通套餐内全部课程，新增课程各自累计销量，套餐累计一次
-                foreach (Package::courseIds($packageId) as $courseId) {
-                    if (!Enrollment::exists($userId, $courseId)) {
-                        Database::execute('UPDATE `courses` SET `sales_count` = `sales_count` + 1 WHERE `id` = ?', [$courseId]);
-                    }
-
-                    Enrollment::grant($userId, $courseId, (int) $order['id']);
-                }
-
-                Package::incrementSales($packageId);
-                $remark = '支付成功，已开通套餐内课程';
-            } else {
-                $courseId = (int) $order['course_id'];
-
+            // 以「下单时的课程快照」为准开通，避免下单后套餐内容变化影响本次开通范围
+            foreach (self::courseIdsForOrder($order) as $courseId) {
                 // 首次开通才累计销量（enrollments 上有 (user_id, course_id) 唯一键）
-                $firstGrant = !Enrollment::exists($userId, $courseId);
-
-                Enrollment::grant($userId, $courseId, (int) $order['id']);
-
-                if ($firstGrant) {
+                if (!Enrollment::exists($userId, $courseId)) {
                     Database::execute('UPDATE `courses` SET `sales_count` = `sales_count` + 1 WHERE `id` = ?', [$courseId]);
                 }
 
+                Enrollment::grant($userId, $courseId, (int) $order['id']);
+            }
+
+            if ($packageId > 0) {
+                Package::incrementSales($packageId);
+                $remark = '支付成功，已开通套餐内课程';
+            } else {
                 $remark = '支付成功，已开通课程';
             }
 
-            // 优惠券核销：状态流转已保证幂等，故此处对同一订单只会执行一次
+            if ($wasClosed) {
+                $remark .= '（原订单已超时关闭，按网关实收补单）';
+            }
+
+            // 优惠券核销：状态流转已保证幂等，故此处对同一订单只会执行一次。
+            // 款项已收，核销失败（如券已发完）不得阻断开通，仅告警待人工核查（CS-07）。
             $couponId = (int) ($order['coupon_id'] ?? 0);
             if ($couponId > 0) {
-                Coupon::redeem($couponId, $userId, (int) $order['id'], (int) $order['discount_amount']);
+                if (!Coupon::redeem($couponId, $userId, (int) $order['id'], (int) $order['discount_amount'])) {
+                    Logger::warning(
+                        '订单支付成功但优惠券核销失败，需人工核查：订单号 ' . (string) $order['order_no']
+                        . '，优惠券 ID ' . $couponId
+                    );
+                }
             }
 
             self::log(
@@ -315,18 +447,41 @@ final class Order
      * 使用优惠券后，金额语义调整为：original_amount = 基准价（券前应付）、
      * discount_amount = 券抵扣额、amount = 基准价 - 抵扣额，保证「原价 - 优惠 = 应付」内部一致。
      *
-     * @return bool 是否成功应用
+     * 应用时即原子占用券配额（Coupon::reserve）：在同一事务内锁定优惠券行复核总量与每人限用，
+     * 再写入 order.coupon_id，避免多笔未支付订单抢占最后一张券（CS-07）。
+     *
+     * @return bool 是否成功应用（false 表示订单状态已变化或券名额已满）
      */
-    public static function applyCoupon(int $orderId, int $couponId, int $baseAmount, int $amount, int $discount): bool
-    {
-        $affected = Database::execute(
-            'UPDATE `orders`
-                SET `coupon_id` = ?, `original_amount` = ?, `amount` = ?, `discount_amount` = ?
-              WHERE `id` = ? AND `coupon_id` IS NULL AND `status` = ?',
-            [$couponId, $baseAmount, $amount, $discount, $orderId, self::STATUS_PENDING]
-        );
+    public static function applyCoupon(
+        int $orderId,
+        int $couponId,
+        int $userId,
+        int $baseAmount,
+        int $amount,
+        int $discount
+    ): bool {
+        return (bool) Database::transaction(static function () use (
+            $orderId,
+            $couponId,
+            $userId,
+            $baseAmount,
+            $amount,
+            $discount
+        ): bool {
+            // 先原子占用配额；占用失败说明券已发完 / 超出每人限用
+            if (!Coupon::reserve($couponId, $userId, $orderId)) {
+                return false;
+            }
 
-        return $affected === 1;
+            $affected = Database::execute(
+                'UPDATE `orders`
+                    SET `coupon_id` = ?, `original_amount` = ?, `amount` = ?, `discount_amount` = ?
+                  WHERE `id` = ? AND `coupon_id` IS NULL AND `status` = ?',
+                [$couponId, $baseAmount, $amount, $discount, $orderId, self::STATUS_PENDING]
+            );
+
+            return $affected === 1;
+        });
     }
 
     /**
@@ -457,14 +612,14 @@ final class Order
                 return false;
             }
 
-            // 套餐订单：撤销套餐内全部课程授权；普通订单：撤销该课程授权
-            $packageId = (int) ($order['package_id'] ?? 0);
-            if ($packageId > 0) {
-                foreach (Package::courseIds($packageId) as $courseId) {
-                    Enrollment::revoke((int) $order['user_id'], $courseId);
+            // 按订单快照撤销授权；若用户对某课程仍有其它已付款来源
+            // （另一次直购或另一笔含该课程的套餐订单），则保留其学习权限（CS-03）
+            $userId = (int) $order['user_id'];
+
+            foreach (self::courseIdsForOrder($order) as $courseId) {
+                if (!self::hasOtherPaidSource($userId, $courseId, (int) $order['id'])) {
+                    Enrollment::revoke($userId, $courseId);
                 }
-            } else {
-                Enrollment::revoke((int) $order['user_id'], (int) $order['course_id']);
             }
 
             self::log(

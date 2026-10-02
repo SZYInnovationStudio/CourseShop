@@ -318,9 +318,18 @@ final class User
     public static function countAdmins(): int
     {
         return (int) Database::scalar(
-            "SELECT COUNT(*) FROM `users`
-              WHERE `deleted_at` IS NULL
-                AND (`is_admin` = 1 OR `role` IN ('admin', 'super_admin'))"
+            "SELECT COUNT(*) FROM `users` u
+              WHERE u.`deleted_at` IS NULL
+                AND (
+                    u.`is_admin` = 1 OR u.`role` IN ('admin', 'super_admin')
+                    OR EXISTS (
+                        SELECT 1 FROM `user_roles` ur
+                        JOIN `roles` r ON r.`id` = ur.`role_id`
+                        WHERE ur.`user_id` = u.`id`
+                          AND r.`deleted_at` IS NULL
+                          AND r.`code` IN ('super_admin', 'admin', 'support', 'operator')
+                    )
+                )"
         );
     }
 

@@ -122,7 +122,6 @@ $nextId   = $position !== false && $position < count($playableIds) - 1 ? $playab
                             $itemId       = (int) $item['id'];
                             $isPreview    = in_array($itemId, $previewIds, true);
                             $canPlay      = $hasAccess || $isPreview;
-                            $itemHasVideo = (bool) $item['has_video'];
                             $isCurrent    = $itemId === (int) $currentId;
                             $itemProgress = PlayProgress::toArray($progress[$itemId] ?? null);
                             $itemUrl      = url('/course/' . $courseId . '/learn/' . $itemId);
@@ -136,7 +135,7 @@ $nextId   = $position !== false && $position < count($playableIds) - 1 ? $playab
                                     <?php endif; ?>
                                 </span>
 
-                                <?php if ($canPlay && $itemHasVideo): ?>
+                                <?php if ($canPlay): ?>
                                     <a class="chapter-item__title" href="<?= $itemUrl ?>"
                                        <?= $isCurrent ? 'aria-current="page"' : '' ?>><?= e($item['title']) ?></a>
                                 <?php else: ?>
@@ -144,7 +143,7 @@ $nextId   = $position !== false && $position < count($playableIds) - 1 ? $playab
                                 <?php endif; ?>
 
                                 <?php if ($isPreview && !$hasAccess): ?>
-                                    <span class="badge badge--primary">试看</span>
+                                    <a class="badge badge--primary" href="<?= $itemUrl ?>">试看</a>
                                 <?php elseif (!$canPlay): ?>
                                     <span class="badge">未解锁</span>
                                 <?php endif; ?>

@@ -53,11 +53,40 @@ final class Request
         return is_scalar($value) ? (string) $value : $default;
     }
 
+    /**
+     * 读取原始字符串（不做 trim），用于密码等对空白敏感、且需校验值与存储值一致的场景
+     */
+    public static function raw(string $key, string $default = ''): string
+    {
+        $value = $_POST[$key] ?? $_GET[$key] ?? $default;
+
+        return is_scalar($value) ? (string) $value : $default;
+    }
+
     public static function int(string $key, int $default = 0): int
     {
         $value = self::input($key);
 
-        return is_numeric($value) ? (int) $value : $default;
+        if (!is_scalar($value)) {
+            return $default;
+        }
+
+        // 严格十进制整数：拒绝 "1.5" / "1e3" 等会被 (int) 静默截断的输入
+        $raw = trim((string) $value);
+
+        if (preg_match('/^[+-]?\d+$/', $raw) !== 1) {
+            return $default;
+        }
+
+        // 归一化前导零与正号，避免 filter_var 因前导零误判
+        $negative   = str_starts_with($raw, '-');
+        $digits     = ltrim(ltrim($raw, '+-'), '0');
+        $normalized = $digits === '' ? '0' : ($negative ? '-' . $digits : $digits);
+
+        // 超出平台整数范围时 filter_var 返回 false，回退默认值而非静默截断
+        $int = filter_var($normalized, FILTER_VALIDATE_INT);
+
+        return $int === false ? $default : $int;
     }
 
     public static function bool(string $key, bool $default = false): bool
@@ -106,6 +135,28 @@ final class Request
         }
 
         return $remote !== '' ? $remote : '0.0.0.0';
+    }
+
+    /**
+     * 当前请求是否走 HTTPS
+     *
+     * 仅在直连方为可信反向代理时，才采信 X-Forwarded-Proto，
+     * 避免客户端伪造该头误导 Secure Cookie / HSTS 等安全判定。
+     */
+    public static function isSecure(): bool
+    {
+        if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+            return true;
+        }
+
+        $remote = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+        $remote = filter_var($remote, FILTER_VALIDATE_IP) ? $remote : '';
+
+        if ($remote !== '' && self::isTrustedProxy($remote)) {
+            return strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
+        }
+
+        return false;
     }
 
     /**

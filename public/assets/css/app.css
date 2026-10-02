@@ -24,7 +24,10 @@
     /* 文本 */
     --color-text: #22282A;
     --color-text-muted: #6B7472;
-    --color-text-faint: #98A19E;
+    /* 辅助正文（表单提示、时间、原价等）：在白底上对比度约 4.6:1，满足小字可读性 */
+    --color-text-faint: #6E7774;
+    /* 仅用于输入框占位符等可豁免对比度要求的场景，不用于正文 */
+    --color-text-placeholder: #98A19E;
 
     /* 状态色 */
     --color-success: #4F7A5B;
@@ -92,7 +95,8 @@ html[data-theme="dark"] {
 
     --color-text: #E7EAE7;
     --color-text-muted: #A2ABA6;
-    --color-text-faint: #77807B;
+    --color-text-faint: #7F8883;
+    --color-text-placeholder: #77807B;
 
     --color-success: #8FBF9A;
     --color-success-soft: #223027;
@@ -618,7 +622,7 @@ pre {
 }
 
 .input::placeholder,
-.textarea::placeholder { color: var(--color-text-faint); }
+.textarea::placeholder { color: var(--color-text-placeholder); }
 
 .input.is-invalid,
 .select.is-invalid,

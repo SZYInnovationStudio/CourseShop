@@ -54,7 +54,7 @@ final class AuthController extends Controller
         Csrf::check();
 
         $username = Request::string('username');
-        $password = (string) Request::input('password', '');
+        $password = Request::raw('password');
         $old      = ['username' => $username];
 
         $validator = $this->validator(Request::all())
@@ -202,7 +202,7 @@ final class AuthController extends Controller
         }
 
         $username = Request::string('username');
-        $password = (string) Request::input('password', '');
+        $password = Request::raw('password');
         $old      = ['username' => $username];
 
         $validator = $this->validator(Request::all())

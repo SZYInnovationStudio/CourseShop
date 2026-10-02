@@ -165,6 +165,22 @@ CREATE TABLE `courses` (
   FULLTEXT KEY `ft_courses_search` (`title`, `summary`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='课程表';
 
+-- MySQL 5.7+ 内置 ngram 分词器，能正确切分中文；MariaDB 无此插件，只能使用默认解析器。
+-- 这里用条件化 DDL 兼容两者：仅在 ngram 可用时把全文索引重建为 WITH PARSER ngram，
+-- 避免在 MariaDB 上因 `WITH PARSER ngram` 语法报错导致安装失败。
+SET @ngram_available = (
+  SELECT COUNT(*) FROM `information_schema`.`PLUGINS`
+  WHERE `PLUGIN_NAME` = 'ngram' AND `PLUGIN_STATUS` = 'ACTIVE'
+);
+SET @ngram_sql = IF(
+  @ngram_available > 0,
+  'ALTER TABLE `courses` DROP INDEX `ft_courses_search`, ADD FULLTEXT KEY `ft_courses_search` (`title`, `summary`) WITH PARSER ngram',
+  'SET @ngram_noop = 0'
+);
+PREPARE ngram_stmt FROM @ngram_sql;
+EXECUTE ngram_stmt;
+DEALLOCATE PREPARE ngram_stmt;
+
 DROP TABLE IF EXISTS `course_tag_relations`;
 CREATE TABLE `course_tag_relations` (
   `course_id`  BIGINT UNSIGNED NOT NULL,
@@ -300,6 +316,22 @@ CREATE TABLE `order_logs` (
   PRIMARY KEY (`id`),
   KEY `idx_order_logs_order` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单状态流转日志';
+
+DROP TABLE IF EXISTS `order_items`;
+CREATE TABLE `order_items` (
+  `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `order_id`   BIGINT UNSIGNED NOT NULL COMMENT '所属订单',
+  `item_type`  VARCHAR(10)     NOT NULL DEFAULT 'course' COMMENT 'course 课程 / package 套餐',
+  `course_id`  BIGINT UNSIGNED DEFAULT NULL COMMENT '课程 ID（快照）',
+  `package_id` BIGINT UNSIGNED DEFAULT NULL COMMENT '套餐 ID（快照，课程订单为 NULL）',
+  `title`      VARCHAR(150)    NOT NULL DEFAULT '' COMMENT '课程 / 套餐名快照',
+  `price`      INT             NOT NULL DEFAULT 0 COMMENT '单价快照（分）',
+  `created_at` DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_order_items_order` (`order_id`),
+  KEY `idx_order_items_course` (`course_id`),
+  KEY `idx_order_items_package` (`package_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单商品快照';
 
 DROP TABLE IF EXISTS `enrollments`;
 CREATE TABLE `enrollments` (

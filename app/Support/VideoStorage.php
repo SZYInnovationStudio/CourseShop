@@ -10,7 +10,7 @@ use RuntimeException;
  * 视频存储与播放地址签名
  *
  * P0 只实现本地磁盘：chapters.video_path 保存的是「相对存储根目录」的存储键，
- * 例如 `course-3/chapter-12.mp4`，绝不对外暴露真实路径。
+ * 例如 `course-3/chapter-12-9f3c1a2b4d5e.mp4`，绝不对外暴露真实路径。
  * 对象存储（oss/cos/s3）在 P2 接入，届时 redirect 到云端签名地址即可。
  */
 final class VideoStorage
@@ -99,7 +99,9 @@ final class VideoStorage
     /**
      * 保存上传的章节视频
      *
-     * 文件名固定为 chapter-{id}.{ext}，替换视频时直接覆盖，存储键始终可控。
+     * 文件名带随机后缀（chapter-{id}-{rand}.{ext}），替换视频时写入新文件而非
+     * 原位覆盖：旧文件由调用方在数据库写入成功后再删除，避免元数据保存失败时
+     * 旧视频已不可恢复（CS-20）。存储键始终可控，绝不对外暴露真实路径。
      *
      * @param  array<string, mixed>|null $file $_FILES 中的单个文件项
      * @return array{path: string, disk: string, size: int}|null 未选择文件时返回 null
@@ -148,13 +150,15 @@ final class VideoStorage
             throw new RuntimeException('无法创建视频存储目录，请检查写入权限。');
         }
 
-        $target = $directory . '/chapter-' . $chapterId . '.' . $extension;
+        $storedName = 'chapter-' . $chapterId . '-' . bin2hex(random_bytes(6)) . '.' . $extension;
+        $target     = $directory . '/' . $storedName;
+
         if (!move_uploaded_file($tmp, $target)) {
             throw new RuntimeException('视频保存失败，请检查目录写入权限。');
         }
 
         return [
-            'path' => 'course-' . $courseId . '/chapter-' . $chapterId . '.' . $extension,
+            'path' => 'course-' . $courseId . '/' . $storedName,
             'disk' => 'local',
             'size' => (int) filesize($target),
         ];

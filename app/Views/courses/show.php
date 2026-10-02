@@ -11,6 +11,8 @@ declare(strict_types=1);
  * @var array<int, array<string, mixed>> $related 相关课程列表
  * @var bool $hasAccess 是否已购买该课程
  * @var array<int, int> $previewIds 可试看章节 ID 列表
+ * @var array<string, string> $paymentMethods 可用支付方式（键为通道标识，值为展示名）
+ * @var bool $paymentEnabled 支付网关是否可用
  */
 
 use App\Support\Auth;
@@ -46,6 +48,8 @@ $courseContent = trim((string) ($course['content'] ?? ''));
             <div class="course-hero__cover">
                 <?php if (!empty($course['cover'])): ?>
                     <img src="<?= e($course['cover']) ?>" alt="<?= e($course['title']) ?>">
+                <?php else: ?>
+                    <span class="course-card__placeholder"><?= e(mb_substr((string) $course['title'], 0, 2)) ?></span>
                 <?php endif; ?>
             </div>
 
@@ -88,20 +92,19 @@ $courseContent = trim((string) ($course['content'] ?? ''));
                                 $chapterId    = (int) $chapter['id'];
                                 $isPreview    = in_array($chapterId, $previewIds, true);
                                 $canPlay      = $hasAccess || $isPreview;
-                                $hasVideo     = (bool) $chapter['has_video'];
                                 $chapterUrl   = url('/course/' . $courseId . '/learn/' . $chapterId);
                                 ?>
                                 <li class="chapter-item">
                                     <span class="chapter-item__index"><?= $index + 1 ?></span>
 
-                                    <?php if ($canPlay && $hasVideo): ?>
+                                    <?php if ($canPlay): ?>
                                         <a class="chapter-item__title" href="<?= $chapterUrl ?>"><?= e($chapter['title']) ?></a>
                                     <?php else: ?>
                                         <span class="chapter-item__title text-muted"><?= e($chapter['title']) ?></span>
                                     <?php endif; ?>
 
                                     <?php if ($isPreview && !$hasAccess): ?>
-                                        <span class="badge badge--primary">试看</span>
+                                        <a class="badge badge--primary" href="<?= $chapterUrl ?>" title="点击试看本章">试看</a>
                                     <?php elseif (!$hasAccess): ?>
                                         <span class="badge">未解锁</span>
                                     <?php endif; ?>
@@ -159,10 +162,16 @@ $courseContent = trim((string) ($course['content'] ?? ''));
 
                 <ul class="buy-card__list">
                     <li><span aria-hidden="true">&#10003;</span> 购买后永久有效，随时回看</li>
-                    <li><span aria-hidden="true">&#10003;</span> 支持微信支付 / 支付宝</li>
+                    <?php if ($paymentEnabled && $paymentMethods !== []): ?>
+                        <li><span aria-hidden="true">&#10003;</span> 支持<?= e(implode(' / ', array_values($paymentMethods))) ?></li>
+                    <?php endif; ?>
                     <li><span aria-hidden="true">&#10003;</span> 在线视频流畅播放，支持进度记录</li>
                     <li><span aria-hidden="true">&#10003;</span> 共 <?= $chapterCount ?> 个章节</li>
                 </ul>
+
+                <?php if ($price > 0 && (!$paymentEnabled || $paymentMethods === [])): ?>
+                    <p class="form-hint">支付通道维护中，暂不可在线购买，请稍后再试。</p>
+                <?php endif; ?>
             </div>
         </aside>
     </div>

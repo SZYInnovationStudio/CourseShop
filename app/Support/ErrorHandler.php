@@ -72,7 +72,9 @@ final class ErrorHandler
             http_response_code($status);
         }
 
-        $debug   = (bool) Config::get('app.debug', false);
+        // 生产环境一律不展示详细错误与堆栈：即使 APP_DEBUG 被误设为 true 也不泄露内部信息
+        $isProduction = (string) Config::get('app.env', 'production') === 'production';
+        $debug   = !$isProduction && (bool) Config::get('app.debug', false);
         $message = $status >= 500 && !$debug
             ? HttpException::defaultMessage($status)
             : $e->getMessage();

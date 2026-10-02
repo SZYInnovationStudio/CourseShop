@@ -105,12 +105,22 @@ final class CourseController extends AdminController
 
         $courseId = (int) $id;
 
-        if (Course::adminFind($courseId) === null) {
+        $existing = Course::adminFind($courseId);
+
+        if ($existing === null) {
             $this->fail(url('/admin/courses'), '课程不存在或已被删除。');
         }
 
+        $oldCover = (string) ($existing['cover'] ?? '');
+
         $data = $this->validated($courseId);
         Course::update($courseId, $data);
+
+        // 数据库已切换引用，此时才删除被替换的旧封面（CS-20）
+        $newCover = (string) ($data['cover'] ?? '');
+        if ($oldCover !== '' && $oldCover !== $newCover) {
+            ImageStorage::delete($oldCover);
+        }
 
         Course::syncTags($courseId, $this->tagIdsFromRequest());
 
@@ -158,6 +168,15 @@ final class CourseController extends AdminController
             $this->fail(url('/admin/courses'), '课程不存在或已被删除。');
         }
 
+        // 有学员持有有效授权 / 存在未结清订单的课程禁止删除（CS-09）：
+        // 软删除后已购学员将立即失去学习权限，应先下架而非删除。
+        if (Course::deleteBlockedIds([$courseId]) !== []) {
+            $this->fail(
+                url('/admin/courses'),
+                '该课程仍有学员持有有效授权或存在未结清订单，删除会使其失去学习权限；请先将其「下架」。'
+            );
+        }
+
         Course::softDelete($courseId);
 
         Log::recordOperation('course.delete', 'course', $courseId);
@@ -196,6 +215,20 @@ final class CourseController extends AdminController
 
         if ($ids === []) {
             $this->fail($backUrl, '请至少选择一门课程。');
+        }
+
+        if ($action === 'delete') {
+            // 有有效授权 / 未结清订单的课程禁止删除（CS-09），整批取消以避免误删
+            $blocked = Course::deleteBlockedIds($ids);
+            if ($blocked !== []) {
+                $this->fail(
+                    $backUrl,
+                    sprintf(
+                        '所选课程中有 %d 门仍存在有效授权或未结清订单，已取消删除；请先将其「下架」。',
+                        count($blocked)
+                    )
+                );
+            }
         }
 
         $affected = $action === 'delete'
@@ -304,11 +337,15 @@ final class CourseController extends AdminController
             ->integer('preview_chapter_count', '试看章节数', 0, 999)
             ->integer('sort', '排序权重', -100000, 100000);
 
-        if (!is_numeric($priceRaw) || (float) $priceRaw < 0) {
-            $validator->addError('price', '售价必须为不小于 0 的数字。');
+        // 金额严格解析：「元 -> 分」失败（非十进制 / 超过两位小数 / 超范围）返回 null
+        $priceCents         = yuan_to_cents($priceRaw);
+        $originalPriceCents = yuan_to_cents($originalPriceRaw);
+
+        if ($priceCents === null || $priceCents < 0) {
+            $validator->addError('price', '售价必须为不小于 0 的数字，最多两位小数。');
         }
-        if (!is_numeric($originalPriceRaw) || (float) $originalPriceRaw < 0) {
-            $validator->addError('original_price', '划线价必须为不小于 0 的数字。');
+        if ($originalPriceCents === null || $originalPriceCents < 0) {
+            $validator->addError('original_price', '划线价必须为不小于 0 的数字，最多两位小数。');
         }
 
         // 分类必须存在（0 表示未分类）
@@ -323,15 +360,9 @@ final class CourseController extends AdminController
             $this->fail($backUrl, (string) $validator->firstError(), $old);
         }
 
-        // 封面上传优先于地址；上传成功后替换旧的受管图片
-        $oldCover = null;
-        if ($courseId !== null) {
-            $existingCourse = Course::adminFind($courseId);
-            $oldCover = $existingCourse === null ? null : (string) ($existingCourse['cover'] ?? '');
-        }
-
+        // 封面上传优先于地址；被替换的旧封面在数据库写入成功后再清理（见 store / update）
         try {
-            $uploadedCover = ImageStorage::saveUploaded('cover_file', 'covers', $oldCover);
+            $uploadedCover = ImageStorage::saveUploaded('cover_file', 'covers');
         } catch (RuntimeException $e) {
             $this->fail($backUrl, $e->getMessage(), $old);
         }
@@ -347,8 +378,8 @@ final class CourseController extends AdminController
             'summary'               => $summary,
             'content'               => $content,
             'cover'                 => $cover !== '' ? $cover : null,
-            'price'                 => (int) round((float) $priceRaw * 100),
-            'original_price'        => (int) round((float) $originalPriceRaw * 100),
+            'price'                 => (int) $priceCents,
+            'original_price'        => (int) $originalPriceCents,
             'preview_enabled'       => $previewEnabled === '1' ? 1 : 0,
             'preview_chapter_count' => max(0, (int) $previewCount),
             'status'                => $status,

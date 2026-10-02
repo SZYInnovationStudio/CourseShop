@@ -122,13 +122,36 @@ final class Validator
     public function integer(string $field, string $label, int $min = PHP_INT_MIN, int $max = PHP_INT_MAX): self
     {
         $value = $this->value($field);
-        if ($value === null || $value === '' || !is_numeric($value)) {
-            $this->addError($field, $label . '必须为数字。');
+
+        if ($value === null || !is_scalar($value)) {
+            $this->addError($field, $label . '必须为整数。');
 
             return $this;
         }
 
-        $int = (int) $value;
+        $raw = trim((string) $value);
+
+        // 仅接受十进制整数：拒绝 "1.5" / "1e3" / "0x1f" / "12abc" 等（(int) 会把它们静默截断）
+        if (preg_match('/^[+-]?\d+$/', $raw) !== 1) {
+            $this->addError($field, $label . '必须为整数。');
+
+            return $this;
+        }
+
+        // 归一化前导零与正号，避免 filter_var 因前导零误判，同时保留负号
+        $negative   = str_starts_with($raw, '-');
+        $digits     = ltrim(ltrim($raw, '+-'), '0');
+        $normalized = $digits === '' ? '0' : ($negative ? '-' . $digits : $digits);
+
+        // filter_var 在超出平台整数范围时返回 false，避免溢出静默截断
+        $int = filter_var($normalized, FILTER_VALIDATE_INT);
+
+        if ($int === false) {
+            $this->addError($field, $label . '超出允许范围。');
+
+            return $this;
+        }
+
         if ($int < $min || $int > $max) {
             $this->addError($field, $label . '超出允许范围。');
         }

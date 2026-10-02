@@ -79,7 +79,7 @@ foreach ($payTypes as $row) {
     <div class="admin-stat">
         <span class="admin-stat__label">营收（已支付）</span>
         <span class="admin-stat__value price price--accent"><?= price_html((int) $summary['revenue']) ?></span>
-        <span class="admin-stat__hint">已支付 / 已完成订单</span>
+        <span class="admin-stat__hint">区间内支付成功的订单</span>
     </div>
     <div class="admin-stat">
         <span class="admin-stat__label">净营收</span>
@@ -144,7 +144,7 @@ foreach ($payTypes as $row) {
 </div>
 
 <div class="card mt-6">
-    <div class="card__header">课程销售排行（Top 10）</div>
+    <div class="card__header">课程 / 套餐销售排行（Top 10）</div>
     <?php if ($topCourses === []): ?>
         <div class="card__body">
             <p class="text-muted mb-0">统计区间内暂无销售记录。</p>

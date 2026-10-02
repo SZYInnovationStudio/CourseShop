@@ -61,6 +61,17 @@ final class Installer
     }
 
     /**
+     * .env 配置文件是否已存在
+     *
+     * 安装向导成功写入 .env 是「站点已部署」的强信号：即使安装锁文件丢失，
+     * 只要存在 .env，就禁止通过公开安装入口重新安装并覆盖线上数据库配置。
+     */
+    public static function envExists(): bool
+    {
+        return is_file(self::envPath());
+    }
+
+    /**
      * 数据库是否已存在管理员账号
      *
      * 用于在安装锁文件缺失时兜底：只要库中已有管理员，就视为「已安装」，
@@ -83,8 +94,9 @@ final class Installer
 
             return $count > 0;
         } catch (Throwable) {
-            // 无法判断（未配置 .env / 连不上库）时按未安装处理，走正常安装流程
-            return false;
+            // 无法判断数据库状态时采取「保守」策略：已有 .env 说明曾安装过，
+            // 按已安装处理以阻止重装；连 .env 都没有才视为全新安装放行。
+            return self::envExists();
         }
     }
 
@@ -225,6 +237,17 @@ final class Installer
         $pdo = self::connect($db, true);
         $pdo->exec('SET NAMES ' . $charset);
 
+        // 安全检查：目标库若已存在本站业务表，说明这里不是全新数据库。
+        // schema.sql 以 DROP TABLE 开头，绝不允许从公开安装入口覆盖既有数据，
+        // 必须改用空数据库或在离线维护窗口手动处理。
+        $existing = self::existingBusinessTables($pdo, $database);
+        if ($existing !== []) {
+            throw new RuntimeException(
+                '目标数据库已存在 CourseShop 数据表（' . implode('、', $existing)
+                . '），为防止清空数据已中止安装。请改用空数据库，或在离线维护窗口手动处理。'
+            );
+        }
+
         return [
             'schema' => self::runSqlFile($pdo, BASE_PATH . '/database/schema.sql'),
             'seed'   => self::runSqlFile($pdo, BASE_PATH . '/database/seed.sql'),
@@ -358,6 +381,16 @@ final class Installer
      */
     private static function buildEnvContent(array $values): string
     {
+        // 默认按「生产环境 + 关闭调试」生成，避免上线后泄露重置验证码与调用栈；
+        // 仅当站点地址为本地开发地址时，才生成 local + debug 便于联调。
+        $host    = strtolower((string) parse_url((string) ($values['app_url'] ?? ''), PHP_URL_HOST));
+        $isLocal = $host === ''
+            || $host === 'localhost'
+            || $host === '127.0.0.1'
+            || $host === '::1'
+            || str_ends_with($host, '.local')
+            || str_ends_with($host, '.test');
+
         $lines = [
             '# ============================================================',
             '# CourseShop 环境配置（由安装向导于 ' . date('Y-m-d H:i:s') . ' 自动生成）',
@@ -365,10 +398,10 @@ final class Installer
             '# ============================================================',
             '',
             '# 运行环境：local | production（正式上线请改为 production）',
-            'APP_ENV=local',
+            'APP_ENV=' . ($isLocal ? 'local' : 'production'),
             '',
             '# 调试模式：生产环境必须为 false',
-            'APP_DEBUG=true',
+            'APP_DEBUG=' . ($isLocal ? 'true' : 'false'),
             '',
             '# 站点根地址（不要以 / 结尾），用于生成支付回调地址',
             'APP_URL=' . self::envValue($values['app_url']),
@@ -455,6 +488,38 @@ final class Installer
         } catch (PDOException $e) {
             throw new RuntimeException('数据库连接失败：' . $e->getMessage(), 0, $e);
         }
+    }
+
+    /**
+     * 目标库中已存在的 CourseShop 业务表
+     *
+     * 用于在导入（含 DROP TABLE）前阻止从公开入口覆盖既有数据。
+     *
+     * @return array<int, string>
+     */
+    private static function existingBusinessTables(PDO $pdo, string $database): array
+    {
+        $known = [
+            'users', 'courses', 'chapters', 'packages', 'package_courses',
+            'orders', 'order_logs', 'enrollments', 'coupons', 'coupon_usages',
+            'refunds', 'tickets', 'ticket_replies', 'ticket_attachments',
+            'settings', 'migrations',
+        ];
+
+        $placeholders = implode(', ', array_fill(0, count($known), '?'));
+        $statement = $pdo->prepare(
+            'SELECT `table_name` FROM `information_schema`.`tables`
+              WHERE `table_schema` = ?
+                AND `table_name` IN (' . $placeholders . ')'
+        );
+        $statement->execute(array_merge([$database], $known));
+
+        $found = [];
+        foreach ($statement->fetchAll(PDO::FETCH_COLUMN) as $table) {
+            $found[] = (string) $table;
+        }
+
+        return $found;
     }
 
     /**
