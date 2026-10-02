@@ -499,6 +499,7 @@ pre {
     font-size: var(--text-xs);
     font-weight: 600;
     line-height: 1.6;
+    white-space: nowrap;
 }
 
 .badge--primary { background: var(--color-primary-soft); color: var(--color-primary-strong); }
@@ -1128,7 +1129,7 @@ a.course-card { color: inherit; }
 }
 
 .chapter-item__title { flex: 1 1 auto; color: var(--color-text); }
-.chapter-item__duration { color: var(--color-text-faint); font-variant-numeric: tabular-nums; }
+.chapter-item__duration { flex: 0 0 auto; color: var(--color-text-faint); font-variant-numeric: tabular-nums; }
 
 /* Markdown 正文 */
 .prose {
@@ -2804,6 +2805,72 @@ html { overflow-x: hidden; }
 
     .settings-nav__link:hover { background: transparent; }
     .settings-nav__link:active { background: var(--color-surface-2); }
+
+    /* ---- 顶部面包屑：窄屏仅保留「首页 / 当前页」，单行省略不折行 ---- */
+    .breadcrumb {
+        flex-wrap: nowrap;
+        overflow: hidden;
+        margin-top: var(--space-4);
+    }
+
+    .breadcrumb > a:not(:first-child),
+    .breadcrumb > .breadcrumb__sep { display: none; }
+
+    .breadcrumb > .breadcrumb__sep:nth-last-child(2) { display: inline; }
+
+    .breadcrumb > :first-child { flex: 0 0 auto; }
+
+    .breadcrumb > :last-child {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* ---- 提示条：动作链接整体不拆行，放不下时另起一行 ---- */
+    .alert {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        row-gap: var(--space-2);
+    }
+
+    .alert .grow { min-width: 0; }
+
+    .alert a {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        font-weight: 600;
+    }
+
+    /* ---- 卡片与列表：长文本收敛，修正折行后的对齐 ---- */
+    .flex-between > * { min-width: 0; }
+
+    .card__header,
+    .card__body,
+    .card__footer { min-width: 0; }
+
+    .list-plain > li { overflow-wrap: anywhere; }
+
+    .list-plain > li.flex-between {
+        align-items: flex-start;
+        gap: var(--space-3);
+    }
+
+    .list-plain > li.flex-between > :last-child { text-align: right; }
+
+    /* ---- 学习页：长章节标题与列表收敛 ---- */
+    .learn__title { min-width: 0; overflow-wrap: anywhere; }
+
+    .chapter-item { min-width: 0; }
+
+    .chapter-item__title {
+        min-width: 0;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+    }
 }
 
 
