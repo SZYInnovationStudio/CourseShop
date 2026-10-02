@@ -40,10 +40,6 @@ $hasCourses  = $courses !== [];
                 <div class="hero__stat-value"><?= count($categories) ?></div>
                 <div class="hero__stat-label">课程分类</div>
             </div>
-            <div class="hero__stat">
-                <div class="hero__stat-value">永久</div>
-                <div class="hero__stat-label">购买后有效期</div>
-            </div>
         </div>
     </div>
 </section>
