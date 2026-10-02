@@ -69,7 +69,9 @@ $windowStart = max(1, $windowEnd - 4);
     <?php if ($tickets === []): ?>
         <div class="card card--flat">
             <div class="empty-state">
-                <div class="empty-state__icon" aria-hidden="true">&#128172;</div>
+                <div class="empty-state__icon" aria-hidden="true">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path><path d="M13 5v2"></path><path d="M13 17v2"></path><path d="M13 11v2"></path></svg>
+                </div>
                 <p>还没有工单记录。</p>
                 <p class="mb-0"><a class="btn btn--sm" href="<?= url('/ticket/create') ?>">提交第一条工单</a></p>
             </div>

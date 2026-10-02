@@ -13,6 +13,9 @@ declare(strict_types=1);
  * @var bool $isAppeal 是否为申诉类工单
  * @var bool $userBanned 工单所属用户是否被封禁
  * @var int $userId 工单所属用户 ID
+ * @var int $maxFiles 单次回复最多附件数量
+ * @var int $maxMb 单个附件大小上限（MB，已按 php.ini 收敛）
+ * @var array<int, string> $allowedTypes 允许的附件扩展名
  */
 
 use App\Models\Ticket;
@@ -197,12 +200,21 @@ $userName        = (string) ($ticket['user_name'] ?? '');
         <div class="card">
             <div class="card__header">回复工单</div>
             <div class="card__body">
-                <form method="post" action="<?= url('/admin/tickets/' . $ticketId . '/reply') ?>">
+                <form method="post" action="<?= url('/admin/tickets/' . $ticketId . '/reply') ?>" enctype="multipart/form-data">
                     <?= csrf_field() ?>
 
                     <div class="form-group">
                         <textarea class="textarea" name="content" rows="5" maxlength="5000"
                                   placeholder="输入给用户的回复内容" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reply-attachments">附件（选填）</label>
+                        <input class="input" type="file" id="reply-attachments" name="attachments[]" multiple>
+                        <p class="form-hint">
+                            最多 <?= (int) $maxFiles ?> 个文件，单个不超过 <?= (int) $maxMb ?> MB，
+                            支持：<?= e(implode('、', $allowedTypes)) ?>。
+                        </p>
                     </div>
 
                     <button class="btn btn--block" type="submit">发送回复</button>

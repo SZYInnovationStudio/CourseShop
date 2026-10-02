@@ -182,13 +182,15 @@ $stepLabels = [1 => '环境检查', 2 => '数据库配置', 3 => '创建管理�
     .install-steps li.is-done { color: var(--color-success); border-color: var(--color-success); }
     .install-check { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px dashed var(--color-border); }
     .install-check:last-child { border-bottom: 0; }
-    .install-check__icon { flex: 0 0 18px; font-weight: 700; }
+    .install-check__icon { flex: 0 0 18px; }
+    .install-check__icon svg { display: block; width: 18px; height: 18px; }
     .install-check__icon.ok { color: var(--color-success); }
     .install-check__icon.bad { color: var(--color-danger); }
     .install-check__label { font-weight: 600; }
     .install-check__detail { font-size: var(--text-xs); color: var(--color-muted); }
     .install-actions { margin-top: var(--space-5); display: flex; gap: var(--space-3); justify-content: flex-end; flex-wrap: wrap; }
-    .install-done__icon { font-size: 48px; line-height: 1; text-align: center; color: var(--color-success); margin-bottom: var(--space-3); }
+    .install-done__icon { line-height: 1; text-align: center; color: var(--color-success); margin-bottom: var(--space-3); }
+    .install-done__icon svg { display: inline-block; width: 48px; height: 48px; vertical-align: middle; }
 </style>
 </head>
 <body class="install-body">
@@ -230,7 +232,9 @@ $stepLabels = [1 => '环境检查', 2 => '数据库配置', 3 => '创建管理�
     </ol>
     <div class="card">
         <div class="card__body">
-            <div class="install-done__icon">✓</div>
+            <div class="install-done__icon" aria-hidden="true">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8.5 12.5l2.5 2.5 4.5-5"></path></svg>
+            </div>
             <h2 style="text-align:center; margin-top:0;">安装完成</h2>
             <p class="text-muted" style="text-align:center;">管理员账号已创建，现在可以登录后台开始配置站点。</p>
             <div class="install-actions" style="justify-content:center;">
@@ -259,7 +263,15 @@ $stepLabels = [1 => '环境检查', 2 => '数据库配置', 3 => '创建管理�
                 <h2 class="card__header" style="margin-top:0;">环境检查</h2>
                 <?php foreach ($requirements as $check): ?>
                     <div class="install-check">
-                        <span class="install-check__icon <?= $check['ok'] ? 'ok' : 'bad' ?>"><?= $check['ok'] ? '✓' : ($check['required'] ? '✗' : '!') ?></span>
+                        <span class="install-check__icon <?= $check['ok'] ? 'ok' : 'bad' ?>" aria-hidden="true">
+                            <?php if ($check['ok']): ?>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                            <?php elseif ($check['required']): ?>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                            <?php else: ?>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+                            <?php endif; ?>
+                        </span>
                         <span>
                             <span class="install-check__label"><?= e($check['label']) ?></span>
                             <?php if (!$check['required']): ?><span class="badge badge--info">提示</span><?php endif; ?>

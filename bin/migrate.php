@@ -159,7 +159,13 @@ function migrateRunFile(string $file): int
     $count = 0;
 
     foreach (migrateSplitStatements($content) as $statement) {
-        $pdo->exec($statement);
+        // 不用 exec()：迁移文件含 PREPARE/EXECUTE 等会返回结果集的语句，
+        // exec() 不消费结果集，后续语句会报 2014（unbuffered queries are active）。
+        $stmt = $pdo->query($statement);
+        if ($stmt instanceof PDOStatement) {
+            $stmt->fetchAll();
+            $stmt->closeCursor();
+        }
         $count++;
     }
 

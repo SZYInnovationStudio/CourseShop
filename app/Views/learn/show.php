@@ -129,7 +129,7 @@ $nextId   = $position !== false && $position < count($playableIds) - 1 ? $playab
                             <li class="chapter-item<?= $isCurrent ? ' is-active' : '' ?>">
                                 <span class="chapter-item__index">
                                     <?php if ((int) $itemProgress['finished'] === 1): ?>
-                                        <span class="chapter-item__done" title="已学完">&#10003;</span>
+                                        <span class="chapter-item__done" title="已学完"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
                                     <?php else: ?>
                                         <?= $index + 1 ?>
                                     <?php endif; ?>

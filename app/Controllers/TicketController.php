@@ -19,7 +19,6 @@ use App\Support\Session;
 use App\Support\Setting;
 use App\Support\TicketNotifier;
 use App\Support\TicketStorage;
-use RuntimeException;
 
 /**
  * 工单：我的工单、提交、详情、回复、关闭、删除、附件下载
@@ -131,7 +130,7 @@ final class TicketController extends Controller
             'content'  => trim((string) $old['content']),
         ]);
 
-        $errors = $this->saveAttachments($ticketId, (int) $user['id'], null);
+        $errors = TicketStorage::saveUploaded($ticketId, null, (int) $user['id'], Request::file('attachments'));
 
         $ticket = Ticket::findById($ticketId);
         if ($ticket !== null) {
@@ -139,7 +138,7 @@ final class TicketController extends Controller
         }
 
         if ($errors !== []) {
-            Session::flash('warning', '工单已提交，但部分附件未能上传：' . implode('；', $errors));
+            Session::flash('error', '工单已提交，但部分附件未能上传：' . implode('；', $errors));
         }
 
         $this->success(url('/ticket/' . $ticketId), '工单提交成功，我们会尽快处理。');
@@ -202,7 +201,7 @@ final class TicketController extends Controller
         $replyId = TicketReply::create((int) $ticket['id'], (int) $user['id'], false, $content);
         Ticket::incrementReply((int) $ticket['id']);
 
-        $errors = $this->saveAttachments((int) $ticket['id'], (int) $user['id'], $replyId);
+        $errors = TicketStorage::saveUploaded((int) $ticket['id'], $replyId, (int) $user['id'], Request::file('attachments'));
 
         // 用户补充信息后，工单回到「处理中」，等待管理员再次查看
         Ticket::setStatus((int) $ticket['id'], Ticket::STATUS_PROCESSING);
@@ -213,7 +212,7 @@ final class TicketController extends Controller
         }
 
         if ($errors !== []) {
-            Session::flash('warning', '回复已提交，但部分附件未能上传：' . implode('；', $errors));
+            Session::flash('error', '回复已提交，但部分附件未能上传：' . implode('；', $errors));
         }
 
         $this->success(url('/ticket/' . $ticket['id']), '回复已提交。');
@@ -414,50 +413,6 @@ final class TicketController extends Controller
             'SELECT COUNT(*) FROM `tickets` WHERE `ticket_no` = ?',
             [$ticketNo]
         ) > 0;
-    }
-
-    /**
-     * 保存本次提交的附件
-     *
-     * @return array<int, string> 失败的附件提示信息（空数组表示全部成功）
-     */
-    private function saveAttachments(int $ticketId, int $userId, ?int $replyId): array
-    {
-        $files = TicketStorage::normalizeFiles(Request::file('attachments'));
-        if ($files === []) {
-            return [];
-        }
-
-        $errors = [];
-        $count  = 0;
-
-        foreach ($files as $file) {
-            if ($count >= TicketStorage::maxFiles()) {
-                $errors[] = '附件数量超出上限（最多 ' . TicketStorage::maxFiles() . ' 个）';
-                break;
-            }
-
-            try {
-                $stored = TicketStorage::store($file, $ticketId);
-            } catch (RuntimeException $e) {
-                $errors[] = $e->getMessage();
-                continue;
-            }
-
-            TicketAttachment::create(
-                $ticketId,
-                $replyId,
-                $userId,
-                $stored['name'],
-                $stored['path'],
-                $stored['size'],
-                $stored['mime']
-            );
-
-            $count++;
-        }
-
-        return $errors;
     }
 
     /**

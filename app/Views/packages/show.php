@@ -127,13 +127,13 @@ $packageContent = trim((string) ($package['content'] ?? ''));
                 <?php endif; ?>
 
                 <ul class="buy-card__list">
-                    <li><span aria-hidden="true">&#10003;</span> 一次开通套餐内 <?= $courseCount ?> 门课程</li>
-                    <li><span aria-hidden="true">&#10003;</span> 购买后永久有效，随时回看</li>
+                    <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> 一次开通套餐内 <?= $courseCount ?> 门课程</li>
+                    <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> 购买后永久有效，随时回看</li>
                     <?php if ($paymentEnabled && $paymentMethods !== []): ?>
-                        <li><span aria-hidden="true">&#10003;</span> 支持<?= e(implode(' / ', array_values($paymentMethods))) ?></li>
+                        <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> 支持<?= e(implode(' / ', array_values($paymentMethods))) ?></li>
                     <?php endif; ?>
                     <?php if ($saved > 0): ?>
-                        <li><span aria-hidden="true">&#10003;</span> 相比单独购买立省 &yen;<?= format_money($saved) ?></li>
+                        <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> 相比单独购买立省 &yen;<?= format_money($saved) ?></li>
                     <?php endif; ?>
                 </ul>
 

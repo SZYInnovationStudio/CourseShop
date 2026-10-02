@@ -48,7 +48,9 @@ $windowStart = max(1, $windowEnd - 4);
     <?php if ($orders === []): ?>
         <div class="card card--flat">
             <div class="empty-state">
-                <div class="empty-state__icon" aria-hidden="true">&#128179;</div>
+                <div class="empty-state__icon" aria-hidden="true">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
+                </div>
                 <p>你还没有任何订单。</p>
                 <p class="mb-0"><a class="btn btn--sm" href="<?= url('/courses') ?>">去挑选课程</a></p>
             </div>

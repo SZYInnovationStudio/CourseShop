@@ -170,14 +170,24 @@ $hlsEnabled      = $hlsEnabled ?? false;
                                 <form method="post" action="<?= url('/admin/courses/' . $courseId . '/chapters/' . $chapterId . '/move') ?>">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="direction" value="up">
-                                    <button class="btn btn--ghost btn--sm" type="submit"
-                                        <?= $index === 0 ? ' disabled' : '' ?>>↑</button>
+                                    <button class="btn btn--ghost btn--sm" type="submit" aria-label="上移"
+                                        <?= $index === 0 ? ' disabled' : '' ?>>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path>
+                                        </svg>
+                                    </button>
                                 </form>
                                 <form method="post" action="<?= url('/admin/courses/' . $courseId . '/chapters/' . $chapterId . '/move') ?>">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="direction" value="down">
-                                    <button class="btn btn--ghost btn--sm" type="submit"
-                                        <?= $index === $lastIndex ? ' disabled' : '' ?>>↓</button>
+                                    <button class="btn btn--ghost btn--sm" type="submit" aria-label="下移"
+                                        <?= $index === $lastIndex ? ' disabled' : '' ?>>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
                                 </form>
 
                                 <a class="btn btn--outline btn--sm" href="<?= $editUrl ?>">编辑</a>

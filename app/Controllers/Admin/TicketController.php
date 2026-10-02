@@ -12,7 +12,9 @@ use App\Models\User;
 use App\Support\Auth;
 use App\Support\Csrf;
 use App\Support\Request;
+use App\Support\Session;
 use App\Support\TicketNotifier;
+use App\Support\TicketStorage;
 
 /**
  * 后台工单管理
@@ -99,6 +101,9 @@ final class TicketController extends AdminController
             'isAppeal'    => (string) $ticket['type'] === Ticket::TYPE_APPEAL,
             'userBanned'  => $user !== null && Auth::isBanned($user),
             'userId'      => $userId,
+            'maxFiles'    => TicketStorage::maxFiles(),
+            'maxMb'       => TicketStorage::maxUploadMb(),
+            'allowedTypes' => TicketStorage::allowedExtensions(),
         ]);
     }
 
@@ -122,9 +127,11 @@ final class TicketController extends AdminController
             $this->fail(url('/admin/tickets/' . $ticketId), '回复内容不能超过 ' . self::MAX_REPLY_LENGTH . ' 个字符。');
         }
 
-        TicketReply::create($ticketId, (int) (Auth::id() ?? 0), true, $content);
+        $replyId = TicketReply::create($ticketId, (int) (Auth::id() ?? 0), true, $content);
         Ticket::incrementReply($ticketId);
         Ticket::setStatus($ticketId, Ticket::STATUS_REPLIED);
+
+        $errors = TicketStorage::saveUploaded($ticketId, $replyId, (int) (Auth::id() ?? 0), Request::file('attachments'));
 
         $updated = Ticket::findById($ticketId);
         if ($updated !== null) {
@@ -132,6 +139,10 @@ final class TicketController extends AdminController
         }
 
         Log::recordOperation('ticket.reply', 'ticket', $ticketId, ['ticket_no' => (string) $ticket['ticket_no']]);
+
+        if ($errors !== []) {
+            Session::flash('error', '回复已发送，但部分附件未能上传：' . implode('；', $errors));
+        }
 
         $this->success(url('/admin/tickets/' . $ticketId), '回复已发送。');
     }

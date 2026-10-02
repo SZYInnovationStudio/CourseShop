@@ -93,6 +93,44 @@
     bindDrawer('[data-nav-toggle]', '[data-drawer]');
     bindDrawer('[data-admin-toggle]', '[data-admin-sidebar]');
 
+    /* ---------------- 顶部用户下拉菜单 ---------------- */
+    (function () {
+        var menu = document.querySelector('[data-user-menu]');
+        if (!menu) {
+            return;
+        }
+
+        var toggle = menu.querySelector('[data-user-menu-toggle]');
+        var panel = menu.querySelector('[data-user-menu-panel]');
+        if (!toggle || !panel) {
+            return;
+        }
+
+        function setOpen(open) {
+            menu.classList.toggle('is-open', open);
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        toggle.addEventListener('click', function () {
+            setOpen(!menu.classList.contains('is-open'));
+        });
+
+        // 点击菜单外部收起
+        document.addEventListener('click', function (event) {
+            if (menu.classList.contains('is-open') && !menu.contains(event.target)) {
+                setOpen(false);
+            }
+        });
+
+        // Esc 收起并归还焦点
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && menu.classList.contains('is-open')) {
+                setOpen(false);
+                toggle.focus();
+            }
+        });
+    })();
+
     /* ---------------- 提示条 ---------------- */
     function dismissAlert(element) {
         element.style.transition = 'opacity 200ms ease';

@@ -199,7 +199,9 @@ $windowEnd   = min($totalPages, $windowStart + 4);
     <?php else: ?>
         <div class="card card--flat">
             <div class="empty-state">
-                <div class="empty-state__icon" aria-hidden="true">&#128269;</div>
+                <div class="empty-state__icon" aria-hidden="true">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+                </div>
                 <p>没有找到符合条件的课程。</p>
                 <p class="mb-0">
                     <a class="btn btn--outline btn--sm" href="<?= url('/courses') ?>">重置筛选条件</a>

@@ -538,7 +538,13 @@ final class Installer
         $count = 0;
         foreach (self::splitStatements($content) as $statement) {
             try {
-                $pdo->exec($statement);
+                // 不用 exec()：schema.sql 含 PREPARE/EXECUTE 等会返回结果集的语句，
+                // exec() 不消费结果集，后续语句会报 2014（unbuffered queries are active）。
+                $stmt = $pdo->query($statement);
+                if ($stmt instanceof \PDOStatement) {
+                    $stmt->fetchAll();
+                    $stmt->closeCursor();
+                }
             } catch (PDOException $e) {
                 throw new RuntimeException(
                     sprintf('执行 SQL 失败：%s（语句：%s…）', $e->getMessage(), mb_substr($statement, 0, 80)),

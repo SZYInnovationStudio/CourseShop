@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Models\TicketAttachment;
 use RuntimeException;
 
 /**
@@ -92,17 +93,53 @@ final class TicketStorage
 
     /**
      * 单个附件大小上限（字节）
+     *
+     * 取「后台配置值」与「PHP 实际允许值」的较小者：
+     * 若界面宣称的上限高于 php.ini 的 upload_max_filesize / post_max_size，
+     * 超限文件会被 PHP 在到达业务代码前直接丢弃（UPLOAD_ERR_INI_SIZE），
+     * 表现为「工单提交成功但附件凭空消失」。
      */
     public static function maxUploadBytes(): int
     {
         $mb = (int) Setting::int('ticket_attachment_max_mb', (int) Config::get('upload.max_attachment_mb', 10));
+        $bytes = max(1, $mb) * 1024 * 1024;
 
-        return max(1, $mb) * 1024 * 1024;
+        foreach ([ini_get('upload_max_filesize'), ini_get('post_max_size')] as $ini) {
+            $limit = self::parseIniBytes((string) $ini);
+            if ($limit > 0) {
+                $bytes = min($bytes, $limit);
+            }
+        }
+
+        return max(1, $bytes);
     }
 
     public static function maxUploadMb(): int
     {
         return (int) (self::maxUploadBytes() / 1024 / 1024);
+    }
+
+    /**
+     * 解析 php.ini 的字节缩写（2M / 2048M / 1G / 512K / 纯数字）
+     *
+     * @return int 字节数；-1 表示不限（如 -1 或空值）
+     */
+    private static function parseIniBytes(string $value): int
+    {
+        $value = trim($value);
+
+        if ($value === '' || $value === '-1') {
+            return -1;
+        }
+
+        $number = (int) $value;
+
+        return match (strtolower(substr($value, -1))) {
+            'g'     => $number * 1024 * 1024 * 1024,
+            'm'     => $number * 1024 * 1024,
+            'k'     => $number * 1024,
+            default => $number,
+        };
     }
 
     /**
@@ -154,6 +191,42 @@ final class TicketStorage
     // ============================================================
     // 保存与删除
     // ============================================================
+
+    /**
+     * 保存一次提交中的全部附件（前台提交/回复、后台回复共用）
+     *
+     * @param  array<string, mixed>|null $field $_FILES 中的多文件字段（name="attachments[]"）
+     * @return array<int, string> 失败提示列表（空数组表示全部成功）
+     */
+    public static function saveUploaded(int $ticketId, ?int $replyId, int $userId, ?array $field): array
+    {
+        $files = self::normalizeFiles($field);
+        if ($files === []) {
+            return [];
+        }
+
+        $errors = [];
+        $count  = 0;
+
+        foreach ($files as $file) {
+            if ($count >= self::maxFiles()) {
+                $errors[] = '附件数量超出上限（最多 ' . self::maxFiles() . ' 个）。';
+                break;
+            }
+
+            try {
+                $stored = self::store($file, $ticketId);
+            } catch (RuntimeException $e) {
+                $errors[] = $e->getMessage();
+                continue;
+            }
+
+            TicketAttachment::create($ticketId, $replyId, $userId, $stored['name'], $stored['path'], $stored['size'], $stored['mime']);
+            $count++;
+        }
+
+        return $errors;
+    }
 
     /**
      * 保存单个上传的附件

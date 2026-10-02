@@ -59,14 +59,44 @@ $activeClass = static function (string $path) use ($current): string {
                         <a class="btn btn--sm" href="<?= url('/register') ?>">注册</a>
                     <?php endif; ?>
                 <?php else: ?>
-                    <a class="btn btn--ghost btn--sm" href="<?= url('/my/courses') ?>">我的课程</a>
-                    <?php if (Auth::isAdmin()): ?>
-                        <a class="btn btn--ghost btn--sm" href="<?= url('/admin') ?>">管理后台</a>
-                    <?php endif; ?>
-                    <form class="header-form" method="post" action="<?= url('/logout') ?>">
-                        <?= csrf_field() ?>
-                        <button class="btn btn--outline btn--sm" type="submit">退出</button>
-                    </form>
+                    <?php
+                    $displayName = (string) ($user['nickname'] ?? '') !== ''
+                        ? (string) $user['nickname']
+                        : (string) ($user['username'] ?? '');
+                    $avatar  = (string) ($user['avatar'] ?? '');
+                    $initial = mb_substr($displayName !== '' ? $displayName : '?', 0, 1);
+                    ?>
+                    <div class="user-menu" data-user-menu>
+                        <button type="button" class="user-menu__trigger" data-user-menu-toggle
+                                aria-haspopup="true" aria-expanded="false" aria-controls="user-menu-panel">
+                            <span class="avatar avatar--sm">
+                                <?php if ($avatar !== ''): ?>
+                                    <img src="<?= e(asset($avatar)) ?>" alt="">
+                                <?php else: ?>
+                                    <span class="avatar__fallback"><?= e($initial) ?></span>
+                                <?php endif; ?>
+                            </span>
+                            <span class="user-menu__name"><?= e($displayName) ?></span>
+                            <svg class="user-menu__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                 aria-hidden="true">
+                                <path d="M6 9l6 6 6-6"></path>
+                            </svg>
+                        </button>
+
+                        <div class="user-menu__panel" id="user-menu-panel" data-user-menu-panel>
+                            <a class="user-menu__item" href="<?= url('/my/courses') ?>">我的课程</a>
+                            <a class="user-menu__item" href="<?= url('/tickets') ?>">我的工单</a>
+                            <a class="user-menu__item" href="<?= url('/account') ?>">账户设置</a>
+                            <?php if (Auth::isAdmin()): ?>
+                                <a class="user-menu__item" href="<?= url('/admin') ?>">管理后台</a>
+                            <?php endif; ?>
+                            <form class="user-menu__form" method="post" action="<?= url('/logout') ?>">
+                                <?= csrf_field() ?>
+                                <button class="user-menu__item user-menu__item--action" type="submit">退出登录</button>
+                            </form>
+                        </div>
+                    </div>
                 <?php endif; ?>
             </div>
 
@@ -108,6 +138,7 @@ $activeClass = static function (string $path) use ($current): string {
                 <?php endif; ?>
             <?php else: ?>
                 <a class="site-drawer__link" href="<?= url('/my/courses') ?>">我的课程</a>
+                <a class="site-drawer__link" href="<?= url('/tickets') ?>">我的工单</a>
                 <a class="site-drawer__link" href="<?= url('/account') ?>">账户设置</a>
                 <?php if (Auth::isAdmin()): ?>
                     <a class="site-drawer__link" href="<?= url('/admin') ?>">管理后台</a>

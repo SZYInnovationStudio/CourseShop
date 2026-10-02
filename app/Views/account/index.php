@@ -55,9 +55,11 @@ $tabs = [
                     <?= e($tabLabel) ?>
                 </a>
             <?php endforeach; ?>
-            <a class="settings-nav__link" href="<?= url('/account/email') ?>">
-                邮箱绑定<?= $emailVerified ? '' : '（未完成）' ?>
-            </a>
+            <?php if (!$emailVerified): ?>
+                <a class="settings-nav__link" href="<?= url('/account/email') ?>">
+                    邮箱绑定（未完成）
+                </a>
+            <?php endif; ?>
         </nav>
 
         <div class="settings-panel">
@@ -349,9 +351,9 @@ $tabs = [
                         </ul>
                     </div>
                     <div class="card__footer flex flex-wrap gap-3">
-                        <a class="btn btn--outline" href="<?= url('/account/email') ?>">
-                            <?= $emailVerified ? '更换绑定邮箱' : '绑定邮箱' ?>
-                        </a>
+                        <?php if (!$emailVerified): ?>
+                            <a class="btn btn--outline" href="<?= url('/account/email') ?>">绑定邮箱</a>
+                        <?php endif; ?>
                         <a class="btn btn--outline" href="<?= url('/my/courses') ?>">我的课程</a>
                     </div>
                 </div>

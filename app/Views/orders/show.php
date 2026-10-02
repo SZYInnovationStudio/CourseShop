@@ -162,9 +162,9 @@ $statusBadges  = [
                 <?php endif; ?>
 
                 <ul class="buy-card__list">
-                    <li><span aria-hidden="true">&#10003;</span> 支持微信支付 / 支付宝</li>
-                    <li><span aria-hidden="true">&#10003;</span> 支付成功后立即开通课程</li>
-                    <li><span aria-hidden="true">&#10003;</span> 如需帮助可提交工单联系客服</li>
+                    <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> 支持微信支付 / 支付宝</li>
+                    <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> 支付成功后立即开通课程</li>
+                    <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> 如需帮助可提交工单联系客服</li>
                 </ul>
             </div>
         </aside>

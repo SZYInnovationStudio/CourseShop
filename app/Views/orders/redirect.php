@@ -25,7 +25,9 @@ $siteName = Setting::string('site_name', 'CourseShop');
 <body>
 <div class="container">
     <div class="empty-state">
-        <div class="empty-state__icon" aria-hidden="true">&#128179;</div>
+        <div class="empty-state__icon" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
+        </div>
         <p>正在跳转到支付页面，请稍候…</p>
         <p class="mb-0 text-muted">如果浏览器没有自动跳转，请点击下面的按钮。</p>
     </div>
