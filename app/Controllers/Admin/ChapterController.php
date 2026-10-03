@@ -108,6 +108,7 @@ final class ChapterController extends AdminController
             'ffmpegAvailable' => Transcoder::available(),
             'hlsEnabled'      => Setting::bool('video_hls_enabled', true),
             'queueAutoRun'    => QueueRunner::available(),
+            'queueAutoReason' => QueueRunner::unavailableReason(),
         ]);
     }
 

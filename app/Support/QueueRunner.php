@@ -88,6 +88,34 @@ final class QueueRunner
         return self::canSpawn() && self::cliBinary() !== '';
     }
 
+    /**
+     * 自动运行不可用的原因（可用时返回空串），用于后台提示与自助排查
+     */
+    public static function unavailableReason(): string
+    {
+        if (PHP_OS_FAMILY === 'Windows') {
+            return '当前系统为 Windows，自动运行仅在 Unix 环境启用';
+        }
+
+        if (!function_exists('proc_open')) {
+            return 'PHP 函数 proc_open 不可用';
+        }
+
+        $disabled = array_map('trim', explode(',', (string) ini_get('disable_functions')));
+
+        if (in_array('proc_open', $disabled, true)) {
+            return 'PHP 禁用了 proc_open，请在宝塔「PHP 设置 → 禁用函数」中移除';
+        }
+
+        $reason = '未找到满足 PHP 8.1+ 的命令行 PHP';
+
+        if (trim((string) ini_get('open_basedir')) !== '') {
+            $reason .= '；站点开启了 open_basedir（宝塔默认开启「防跨站攻击」），可在「网站 → 设置」中关闭后重试';
+        }
+
+        return $reason;
+    }
+
     private static function workerScript(): string
     {
         return BASE_PATH . '/bin/queue-worker.php';
@@ -166,11 +194,17 @@ final class QueueRunner
 
     /**
      * 候选 CLI 是否可用：可执行且版本满足 8.1+
+     *
+     * 站点开启 open_basedir 时，PHP 无法对站点目录之外的文件做 is_file / is_executable
+     * 检查（宝塔默认开启「防跨站攻击」），此时跳过存在性检查、直接尝试执行探测版本——
+     * 子进程的路径解析不受 open_basedir 限制。
      */
     private static function usable(string $binary): bool
     {
-        if (!is_file($binary) || !is_executable($binary)) {
-            return false;
+        if (trim((string) ini_get('open_basedir')) === '') {
+            if (!is_file($binary) || !is_executable($binary)) {
+                return false;
+            }
         }
 
         $descriptors = [

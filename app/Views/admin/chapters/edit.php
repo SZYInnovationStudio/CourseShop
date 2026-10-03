@@ -152,7 +152,7 @@ $status    = (string) old('status', (string) (int) $chapter['status']);
                 <?php else: ?>
                     <p class="mb-0"><span class="badge badge--info">等待中</span>
                         <span class="text-faint">
-                            队列消费者将尽快处理<?= $queueAutoRun ? '（已启用自动运行）' : '（自动运行不可用，请按 README 配置消费者或计划任务）' ?>。
+                            队列消费者将尽快处理<?= $queueAutoRun ? '（已启用自动运行）' : '（自动运行不可用：' . e($queueAutoReason) . '）' ?>。
                         </span>
                     </p>
                 <?php endif; ?>
@@ -168,7 +168,7 @@ $status    = (string) old('status', (string) (int) $chapter['status']);
                     </form>
                 </div>
                 <p class="form-hint mb-0">
-                    提交后由队列异步执行<?= $queueAutoRun ? '（已启用自动运行，无需额外配置）' : '，请确保已运行 <code>php bin/queue-worker.php</code>' ?>。
+                    提交后由队列异步执行<?= $queueAutoRun ? '（已启用自动运行，无需额外配置）' : '；当前自动运行不可用，请先常驻运行 <code>php bin/queue-worker.php</code>（或修复该原因后重试）' ?>。
                 </p>
             <?php endif; ?>
         <?php endif; ?>
