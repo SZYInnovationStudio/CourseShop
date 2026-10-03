@@ -124,7 +124,7 @@ $windowStart = max(1, $windowEnd - 4);
             <table class="table">
                 <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>序号</th>
                     <th>工单号</th>
                     <th>标题</th>
                     <th>用户</th>
@@ -137,7 +137,7 @@ $windowStart = max(1, $windowEnd - 4);
                 </tr>
                 </thead>
                 <tbody>
-                <?php foreach ($tickets as $item): ?>
+                <?php foreach ($tickets as $index => $item): ?>
                     <?php
                     $ticketId = (int) $item['id'];
                     $status   = (string) $item['status'];
@@ -145,7 +145,7 @@ $windowStart = max(1, $windowEnd - 4);
                     $priority = (int) $item['priority'];
                     ?>
                     <tr>
-                        <td class="text-faint"><?= $ticketId ?></td>
+                        <td class="text-faint"><?= $index + 1 ?></td>
                         <td class="text-faint"><?= e((string) $item['ticket_no']) ?></td>
                         <td>
                             <a href="<?= url('/admin/tickets/' . $ticketId) ?>"><?= e((string) $item['title']) ?></a>

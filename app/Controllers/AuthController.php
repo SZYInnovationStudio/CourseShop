@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\Agreement;
+use App\Models\EmailVerification;
 use App\Models\User;
 use App\Support\Auth;
 use App\Support\Captcha;
+use App\Support\Config;
 use App\Support\Csrf;
+use App\Support\Logger;
 use App\Support\LoginThrottle;
+use App\Support\Mailer;
 use App\Support\Request;
 use App\Support\Session;
 use App\Support\Setting;
@@ -172,6 +176,23 @@ final class AuthController extends Controller
         $this->success($this->intended('/'), t('登录成功，欢迎回来！'));
     }
 
+    /** 注册验证码重发间隔（秒） */
+    private const REGISTER_RESEND_INTERVAL = 60;
+
+    /** 同一 IP 每小时最多下发的注册验证码数量 */
+    private const REGISTER_IP_HOURLY_LIMIT = 5;
+
+    /**
+     * 注册是否必须完成邮箱验证
+     *
+     * 开启后注册页要求填写邮箱并校验验证码，验证通过才会创建账号，
+     * 可有效抑制批量注册；关闭则回到「注册无需邮箱」的流程。
+     */
+    private function registerEmailRequired(): bool
+    {
+        return Setting::bool('register_email_verify', true);
+    }
+
     /**
      * 注册页
      */
@@ -182,11 +203,13 @@ final class AuthController extends Controller
         }
 
         $this->view('auth.register', [
-            'pageTitle'       => t('注册'),
-            'captchaRequired' => Captcha::enabled(),
-            'forceEmailBind'  => Setting::bool('force_email_bind', false),
-            'terms'           => Agreement::current('terms'),
-            'privacy'         => Agreement::current('privacy'),
+            'pageTitle'           => t('注册'),
+            'captchaRequired'     => Captcha::enabled(),
+            'emailVerifyRequired' => $this->registerEmailRequired(),
+            'codeTtlMinutes'      => max(1, (int) ceil(max(60, Setting::int('mail_code_ttl', 600)) / 60)),
+            'forceEmailBind'      => Setting::bool('force_email_bind', false),
+            'terms'               => Agreement::current('terms'),
+            'privacy'             => Agreement::current('privacy'),
         ]);
     }
 
@@ -201,9 +224,11 @@ final class AuthController extends Controller
             $this->fail(url('/register'), t('当前未开放注册。'));
         }
 
+        $emailVerifyRequired = $this->registerEmailRequired();
         $username = Request::string('username');
         $password = Request::raw('password');
-        $old      = ['username' => $username];
+        $email    = strtolower(Request::string('email'));
+        $old      = ['username' => $username, 'email' => $email];
 
         $validator = $this->validator(Request::all())
             ->required('username', '用户名')
@@ -217,6 +242,10 @@ final class AuthController extends Controller
             ->same('password_confirm', 'password', '确认密码')
             ->accepted('agree', '用户协议与隐私政策');
 
+        if ($emailVerifyRequired) {
+            $validator->required('email', '邮箱')->email('email', '邮箱')->required('email_code', '验证码');
+        }
+
         if ($validator->fails()) {
             $this->fail(url('/register'), (string) $validator->firstError(), $old);
         }
@@ -229,7 +258,27 @@ final class AuthController extends Controller
             $this->fail(url('/register'), t('该用户名已被注册，请更换一个。'), $old);
         }
 
+        // 注册即验证邮箱：邮箱占用与验证码都在建号前校验，避免用任意邮箱批量注册
+        if ($emailVerifyRequired) {
+            if (User::emailExists($email)) {
+                $this->fail(url('/register'), t('该邮箱已被其他账号绑定。'), $old);
+            }
+
+            $codeError = $this->consumeRegisterEmailCode($email, Request::string('email_code'));
+
+            if ($codeError !== '') {
+                $this->fail(url('/register'), $codeError, $old);
+            }
+        }
+
         $userId = User::create($username, password_hash($password, PASSWORD_DEFAULT));
+
+        $emailBound = false;
+
+        if ($emailVerifyRequired) {
+            User::bindEmail($userId, $email);
+            $emailBound = true;
+        }
 
         // 记录注册时同意的协议版本快照
         foreach (['terms', 'privacy'] as $type) {
@@ -249,11 +298,102 @@ final class AuthController extends Controller
         User::touchLogin($userId);
         User::logLogin($userId, $username, 'success', '注册后自动登录');
 
-        $message = Setting::bool('force_email_bind', false)
+        $message = (!$emailBound && Setting::bool('force_email_bind', false))
             ? t('注册成功！请先绑定邮箱以启用完整功能。')
             : t('注册成功，欢迎加入！');
 
         $this->success($this->intended('/'), $message);
+    }
+
+    /**
+     * 注册页：发送邮箱验证码
+     *
+     * 该入口未登录即可访问，因此同时依赖图形验证码、邮箱冷却与 IP 频次限制，
+     * 防止被用来向任意邮箱批量发送邮件。
+     */
+    public function sendRegisterEmailCode(): void
+    {
+        Csrf::check();
+
+        if (!Setting::bool('register_enabled', true)) {
+            $this->fail(url('/register'), t('当前未开放注册。'));
+        }
+
+        $email = strtolower(Request::string('email'));
+        $old   = ['username' => Request::string('username'), 'email' => $email];
+
+        $validator = $this->validator(Request::all())
+            ->required('email', '邮箱')
+            ->email('email', '邮箱');
+
+        if ($validator->fails()) {
+            $this->fail(url('/register'), (string) $validator->firstError(), $old);
+        }
+
+        if (Captcha::enabled() && !Captcha::verify('register', Request::string('captcha'))) {
+            $this->fail(url('/register'), t('图形验证码不正确或已过期。'), $old);
+        }
+
+        if (User::emailExists($email)) {
+            $this->fail(url('/register'), t('该邮箱已被其他账号绑定。'), $old);
+        }
+
+        if (EmailVerification::recentCount($email, EmailVerification::PURPOSE_REGISTER, self::REGISTER_RESEND_INTERVAL) > 0) {
+            $this->fail(url('/register'), t('验证码发送过于频繁，请稍后再试。'), $old);
+        }
+
+        if (EmailVerification::recentCountByIp(Request::ip(), EmailVerification::PURPOSE_REGISTER, 3600) >= self::REGISTER_IP_HOURLY_LIMIT) {
+            $this->fail(url('/register'), t('当前网络获取验证码过于频繁，请稍后再试。'), $old);
+        }
+
+        $issued = EmailVerification::issue(null, $email, EmailVerification::PURPOSE_REGISTER);
+        $ttl    = max(1, (int) ceil($issued['ttl'] / 60));
+
+        if (Mailer::sendCode($email, $issued['code'], 'register')) {
+            $this->success(url('/register'), t('验证码已发送至 %s，%d 分钟内有效。', [mask_email($email), $ttl]), $old);
+        }
+
+        // 发送失败：调试模式下仅写入受控日志，不在页面回显验证码
+        if ((bool) Config::get('app.debug', false)) {
+            Logger::warning('注册验证码发送失败（调试模式已写入日志）', [
+                'email' => $email,
+                'code'  => (string) $issued['code'],
+            ]);
+        }
+
+        $this->fail(url('/register'), t('验证码发送失败，请稍后重试或联系管理员。'), $old);
+    }
+
+    /**
+     * 校验并消费注册邮箱验证码
+     *
+     * @return string 成功返回空串，失败返回错误提示（已翻译）
+     */
+    private function consumeRegisterEmailCode(string $email, string $code): string
+    {
+        $record = EmailVerification::latest($email, EmailVerification::PURPOSE_REGISTER);
+
+        if ($record === null) {
+            return t('验证码不正确。');
+        }
+
+        if ((int) $record['attempts'] >= EmailVerification::MAX_ATTEMPTS) {
+            return t('验证码错误次数过多，请重新获取。');
+        }
+
+        if (strtotime((string) $record['expires_at']) < time()) {
+            return t('验证码已过期，请重新获取。');
+        }
+
+        if (!hash_equals((string) $record['code'], trim($code))) {
+            EmailVerification::incrementAttempts((int) $record['id']);
+
+            return t('验证码不正确。');
+        }
+
+        EmailVerification::markUsed((int) $record['id']);
+
+        return '';
     }
 
     /**

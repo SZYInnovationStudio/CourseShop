@@ -98,6 +98,11 @@ final class QrCode
         self::initGf();
 
         $version   = self::pickVersion(strlen($text));
+
+        if ($version === null) {
+            throw new RuntimeException('内容过长，无法生成二维码。');
+        }
+
         $bits      = self::dataBits($text, $version);
         $codewords = self::interleavedCodewords($bits, $version);
 
@@ -150,7 +155,17 @@ final class QrCode
         return self::$exp[(self::$log[$a] + self::$log[$b]) % 255];
     }
 
-    private static function pickVersion(int $bytes): int
+    /**
+     * 内容能否在本编码器支持的最高版本内容纳
+     *
+     * 供调用方（如两步验证绑定页）在超长时改用更短的绑定信息，避免直接抛出异常。
+     */
+    public static function fits(string $text): bool
+    {
+        return self::pickVersion(strlen($text)) !== null;
+    }
+
+    private static function pickVersion(int $bytes): ?int
     {
         foreach (self::BLOCKS as $version => $spec) {
             $dataCodewords = $spec[2] * $spec[1] + $spec[4] * $spec[3];
@@ -161,7 +176,7 @@ final class QrCode
             }
         }
 
-        throw new RuntimeException('内容过长，无法生成二维码。');
+        return null;
     }
 
     /**

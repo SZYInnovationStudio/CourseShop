@@ -22,15 +22,32 @@ use App\Support\QrCode;
     <div class="card">
         <div class="card__header"><?= e(t('第 1 步：在验证器中添加账号')) ?></div>
         <div class="card__body">
-            <p class="form-hint settings-panel__desc mb-0">
-                <?= e(t('用验证器扫描下方二维码，即可自动添加账号。')) ?>
-            </p>
+            <?php
+            // 二维码容量有限：内容超长时降级为「手动密钥」绑定，避免整页报错
+            $qrSvg = '';
 
-            <div class="qr-box" role="img" aria-label="<?= e(t('绑定二维码')) ?>">
-                <?= QrCode::svg($otpauthUri, 220) ?>
-            </div>
+            try {
+                $qrSvg = QrCode::svg($otpauthUri, 220);
+            } catch (Throwable $e) {
+                $qrSvg = '';
+            }
+            ?>
 
-            <details class="qr-fallback">
+            <?php if ($qrSvg !== ''): ?>
+                <p class="form-hint settings-panel__desc mb-0">
+                    <?= e(t('用验证器扫描下方二维码，即可自动添加账号。')) ?>
+                </p>
+
+                <div class="qr-box" role="img" aria-label="<?= e(t('绑定二维码')) ?>">
+                    <?= $qrSvg ?>
+                </div>
+            <?php else: ?>
+                <p class="form-hint settings-panel__desc mb-0">
+                    <?= e(t('当前账号信息过长，无法生成二维码，请使用下方的手动密钥完成绑定。')) ?>
+                </p>
+            <?php endif; ?>
+
+            <details class="qr-fallback"<?= $qrSvg === '' ? ' open' : '' ?>>
                 <summary><?= e(t('无法扫码？展开手动输入')) ?></summary>
                 <div class="qr-fallback__body">
                     <p class="form-hint settings-panel__desc">

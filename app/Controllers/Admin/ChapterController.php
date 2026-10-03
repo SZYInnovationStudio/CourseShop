@@ -10,6 +10,7 @@ use App\Models\Course;
 use App\Models\Log;
 use App\Models\VideoTranscode;
 use App\Support\Csrf;
+use App\Support\QueueRunner;
 use App\Support\Request;
 use App\Support\Setting;
 use App\Support\Video\Transcoder;
@@ -106,6 +107,7 @@ final class ChapterController extends AdminController
             'transcode'       => VideoTranscode::latest((int) $chapter['id']),
             'ffmpegAvailable' => Transcoder::available(),
             'hlsEnabled'      => Setting::bool('video_hls_enabled', true),
+            'queueAutoRun'    => QueueRunner::available(),
         ]);
     }
 
@@ -314,6 +316,9 @@ final class ChapterController extends AdminController
 
             return 0;
         }
+
+        // 即装即用：入队后立即拉起消费者，无需手工配置 systemd / crontab
+        QueueRunner::trigger(true);
 
         return $transcodeId;
     }

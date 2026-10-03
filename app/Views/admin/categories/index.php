@@ -72,7 +72,7 @@ $selectedParent = (int) old('parent_id', '0');
             <table class="table">
                 <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>序号</th>
                     <th>分类名称</th>
                     <th>上级分类</th>
                     <th>课程数</th>
@@ -82,14 +82,14 @@ $selectedParent = (int) old('parent_id', '0');
                 </tr>
                 </thead>
                 <tbody>
-                <?php foreach ($categories as $category): ?>
+                <?php foreach ($categories as $index => $category): ?>
                     <?php
                     $categoryId = (int) $category['id'];
                     $depth      = (int) ($category['depth'] ?? 0);
                     $parentId   = (int) ($category['parent_id'] ?? 0);
                     ?>
                     <tr>
-                        <td class="text-faint"><?= $categoryId ?></td>
+                        <td class="text-faint"><?= $index + 1 ?></td>
                         <td>
                             <?php if ($depth > 0): ?>
                                 <span class="text-faint">└&nbsp;</span>

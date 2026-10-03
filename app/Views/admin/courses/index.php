@@ -123,7 +123,7 @@ $windowStart = max(1, $windowEnd - 4);
                 <thead>
                 <tr>
                     <th class="col-check"><input type="checkbox" data-batch-select-all aria-label="全选本页"></th>
-                    <th>ID</th>
+                    <th>序号</th>
                     <th>课程</th>
                     <th>分类</th>
                     <th>价格</th>
@@ -135,7 +135,7 @@ $windowStart = max(1, $windowEnd - 4);
                 </tr>
                 </thead>
                 <tbody>
-                <?php foreach ($courses as $item): ?>
+                <?php foreach ($courses as $index => $item): ?>
                     <?php
                     $courseId = (int) $item['id'];
                     $status   = (string) $item['status'];
@@ -147,7 +147,7 @@ $windowStart = max(1, $windowEnd - 4);
                             <input type="checkbox" form="batch-form" name="ids[]" value="<?= $courseId ?>"
                                    data-batch-checkbox aria-label="选择课程 <?= e((string) $item['title']) ?>">
                         </td>
-                        <td class="text-faint"><?= $courseId ?></td>
+                        <td class="text-faint"><?= $index + 1 ?></td>
                         <td>
                             <div class="admin-course-cell">
                                 <span class="admin-course-cell__title"><?= e((string) $item['title']) ?></span>

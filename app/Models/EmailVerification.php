@@ -21,6 +21,9 @@ final class EmailVerification
     /** 用途：绑定邮箱 */
     public const PURPOSE_BIND = 'bind';
 
+    /** 用途：注册账号（在建号之前验证邮箱归属） */
+    public const PURPOSE_REGISTER = 'register';
+
     /** 用途：找回密码 */
     public const PURPOSE_RESET = 'reset';
 
@@ -90,6 +93,26 @@ final class EmailVerification
             'SELECT COUNT(*) FROM `email_verifications`
               WHERE `email` = ? AND `purpose` = ? AND `created_at` >= ?',
             [$email, $purpose, $since]
+        );
+    }
+
+    /**
+     * 统计最近 $seconds 秒内某 IP 下发的验证码数量（用于 IP 维度频率限制）
+     *
+     * 注册页可在未登录状态下请求验证码，需要按 IP 限流，避免被用来向任意邮箱批量发信。
+     */
+    public static function recentCountByIp(string $ip, string $purpose, int $seconds): int
+    {
+        if ($ip === '') {
+            return 0;
+        }
+
+        $since = date('Y-m-d H:i:s', time() - $seconds);
+
+        return (int) Database::scalar(
+            'SELECT COUNT(*) FROM `email_verifications`
+              WHERE `ip` = ? AND `purpose` = ? AND `created_at` >= ?',
+            [$ip, $purpose, $since]
         );
     }
 }

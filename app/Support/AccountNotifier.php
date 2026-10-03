@@ -132,7 +132,8 @@ final class AccountNotifier
         return [
             'email'  => $email,
             'name'   => $name,
-            'locale' => $locale !== '' ? $locale : I18n::DEFAULT_LOCALE,
+            // 仅当语言仍处于后台启用状态时才用于渲染，否则回退默认语言
+            'locale' => I18n::isEnabled($locale) ? $locale : I18n::DEFAULT_LOCALE,
         ];
     }
 }

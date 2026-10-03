@@ -44,11 +44,14 @@ final class Order
     ];
 
     /**
-     * 生成唯一订单号：年月日时分秒 + 6 位随机数
+     * 生成唯一订单号：CS + 年月日时分秒 + 6 位随机数，如 CS20261003171234123456
+     *
+     * 前缀 CS 便于在支付平台流水、导出表格中辨认本站订单；长度 22 位，
+     * 在 `order_no` VARCHAR(32) 与易支付 out_trade_no 的长度限制内。
      */
     public static function generateNo(): string
     {
-        return date('YmdHis') . str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        return 'CS' . date('YmdHis') . str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     }
 
     /**

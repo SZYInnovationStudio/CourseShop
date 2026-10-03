@@ -26,8 +26,28 @@ $old       = [];
 
 // 兜底防护：安装锁文件缺失时，只要 .env 已存在（说明站点曾部署过）或库中已有管理员，
 // 同样视为「已安装」，阻止重新执行安装（schema.sql 以 DROP TABLE 开头，会清空线上数据）。
-$blockedByData = !$installed && (Installer::envExists() || Installer::hasExistingAdmin());
+//
+// 这里刻意**不做**「未完成安装」放行：曾为解开「站点跳安装页、安装页又拒绝安装」的死锁
+// 而放行「.env 已写但无管理员」，但那会让任何匿名访客抢注管理员（并获得 super_admin）。
+// 恢复为严格拦截；未完成安装请按页面提示删除 .env 后重新安装。
+$adminExists   = Installer::hasExistingAdmin();
+$blockedByData = !$installed && (Installer::envExists() || $adminExists);
 $installLocked = $installed || $blockedByData;
+
+// 锁文件缺失但库中已有管理员（安装确实完成）时自动补写安装锁，
+// 避免每次访问安装页都停留在「已阻止重装」的提示页。
+$lockRepaired = false;
+$lockRepairFailed = false;
+
+if ($blockedByData) {
+    $lockRepaired = Installer::ensureLock();
+    $lockRepairFailed = !$lockRepaired;
+
+    if ($lockRepaired) {
+        $installed     = true;
+        $blockedByData = false;
+    }
+}
 
 // ----------------------------------------------------------------------
 // 处理表单提交
@@ -214,10 +234,16 @@ $stepLabels = [1 => '环境检查', 2 => '数据库配置', 3 => '创建管理�
             <h2 class="card__header" style="margin-top:0;">系统已安装</h2>
             <?php if ($installed): ?>
                 <p class="text-muted">检测到 <code>storage/installed.lock</code>，为安全起见安装向导已锁定，无法重复安装。</p>
+                <?php if ($lockRepaired): ?>
+                    <p class="text-muted">本次已自动补写此前缺失的安装锁（通常由安装时目录写入失败引起），无需再处理。</p>
+                <?php endif; ?>
             <?php else: ?>
-                <p class="text-muted">未检测到安装锁，但数据库中已存在管理员账号，为安全起见已阻止重新安装，避免误清空数据。</p>
+                <p class="text-muted">未检测到安装锁，但站点配置或数据库显示系统已安装，为安全起见已阻止重新安装，避免误清空数据。</p>
+                <?php if ($lockRepairFailed): ?>
+                    <p class="text-muted">自动补写安装锁失败，请确认 <code>storage/installed.lock</code> 所在目录可写（Web 进程用户需有写权限），或手动创建该空文件。</p>
+                <?php endif; ?>
             <?php endif; ?>
-            <p class="text-muted">如需重新安装，请先备份并清空数据库，并手动删除该锁文件（若存在）后重新访问本页面。</p>
+            <p class="text-muted">如需重新安装：请先备份并清空数据库；若安装仅进行到「写入 .env」而未创建管理员，删除 <code>.env</code> 后重新访问本页面即可继续安装。</p>
             <div class="install-actions">
                 <a class="btn btn--outline" href="install.php?step=4">查看安装信息</a>
                 <a class="btn" href="<?= e(url('/admin')) ?>">进入管理后台</a>

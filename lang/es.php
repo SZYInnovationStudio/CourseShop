@@ -607,5 +607,9 @@ return [
     '立即播放' => 'Reproducir ahora',
     '本章已学完' => 'Capítulo completado',
     '按 Esc 可取消自动播放' => 'Pulsa Esc para cancelar la reproducción automática',
-'点击继续播放' => 'Haz clic para reproducir',
+    '点击继续播放' => 'Haz clic para reproducir',
+    '当前账号信息过长，无法生成二维码，请使用下方的手动密钥完成绑定。' => 'La información de tu cuenta es demasiado larga para generar un código QR. Usa la clave manual de abajo para completar la vinculación.',
+    '注册需完成邮箱验证，验证码将发送至你的邮箱。' => 'Se requiere verificar tu correo para registrarte. El código se enviará a tu correo electrónico.',
+    '为防止恶意注册，注册时必须先完成邮箱验证。' => 'Para evitar registros fraudulentos, debes verificar tu correo antes de registrarte.',
+    '当前网络获取验证码过于频繁，请稍后再试。' => 'Se han solicitado demasiados códigos desde tu red. Inténtalo de nuevo más tarde.',
 ];

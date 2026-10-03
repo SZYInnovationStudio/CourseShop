@@ -6,6 +6,8 @@ declare(strict_types=1);
  * 注册页
  *
  * @var bool $captchaRequired 是否要求图形验证码
+ * @var bool $emailVerifyRequired 是否要求注册时完成邮箱验证
+ * @var int $codeTtlMinutes 邮箱验证码有效分钟数
  * @var bool $forceEmailBind 是否强制绑定邮箱
  * @var array<string, mixed>|null $terms 当前用户协议记录，可能为 null
  * @var array<string, mixed>|null $privacy 当前隐私政策记录，可能为 null
@@ -14,9 +16,15 @@ declare(strict_types=1);
 <div class="auth-wrap">
     <div class="auth-card">
         <h1 class="auth-card__title"><?= e(t('创建账号')) ?></h1>
-        <p class="auth-card__subtitle"><?= e(t('注册即可开始选购课程，全程无需邮箱。')) ?></p>
+        <p class="auth-card__subtitle">
+            <?= e($emailVerifyRequired ? t('注册需完成邮箱验证，验证码将发送至你的邮箱。') : t('注册即可开始选购课程，全程无需邮箱。')) ?>
+        </p>
 
-        <?php if ($forceEmailBind): ?>
+        <?php if ($emailVerifyRequired): ?>
+            <div class="alert alert--warning" role="alert">
+                <span class="grow"><?= e(t('为防止恶意注册，注册时必须先完成邮箱验证。')) ?></span>
+            </div>
+        <?php elseif ($forceEmailBind): ?>
             <div class="alert alert--warning" role="alert">
                 <span class="grow"><?= e(t('本站已开启强制邮箱绑定：注册后需先绑定邮箱，才能使用购买、学习等功能。')) ?></span>
             </div>
@@ -56,6 +64,26 @@ declare(strict_types=1);
                 <input class="input" type="password" id="password_confirm" name="password_confirm"
                        autocomplete="new-password" minlength="8" maxlength="64" required>
             </div>
+
+            <?php if ($emailVerifyRequired): ?>
+                <div class="form-group">
+                    <label class="form-label" for="email"><?= e(t('邮箱')) ?><span class="required">*</span></label>
+                    <div class="input-group">
+                        <input class="input" type="email" id="email" name="email"
+                               value="<?= e(old('email')) ?>" autocomplete="email" maxlength="190" required>
+                        <button type="submit" class="input-group__suffix"
+                                formaction="<?= url('/register/email-code') ?>"
+                                formnovalidate><?= e(t('获取验证码')) ?></button>
+                    </div>
+                    <p class="form-hint"><?= e(t('验证码 %d 分钟内有效。', [$codeTtlMinutes])) ?></p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email_code"><?= e(t('邮箱验证码')) ?><span class="required">*</span></label>
+                    <input class="input" type="text" id="email_code" name="email_code"
+                           inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+                </div>
+            <?php endif; ?>
 
             <?php if ($captchaRequired): ?>
                 <div class="form-group">

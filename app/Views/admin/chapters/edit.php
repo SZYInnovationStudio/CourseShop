@@ -151,7 +151,9 @@ $status    = (string) old('status', (string) (int) $chapter['status']);
                     <p class="mb-0"><span class="badge badge--primary">转码中 <?= (int) $transcode['progress'] ?>%</span></p>
                 <?php else: ?>
                     <p class="mb-0"><span class="badge badge--info">等待中</span>
-                        <span class="text-faint">队列消费者将尽快处理。</span>
+                        <span class="text-faint">
+                            队列消费者将尽快处理<?= $queueAutoRun ? '（已启用自动运行）' : '（自动运行不可用，请按 README 配置消费者或计划任务）' ?>。
+                        </span>
                     </p>
                 <?php endif; ?>
             </div>
@@ -165,7 +167,9 @@ $status    = (string) old('status', (string) (int) $chapter['status']);
                         </button>
                     </form>
                 </div>
-                <p class="form-hint mb-0">提交后由后台队列异步执行，请确保已运行 <code>php bin/queue-worker.php</code>。</p>
+                <p class="form-hint mb-0">
+                    提交后由队列异步执行<?= $queueAutoRun ? '（已启用自动运行，无需额外配置）' : '，请确保已运行 <code>php bin/queue-worker.php</code>' ?>。
+                </p>
             <?php endif; ?>
         <?php endif; ?>
     </div>

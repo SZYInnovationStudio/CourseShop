@@ -32,7 +32,7 @@ declare(strict_types=1);
             <table class="table">
                 <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>序号</th>
                     <th>标题</th>
                     <th>状态</th>
                     <th>发布时间</th>
@@ -41,10 +41,10 @@ declare(strict_types=1);
                 </tr>
                 </thead>
                 <tbody>
-                <?php foreach ($announcements as $item): ?>
+                <?php foreach ($announcements as $index => $item): ?>
                     <?php $itemId = (int) $item['id']; ?>
                     <tr>
-                        <td class="text-faint"><?= $itemId ?></td>
+                        <td class="text-faint"><?= $index + 1 ?></td>
                         <td><?= e((string) $item['title']) ?></td>
                         <td>
                             <?php if ((int) $item['is_active'] === 1): ?>

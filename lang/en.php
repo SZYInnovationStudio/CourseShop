@@ -607,5 +607,9 @@ return [
     '立即播放' => 'Play now',
     '本章已学完' => 'Chapter completed',
     '按 Esc 可取消自动播放' => 'Press Esc to cancel auto-play',
-'点击继续播放' => 'Click to play',
+    '点击继续播放' => 'Click to play',
+    '当前账号信息过长，无法生成二维码，请使用下方的手动密钥完成绑定。' => 'Your account information is too long to generate a QR code. Use the manual key below to finish binding.',
+    '注册需完成邮箱验证，验证码将发送至你的邮箱。' => 'Email verification is required to sign up. The code will be sent to your email.',
+    '为防止恶意注册，注册时必须先完成邮箱验证。' => 'To prevent spam registrations, email verification is required before signing up.',
+    '当前网络获取验证码过于频繁，请稍后再试。' => 'Too many code requests from your network. Please try again later.',
 ];

@@ -126,7 +126,7 @@ $exportUrl   = url('/admin/orders/export') . ($exportQuery !== [] ? '?' . http_b
                 <thead>
                 <tr>
                     <th class="col-check"><input type="checkbox" data-batch-select-all aria-label="全选本页"></th>
-                    <th>ID</th>
+                    <th>序号</th>
                     <th>订单号</th>
                     <th>课程</th>
                     <th>用户</th>
@@ -138,7 +138,7 @@ $exportUrl   = url('/admin/orders/export') . ($exportQuery !== [] ? '?' . http_b
                 </tr>
                 </thead>
                 <tbody>
-                <?php foreach ($orders as $item): ?>
+                <?php foreach ($orders as $index => $item): ?>
                     <?php
                     $orderId = (int) $item['id'];
                     $status  = (string) $item['status'];
@@ -149,7 +149,7 @@ $exportUrl   = url('/admin/orders/export') . ($exportQuery !== [] ? '?' . http_b
                             <input type="checkbox" form="batch-form" name="ids[]" value="<?= $orderId ?>"
                                    data-batch-checkbox aria-label="选择订单 <?= e((string) $item['order_no']) ?>">
                         </td>
-                        <td class="text-faint"><?= $orderId ?></td>
+                        <td class="text-faint"><?= $index + 1 ?></td>
                         <td class="text-faint"><?= e((string) $item['order_no']) ?></td>
                         <td><?= e((string) $item['course_title']) ?></td>
                         <td><?= e((string) ($item['user_name'] ?? '—')) ?></td>

@@ -570,7 +570,7 @@
         }
 
         // 续播：元数据加载完成后再跳转；距离结尾不足 5 秒则从头播放
-        video.addEventListener('loadedmetadata', function () {
+        var applyResume = function () {
             if (resumeSeconds <= 0 || !isFinite(video.duration)) {
                 return;
             }
@@ -584,7 +584,15 @@
             } catch (e) {
                 /* 部分浏览器在元数据未就绪时禁止设置 currentTime，忽略 */
             }
-        });
+        };
+
+        // 脚本延迟执行期间元数据可能已就绪（defer + preload="metadata"），
+        // 此时直接应用续播位置，避免监听错过导致从 0 开始播放
+        if (video.readyState >= 1) {
+            applyResume();
+        } else {
+            video.addEventListener('loadedmetadata', applyResume);
+        }
 
         /* ---------------- 自动播放（由上一节自动跳转而来时） ---------------- */
         var playHint = player.querySelector('[data-playhint]');
@@ -605,6 +613,11 @@
                     video.play();
                 });
             }
+
+            // 用户通过原生控制条自行播放时同样收起提示
+            video.addEventListener('play', function () {
+                playHint.hidden = true;
+            });
         }
 
         if (autoPlayNext) {
@@ -717,6 +730,9 @@
             if (!autoNextBox || !autoNextCountdown || nextUrl === '') {
                 return;
             }
+
+            // 先清理可能已存在的倒计时，避免 ended 重复触发时叠加多个定时器
+            cancelAutoNext();
 
             var template = autoNextBox.getAttribute('data-countdown-template') || '%d';
             var remaining = AUTO_NEXT_SECONDS;

@@ -339,7 +339,7 @@ final class OrderController extends Controller
         Response::json([
             'code'   => 0,
             'status' => $status,
-            'label'  => Order::label($status),
+            'label'  => t(Order::label($status)),
             'paid'   => in_array($status, [Order::STATUS_PAID, Order::STATUS_COMPLETED], true),
         ]);
     }

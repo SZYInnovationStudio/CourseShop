@@ -306,6 +306,7 @@ final class SettingsController extends AdminController
                 'desc'  => '注册开关、邮箱绑定要求与登录防护策略。',
                 'fields' => [
                     ['key' => 'register_enabled', 'label' => '开放新用户注册', 'type' => 'bool', 'default' => true, 'hint' => '关闭后前台将不再显示注册入口，也无法注册。'],
+                    ['key' => 'register_email_verify', 'label' => '注册需邮箱验证', 'type' => 'bool', 'default' => true, 'hint' => '开启后注册必须完成邮箱验证码校验才会创建账号，可有效抑制批量注册；关闭则注册无需邮箱。'],
                     ['key' => 'force_email_bind', 'label' => '强制绑定邮箱', 'type' => 'bool', 'default' => false, 'hint' => '开启后，除管理员外未绑定邮箱的账号无法使用站内功能。'],
                     ['key' => 'login_fail_captcha_threshold', 'label' => '登录失败触发验证码阈值', 'type' => 'number', 'min' => 1, 'max_value' => 100, 'default' => 3, 'hint' => '同一账号/IP 连续失败达到该次数后强制图形验证码。'],
                     ['key' => 'login_max_fail', 'label' => '连续失败上限', 'type' => 'number', 'min' => 1, 'max_value' => 10000, 'default' => 10, 'hint' => '达到上限后临时锁定。'],

@@ -434,6 +434,11 @@ final class User
 
     /**
      * 设置 / 取消管理员权限
+     *
+     * 管理员状态由三处共同决定：`is_admin` 标记、`users.role` 主角色与 RBAC 角色映射
+     * （见 Permission::isAdminUser）。三者必须一起更新——只改前两者时 `user_roles`
+     * 仍保留后台角色，会出现「提示已取消管理员、却仍能访问后台」，并且因为状态判定
+     * 仍为管理员，再次点击会一直被判定为「取消管理员」。
      */
     public static function setAdmin(int $id, bool $isAdmin): void
     {
@@ -441,6 +446,41 @@ final class User
             'UPDATE `users` SET `is_admin` = ?, `role` = ? WHERE `id` = ?',
             [$isAdmin ? 1 : 0, $isAdmin ? 'admin' : 'user', $id]
         );
+
+        if (!$isAdmin) {
+            // 取消时清空原有后台角色（含 super_admin），回退为普通用户角色
+            Role::syncUserRoles($id, self::roleIdsByCode(['user']));
+
+            return;
+        }
+
+        $roleIds = Role::userIdsRoleIds($id);
+
+        // 已具备后台角色（含超级管理员）时保持不动，避免把超级管理员降级成普通管理员
+        if (array_intersect(Role::codesByIds($roleIds), ['super_admin', 'admin', 'support', 'operator']) !== []) {
+            return;
+        }
+
+        Role::syncUserRoles($id, array_values(array_unique(array_merge($roleIds, self::roleIdsByCode(['admin'])))));
+    }
+
+    /**
+     * 按角色 code 取角色 ID 列表（用于 RBAC 角色映射同步）
+     *
+     * @param  array<int, string> $codes
+     * @return array<int, int>
+     */
+    private static function roleIdsByCode(array $codes): array
+    {
+        $ids = [];
+
+        foreach (Role::options() as $option) {
+            if (in_array((string) $option['code'], $codes, true)) {
+                $ids[] = (int) $option['id'];
+            }
+        }
+
+        return $ids;
     }
 
     /**

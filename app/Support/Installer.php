@@ -74,8 +74,10 @@ final class Installer
     /**
      * 数据库是否已存在管理员账号
      *
-     * 用于在安装锁文件缺失时兜底：只要库中已有管理员，就视为「已安装」，
-     * 阻止再次执行安装脚本（schema.sql 以 DROP TABLE 开头，会清空数据）。
+     * 这是判断「安装是否真正完成」的可靠信号（安装锁文件可能因目录权限等原因丢失）。
+     * 数据库不可用或表不存在时返回 false：调用方据此把「只写了 .env、尚未创建管理员」
+     * 的未完成安装与「部署已完成」区分开，避免把未完成的安装误锁死
+     * （既进不了站点，安装向导也拒绝继续）。
      */
     public static function hasExistingAdmin(): bool
     {
@@ -94,9 +96,7 @@ final class Installer
 
             return $count > 0;
         } catch (Throwable) {
-            // 无法判断数据库状态时采取「保守」策略：已有 .env 说明曾安装过，
-            // 按已安装处理以阻止重装；连 .env 都没有才视为全新安装放行。
-            return self::envExists();
+            return false;
         }
     }
 
@@ -114,6 +114,43 @@ final class Installer
 
         if (@file_put_contents(self::lockFile(), (string) $payload, LOCK_EX) === false) {
             throw new RuntimeException('无法写入安装锁文件，请检查 storage/ 目录权限。');
+        }
+    }
+
+    /**
+     * 补写缺失的安装锁
+     *
+     * 用于「数据库已存在管理员（安装确实完成）但锁文件丢失」的场景：
+     * 常见于安装时 storage/ 目录写入失败（权限或磁盘问题），导致安装页
+     * 每次都落入「已阻止重装」的提示页。仅在已确认安装完成时补写，
+     * 避免把「只写了 .env、还没创建管理员」的未完成安装误锁。
+     *
+     * @return bool 补写是否成功（已存在视为成功；失败不抛异常，便于页面提示）
+     */
+    public static function ensureLock(): bool
+    {
+        if (self::isInstalled()) {
+            return true;
+        }
+
+        if (!self::hasExistingAdmin()) {
+            return false;
+        }
+
+        try {
+            $username = Database::scalar(
+                "SELECT `username` FROM `users`
+                  WHERE `deleted_at` IS NULL
+                    AND (`is_admin` = 1 OR `role` IN ('admin', 'super_admin'))
+                  ORDER BY `id` ASC
+                  LIMIT 1"
+            );
+
+            self::lock(is_string($username) && $username !== '' ? $username : 'unknown');
+
+            return true;
+        } catch (Throwable) {
+            return false;
         }
     }
 

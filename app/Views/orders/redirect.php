@@ -9,12 +9,13 @@ declare(strict_types=1);
  * @var array<string, string> $params 表单字段
  */
 
+use App\Support\I18n;
 use App\Support\Setting;
 
 $siteName = Setting::string('site_name', 'CourseShop');
 ?>
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="<?= e(I18n::htmlLang()) ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">

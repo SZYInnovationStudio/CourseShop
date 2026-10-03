@@ -12,6 +12,7 @@ use App\Support\Config;
 use App\Support\Csrf;
 use App\Support\Logger;
 use App\Support\Mailer;
+use App\Support\QrCode;
 use App\Support\Request;
 use App\Support\Response;
 use App\Support\Session;
@@ -384,15 +385,22 @@ final class AccountController extends Controller
             Session::set(self::TWO_FACTOR_SETUP_KEY, $secret);
         }
 
+        // 二维码容量有限（本编码器最高版本 10，约 213 字节），长邮箱与中文站点名经
+        // URL 编码后容易超限；超长时回退用用户名作为账号标识，保证二维码可正常生成。
+        $issuer  = Setting::string('site_name', 'CourseShop');
         $account = (string) ($user['email'] ?? '') !== ''
             ? (string) $user['email']
             : (string) $user['username'];
+
+        if (!QrCode::fits(Totp::provisioningUri($secret, $account, $issuer))) {
+            $account = (string) $user['username'];
+        }
 
         $this->view('account.two-factor', [
             'pageTitle'  => t('启用两步验证'),
             'secret'     => $secret,
             'secretText' => Totp::formatSecret($secret),
-            'otpauthUri' => Totp::provisioningUri($secret, $account, Setting::string('site_name', 'CourseShop')),
+            'otpauthUri' => Totp::provisioningUri($secret, $account, $issuer),
         ]);
     }
 

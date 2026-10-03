@@ -93,6 +93,7 @@ return static function (Router $router): void {
     $router->post('/login', [AuthController::class, 'login'], ['guest']);
     $router->get('/register', [AuthController::class, 'showRegister'], ['guest']);
     $router->post('/register', [AuthController::class, 'register'], ['guest']);
+    $router->post('/register/email-code', [AuthController::class, 'sendRegisterEmailCode'], ['guest']);
     $router->post('/logout', [AuthController::class, 'logout'], ['auth']);
 
     // 两步验证（2FA）：登录流程的第二步，此时尚未写入登录态，故用 guest 中间件

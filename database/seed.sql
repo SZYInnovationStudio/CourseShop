@@ -20,6 +20,7 @@ INSERT IGNORE INTO `settings` (`key`, `value`, `group_name`, `description`) VALU
 ('footer_open_source_url', 'https://github.com/SZYInnovationStudio/CourseShop', 'site',  '开源地址'),
 -- 注册与账户
 ('register_enabled',       '1',                                              'security', '是否开放新用户注册'),
+('register_email_verify',  '1',                                              'security', '注册是否必须完成邮箱验证'),
 ('force_email_bind',       '0',                                              'security', '是否强制绑定邮箱'),
 ('login_fail_captcha_threshold', '3',                                        'security', '登录失败多少次后强制图形验证码'),
 ('login_max_fail',         '10',                                             'security', '同一账号/IP 连续失败上限（超出临时锁定）'),

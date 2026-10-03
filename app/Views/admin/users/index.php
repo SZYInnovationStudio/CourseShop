@@ -122,7 +122,7 @@ $exportUrl   = url('/admin/users/export') . ($exportQuery !== [] ? '?' . http_bu
                 <thead>
                 <tr>
                     <th class="col-check"><input type="checkbox" data-batch-select-all aria-label="全选本页"></th>
-                    <th>ID</th>
+                    <th>序号</th>
                     <th>用户名</th>
                     <th>昵称</th>
                     <th>邮箱</th>
@@ -134,7 +134,7 @@ $exportUrl   = url('/admin/users/export') . ($exportQuery !== [] ? '?' . http_bu
                 </tr>
                 </thead>
                 <tbody>
-                <?php foreach ($users as $user): ?>
+                <?php foreach ($users as $index => $user): ?>
                     <?php
                     $userId     = (int) $user['id'];
                     $isSelf     = $userId === (int) $adminId;
@@ -149,7 +149,7 @@ $exportUrl   = url('/admin/users/export') . ($exportQuery !== [] ? '?' . http_bu
                                    data-batch-checkbox aria-label="选择用户 <?= e((string) $user['username']) ?>"
                                    <?= $isSelf ? 'disabled' : '' ?>>
                         </td>
-                        <td class="text-faint"><?= $userId ?></td>
+                        <td class="text-faint"><?= $index + 1 ?></td>
                         <td><?= e((string) $user['username']) ?></td>
                         <td><?= e((string) ($user['nickname'] ?? '')) ?></td>
                         <td class="text-faint"><?= e((string) ($user['email'] ?? '—')) ?></td>

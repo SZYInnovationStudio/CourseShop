@@ -53,6 +53,9 @@ final class Mailer
             try {
                 MailJob::dispatch($to, $subject, $html);
 
+                // 入队后按节流策略拉起一次「处理完即退出」的消费者，避免邮件长时间滞留
+                QueueRunner::trigger();
+
                 return true;
             } catch (Throwable $e) {
                 // 入队失败（如数据库异常）：回退同步发送
@@ -82,7 +85,9 @@ final class Mailer
 
         [$subject, $html] = I18n::withLocale($locale, static function () use ($code, $scene, $siteName): array {
             $ttlMinutes = (int) ceil(max(60, Setting::int('mail_code_ttl', 600)) / 60);
-            $action     = $scene === 'reset' ? t('找回密码') : t('绑定邮箱');
+            $action     = $scene === 'reset'
+                ? t('找回密码')
+                : ($scene === 'register' ? t('注册') : t('绑定邮箱'));
 
             $subject = $siteName . ' - ' . t('邮箱验证码');
 
@@ -349,7 +354,7 @@ final class Mailer
             );
 
             $code = (string) ($row['locale'] ?? '');
-            if ($code !== '' && I18n::isSupported($code)) {
+            if ($code !== '' && I18n::isEnabled($code)) {
                 return $code;
             }
         } catch (Throwable $e) {

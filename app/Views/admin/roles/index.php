@@ -25,7 +25,7 @@ declare(strict_types=1);
         <table class="table">
             <thead>
             <tr>
-                <th>ID</th>
+                <th>序号</th>
                 <th>角色标识</th>
                 <th>角色名称</th>
                 <th>说明</th>
@@ -36,13 +36,13 @@ declare(strict_types=1);
             </tr>
             </thead>
             <tbody>
-            <?php foreach ($roles as $role): ?>
+            <?php foreach ($roles as $index => $role): ?>
                 <?php
                 $roleId   = (int) $role['id'];
                 $isSystem = (int) $role['is_system'] === 1;
                 ?>
                 <tr>
-                    <td class="text-faint"><?= $roleId ?></td>
+                    <td class="text-faint"><?= $index + 1 ?></td>
                     <td><code><?= e((string) $role['code']) ?></code></td>
                     <td><?= e((string) $role['name']) ?></td>
                     <td class="text-faint"><?= e((string) ($role['description'] ?? '')) ?></td>

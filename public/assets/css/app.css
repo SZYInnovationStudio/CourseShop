@@ -1894,6 +1894,7 @@ a.chapter-item__title:hover { color: var(--color-primary-strong); }
     position: absolute;
     right: var(--space-3);
     bottom: var(--space-3);
+    z-index: 4;
     margin: 0;
     padding: 4px 10px;
     border-radius: var(--radius-full);
@@ -1917,11 +1918,19 @@ a.chapter-item__title:hover { color: var(--color-primary-strong); }
     align-items: center;
     justify-content: center;
     gap: var(--space-2);
-    padding: var(--space-5);
+    padding: var(--space-4);
     background: rgba(14, 18, 16, 0.84);
     color: #E7EAE7;
     text-align: center;
+    overflow-y: auto;
+    pointer-events: none;
 }
+
+/* 内容可能高于播放器（窄屏 + 长译文）：用 auto 外边距代替纯居中，
+   保证顶部不被裁掉，且内容过高时可滚动查看 */
+.player__autonext > * { flex: 0 0 auto; }
+.player__autonext > :first-child { margin-top: auto; }
+.player__autonext > :last-child { margin-bottom: auto; }
 
 .player__autonext[hidden] { display: none; }
 
@@ -1940,6 +1949,7 @@ a.chapter-item__title:hover { color: var(--color-primary-strong); }
 }
 
 .player__autonext-actions {
+    pointer-events: auto;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -1964,6 +1974,18 @@ a.chapter-item__title:hover { color: var(--color-primary-strong); }
     background: rgba(255, 255, 255, 0.08);
 }
 
+@media (max-width: 767px) {
+    .player__autonext {
+        padding: var(--space-3);
+        gap: var(--space-1);
+    }
+
+    .player__autonext-title { font-size: var(--text-sm); }
+
+    /* 移动端没有 Esc 键，隐藏该提示为按钮留出空间 */
+    .player__autonext-hint { display: none; }
+}
+
 /* 浏览器拦截自动播放时的「点击继续播放」入口 */
 .player__playhint {
     position: absolute;
@@ -1973,9 +1995,13 @@ a.chapter-item__title:hover { color: var(--color-primary-strong); }
     align-items: center;
     justify-content: center;
     background: rgba(14, 18, 16, 0.62);
+    pointer-events: none;
 }
 
 .player__playhint[hidden] { display: none; }
+
+/* 仅按钮可点，其余区域点击穿透到原生控制条，便于直接播放或拖动 */
+.player__playhint .btn { pointer-events: auto; }
 
 /* 移动端：播放器通栏占满，忽略容器内边距 */
 @media (max-width: 559px) {
