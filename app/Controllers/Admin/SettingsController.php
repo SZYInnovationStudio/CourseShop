@@ -7,6 +7,7 @@ namespace App\Controllers\Admin;
 use App\Models\Log;
 use App\Support\Cache;
 use App\Support\Csrf;
+use App\Support\I18n;
 use App\Support\ImageStorage;
 use App\Support\Request;
 use App\Support\SecurityHeaders;
@@ -16,7 +17,7 @@ use RuntimeException;
 /**
  * 后台系统设置
  *
- * 按分组维护 settings 表键值：站点信息 / 注册安全 / 图形验证码 / 安全响应头 / 邮件 / 支付 / 视频 / 工单 / 错误监控 / 主题。
+ * 按分组维护 settings 表键值：站点信息 / 注册安全 / 图形验证码 / 安全响应头 / 邮件 / 支付 / 视频 / 工单 / 错误监控 / 主题 / 多语言。
  * 每个分组独立保存：GET /admin/settings?tab=xxx 展示，POST /admin/settings/{group} 保存。
  *
  * 字段类型：
@@ -24,6 +25,7 @@ use RuntimeException;
  *   password                 密钥类字段，留空表示保持原值
  *   bool                     复选框（未勾选即关闭）
  *   select                   下拉选择（options 为 值 => 文案）
+ *   checkboxes               多选框组，以英文逗号串存储（options 为 值 => 文案，min_selected 为最少选择数）
  *   textarea                 多行文本
  *   image                    图片字段：可填写地址或上传本地图片（subdir 指定存储子目录）
  */
@@ -79,6 +81,12 @@ final class SettingsController extends AdminController
 
             if ($type === 'bool') {
                 $values[$key] = Request::bool($key, false) ? '1' : '0';
+                continue;
+            }
+
+            // 多选字段：仅保留合法选项并去重，以英文逗号串存储
+            if ($type === 'checkboxes') {
+                $values[$key] = implode(',', self::pickedOptions($field));
                 continue;
             }
 
@@ -188,6 +196,17 @@ final class SettingsController extends AdminController
                 continue;
             }
 
+            // 多选字段：校验必须落在合法选项内，并满足最少选择数
+            if ($type === 'checkboxes') {
+                $min = (int) ($field['min_selected'] ?? 0);
+
+                if ($min > 0 && count(self::pickedOptions($field)) < $min) {
+                    $this->fail($backUrl, '「' . $label . '」至少需要选择 ' . $min . ' 项。', Request::all());
+                }
+
+                continue;
+            }
+
             // 密钥字段留空时跳过校验（保持原值）
             if (!empty($field['secret']) && Request::string($key) === '') {
                 continue;
@@ -212,6 +231,16 @@ final class SettingsController extends AdminController
             }
             if ($type === 'select' && isset($field['options'])) {
                 $validator->in($key, array_keys($field['options']), $label);
+
+                // 默认语言必须落在本次已启用的语言集合内
+                if ($key === 'i18n_default_locale') {
+                    $raw     = Request::input('i18n_locales', []);
+                    $enabled = array_map('strval', is_array($raw) ? $raw : [$raw]);
+
+                    if (!in_array(Request::string($key), $enabled, true)) {
+                        $this->fail($backUrl, '默认语言必须从已启用的语言中选择。', Request::all());
+                    }
+                }
             }
         }
 
@@ -221,12 +250,42 @@ final class SettingsController extends AdminController
     }
 
     /**
+     * 读取多选字段的已选值：过滤掉非法选项并去重
+     *
+     * @param array<string, mixed> $field
+     * @return array<int, string>
+     */
+    private static function pickedOptions(array $field): array
+    {
+        $raw = Request::input((string) $field['key'], []);
+        $raw = is_array($raw) ? $raw : [$raw];
+
+        $allowed = array_map('strval', array_keys((array) ($field['options'] ?? [])));
+        $picked  = [];
+
+        foreach ($raw as $item) {
+            $item = (string) $item;
+
+            if (in_array($item, $allowed, true) && !in_array($item, $picked, true)) {
+                $picked[] = $item;
+            }
+        }
+
+        return $picked;
+    }
+
+    /**
      * 设置分组定义
      *
      * @return array<string, array{label: string, desc: string, fields: array<int, array<string, mixed>>}>
      */
     private static function groups(): array
     {
+        $localeOptions = [];
+        foreach (I18n::supported() as $code => $meta) {
+            $localeOptions[$code] = (string) $meta['label'];
+        }
+
         return [
             'site' => [
                 'label' => '站点信息',
@@ -302,6 +361,13 @@ final class SettingsController extends AdminController
                     ['key' => 'order_expire_minutes', 'label' => '订单超时时间（分钟）', 'type' => 'number', 'min' => 1, 'max_value' => 1440, 'default' => 15, 'hint' => '未支付订单超过该时长后自动关闭。'],
                 ],
             ],
+            'catalog' => [
+                'label' => '课程与套餐',
+                'desc'  => '前台商品展示开关。',
+                'fields' => [
+                    ['key' => 'packages_enabled', 'label' => '显示优惠套餐', 'type' => 'bool', 'default' => true, 'hint' => '关闭后前台隐藏套餐入口（导航栏、首页推荐、移动端菜单）且套餐页不可访问；已产生的套餐订单仍可在「我的订单」查看与支付。'],
+                ],
+            ],
             'video' => [
                 'label' => '视频设置',
                 'desc'  => '视频访问签名与存储方式。',
@@ -338,6 +404,14 @@ final class SettingsController extends AdminController
                     ['key' => 'theme_default_mode', 'label' => '默认主题', 'type' => 'select', 'default' => 'system', 'options' => ['system' => '跟随系统', 'light' => '浅色', 'dark' => '深色']],
                     ['key' => 'theme_primary_color', 'label' => '主强调色', 'type' => 'color', 'default' => '#4F6F52'],
                     ['key' => 'theme_allow_user_switch', 'label' => '允许用户自行切换主题', 'type' => 'bool', 'default' => true],
+                ],
+            ],
+            'i18n' => [
+                'label' => '多语言',
+                'desc'  => '选择前台可用的语言并设置默认语言。启用两种及以上语言时前台会显示语言切换菜单；仅启用一种语言时菜单隐藏。后台管理界面始终使用简体中文。',
+                'fields' => [
+                    ['key' => 'i18n_locales', 'label' => '启用语言', 'type' => 'checkboxes', 'min_selected' => 1, 'default' => 'zh-CN', 'options' => $localeOptions, 'hint' => '至少启用一种语言；未启用的语言不会出现在前台切换菜单中。'],
+                    ['key' => 'i18n_default_locale', 'label' => '默认语言', 'type' => 'select', 'default' => 'zh-CN', 'options' => $localeOptions, 'hint' => '访客语言无法判断时的兜底语言，须为已启用语言之一。'],
                 ],
             ],
         ];

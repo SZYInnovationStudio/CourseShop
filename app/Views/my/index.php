@@ -23,14 +23,14 @@ $windowEnd   = min($totalPages, $windowStart + 4);
 $windowStart = max(1, $windowEnd - 4);
 ?>
 <div class="page-head container">
-    <h1 class="page-head__title">我的课程</h1>
-    <p class="page-head__desc">共 <?= (int) $total ?> 门课程，随时回来继续学习。</p>
+    <h1 class="page-head__title"><?= e(t('我的课程')) ?></h1>
+    <p class="page-head__desc"><?= e(t('共 %d 门课程，随时回来继续学习。', [(int) $total])) ?></p>
 </div>
 
 <div class="container">
     <div class="btn-group mb-6">
-        <a class="btn btn--outline btn--sm" href="<?= url('/orders') ?>">我的订单</a>
-        <a class="btn btn--outline btn--sm" href="<?= url('/courses') ?>">去逛逛课程</a>
+        <a class="btn btn--outline btn--sm" href="<?= url('/orders') ?>"><?= e(t('我的订单')) ?></a>
+        <a class="btn btn--outline btn--sm" href="<?= url('/courses') ?>"><?= e(t('去逛逛课程')) ?></a>
     </div>
 
     <?php if ($courses === []): ?>
@@ -39,8 +39,8 @@ $windowStart = max(1, $windowEnd - 4);
                 <div class="empty-state__icon" aria-hidden="true">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>
                 </div>
-                <p>你还没有已购买的课程。</p>
-                <p class="mb-0"><a class="btn btn--sm" href="<?= url('/courses') ?>">去挑选课程</a></p>
+                <p><?= e(t('你还没有已购买的课程。')) ?></p>
+                <p class="mb-0"><a class="btn btn--sm" href="<?= url('/courses') ?>"><?= e(t('去挑选课程')) ?></a></p>
             </div>
         </div>
     <?php else: ?>
@@ -78,16 +78,16 @@ $windowStart = max(1, $windowEnd - 4);
 
                         <div class="progress" role="progressbar" aria-valuenow="<?= $percent ?>"
                              aria-valuemin="0" aria-valuemax="100"
-                             aria-label="学习进度 <?= $percent ?>%">
+                             aria-label="<?= e(t('学习进度 %d%%', [$percent])) ?>">
                             <span class="progress__bar" style="width: <?= $percent ?>%"></span>
                         </div>
 
                         <div class="course-card__meta">
                             <span class="text-muted">
-                                已学 <?= $finishedCount ?>/<?= $chapterCount ?> 章<?= $chapterCount > 0 ? '（' . $percent . '%）' : '' ?>
+                                <?= e(t('已学 %d/%d 章', [$finishedCount, $chapterCount])) ?><?= $chapterCount > 0 ? e(t('（%d%%）', [$percent])) : '' ?>
                             </span>
                             <a class="btn btn--sm" href="<?= $learnUrl ?>">
-                                <?= $finishedCount > 0 && $finishedCount < $chapterCount ? '继续学习' : ($percent >= 100 && $chapterCount > 0 ? '重新学习' : '开始学习') ?>
+                                <?= $finishedCount > 0 && $finishedCount < $chapterCount ? e(t('继续学习')) : ($percent >= 100 && $chapterCount > 0 ? e(t('重新学习')) : e(t('开始学习'))) ?>
                             </a>
                         </div>
                     </div>
@@ -96,9 +96,9 @@ $windowStart = max(1, $windowEnd - 4);
         </div>
 
         <?php if ($totalPages > 1): ?>
-            <nav class="pagination" aria-label="分页">
+            <nav class="pagination" aria-label="<?= e(t('分页')) ?>">
                 <a class="pagination__item<?= $page <= 1 ? ' is-disabled' : '' ?>"
-                   href="<?= $page <= 1 ? '#' : $pageUrl($page - 1) ?>" rel="prev">上一页</a>
+                   href="<?= $page <= 1 ? '#' : $pageUrl($page - 1) ?>" rel="prev"><?= e(t('上一页')) ?></a>
 
                 <?php if ($windowStart > 1): ?>
                     <a class="pagination__item" href="<?= $pageUrl(1) ?>">1</a>
@@ -119,7 +119,7 @@ $windowStart = max(1, $windowEnd - 4);
                 <?php endif; ?>
 
                 <a class="pagination__item<?= $page >= $totalPages ? ' is-disabled' : '' ?>"
-                   href="<?= $page >= $totalPages ? '#' : $pageUrl($page + 1) ?>" rel="next">下一页</a>
+                   href="<?= $page >= $totalPages ? '#' : $pageUrl($page + 1) ?>" rel="next"><?= e(t('下一页')) ?></a>
             </nav>
         <?php endif; ?>
     <?php endif; ?>

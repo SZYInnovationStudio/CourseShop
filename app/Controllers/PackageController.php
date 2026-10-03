@@ -9,6 +9,7 @@ use App\Models\Package;
 use App\Support\Auth;
 use App\Support\Payment\PaymentManager;
 use App\Support\Request;
+use App\Support\Setting;
 
 /**
  * 前台课程套餐
@@ -22,6 +23,10 @@ final class PackageController extends Controller
      */
     public function index(): void
     {
+        if (!Setting::bool('packages_enabled', true)) {
+            abort(404);
+        }
+
         $page       = max(1, Request::int('page', 1));
         $total      = Package::publishedCount();
         $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
@@ -30,7 +35,7 @@ final class PackageController extends Controller
         $packages = Package::publishedList(self::PER_PAGE, ($page - 1) * self::PER_PAGE);
 
         $this->view('packages.index', [
-            'pageTitle'  => '优惠套餐',
+            'pageTitle'  => t('优惠套餐'),
             'packages'   => $packages,
             'total'      => $total,
             'page'       => $page,
@@ -43,17 +48,20 @@ final class PackageController extends Controller
      */
     public function show(string $id): void
     {
+        if (!Setting::bool('packages_enabled', true)) {
+            abort(404);
+        }
         $packageId = (int) $id;
         $package   = $packageId > 0 ? Package::findPublished($packageId) : null;
 
         if ($package === null) {
-            abort(404, '套餐不存在或已下架。');
+            abort(404, t('套餐不存在或已下架。'));
         }
 
         $courses = Package::courseList($packageId);
 
         if ($courses === []) {
-            abort(404, '该套餐暂无可售课程。');
+            abort(404, t('该套餐暂无可售课程。'));
         }
 
         $userId = Auth::id();

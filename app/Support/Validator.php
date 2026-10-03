@@ -32,7 +32,7 @@ final class Validator
         $value = $this->value($field);
 
         if ($value === null || (is_string($value) && trim($value) === '')) {
-            $this->addError($field, $label . '不能为空。');
+            $this->addError($field, t('%s不能为空。', [t($label)]));
         }
 
         return $this;
@@ -42,7 +42,7 @@ final class Validator
     {
         $value = (string) $this->value($field);
         if ($value !== '' && filter_var($value, FILTER_VALIDATE_EMAIL) === false) {
-            $this->addError($field, $label . '格式不正确。');
+            $this->addError($field, t('%s格式不正确。', [t($label)]));
         }
 
         return $this;
@@ -55,7 +55,7 @@ final class Validator
     {
         $value = (string) $this->value($field);
         if ($value !== '' && preg_match('/^[A-Za-z0-9_]{3,20}$/', $value) !== 1) {
-            $this->addError($field, $label . '只能包含 3-20 位字母、数字或下划线。');
+            $this->addError($field, t('%s只能包含 3-20 位字母、数字或下划线。', [t($label)]));
         }
 
         return $this;
@@ -68,7 +68,7 @@ final class Validator
     {
         $value = (string) $this->value($field);
         if ($value !== '' && mb_strlen($value) < $length) {
-            $this->addError($field, sprintf('%s不能少于 %d 个字符。', $label, $length));
+            $this->addError($field, t('%s不能少于 %d 个字符。', [t($label), $length]));
         }
 
         return $this;
@@ -78,7 +78,7 @@ final class Validator
     {
         $value = (string) $this->value($field);
         if (mb_strlen($value) > $length) {
-            $this->addError($field, sprintf('%s不能超过 %d 个字符。', $label, $length));
+            $this->addError($field, t('%s不能超过 %d 个字符。', [t($label), $length]));
         }
 
         return $this;
@@ -90,7 +90,7 @@ final class Validator
     public function same(string $field, string $otherField, string $label): self
     {
         if ((string) $this->value($field) !== (string) $this->value($otherField)) {
-            $this->addError($field, $label . '与确认输入不一致。');
+            $this->addError($field, t('%s与确认输入不一致。', [t($label)]));
         }
 
         return $this;
@@ -103,7 +103,7 @@ final class Validator
     {
         $value = $this->value($field);
         if (!in_array((string) $value, ['1', 'on', 'true', 'yes'], true)) {
-            $this->addError($field, '请先勾选并同意' . $label . '。');
+            $this->addError($field, t('请先勾选并同意%s。', [t($label)]));
         }
 
         return $this;
@@ -113,7 +113,7 @@ final class Validator
     {
         $value = (string) $this->value($field);
         if ($value !== '' && !in_array($value, $allowed, true)) {
-            $this->addError($field, $label . '取值不合法。');
+            $this->addError($field, t('%s取值不合法。', [t($label)]));
         }
 
         return $this;
@@ -124,7 +124,7 @@ final class Validator
         $value = $this->value($field);
 
         if ($value === null || !is_scalar($value)) {
-            $this->addError($field, $label . '必须为整数。');
+            $this->addError($field, t('%s必须为整数。', [t($label)]));
 
             return $this;
         }
@@ -133,7 +133,7 @@ final class Validator
 
         // 仅接受十进制整数：拒绝 "1.5" / "1e3" / "0x1f" / "12abc" 等（(int) 会把它们静默截断）
         if (preg_match('/^[+-]?\d+$/', $raw) !== 1) {
-            $this->addError($field, $label . '必须为整数。');
+            $this->addError($field, t('%s必须为整数。', [t($label)]));
 
             return $this;
         }
@@ -147,13 +147,13 @@ final class Validator
         $int = filter_var($normalized, FILTER_VALIDATE_INT);
 
         if ($int === false) {
-            $this->addError($field, $label . '超出允许范围。');
+            $this->addError($field, t('%s超出允许范围。', [t($label)]));
 
             return $this;
         }
 
         if ($int < $min || $int > $max) {
-            $this->addError($field, $label . '超出允许范围。');
+            $this->addError($field, t('%s超出允许范围。', [t($label)]));
         }
 
         return $this;

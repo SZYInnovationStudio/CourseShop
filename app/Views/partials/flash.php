@@ -23,7 +23,7 @@ foreach ($flashLabels as $flashKey => $flashClass):
     ?>
     <div class="alert <?= e($flashClass) ?>" role="alert" data-flash>
         <span class="grow"><?= e($flashMessage) ?></span>
-        <button type="button" class="alert__close" data-flash-close aria-label="关闭提示">&times;</button>
+        <button type="button" class="alert__close" data-flash-close aria-label="<?= e(t('关闭提示')) ?>">&times;</button>
     </div>
     <?php
 endforeach;

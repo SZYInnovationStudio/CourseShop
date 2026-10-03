@@ -31,10 +31,10 @@ foreach ($chapters as $chapter) {
 $courseContent = trim((string) ($course['content'] ?? ''));
 ?>
 <div class="container">
-    <nav class="breadcrumb" aria-label="面包屑导航">
-        <a href="<?= url('/') ?>">首页</a>
+    <nav class="breadcrumb" aria-label="<?= e(t('面包屑导航')) ?>">
+        <a href="<?= url('/') ?>"><?= e(t('首页')) ?></a>
         <span class="breadcrumb__sep">/</span>
-        <a href="<?= url('/courses') ?>">全部课程</a>
+        <a href="<?= url('/courses') ?>"><?= e(t('全部课程')) ?></a>
         <?php if ($categoryName !== ''): ?>
             <span class="breadcrumb__sep">/</span>
             <a href="<?= url('/courses?category=' . (int) $course['category_id']) ?>"><?= e($categoryName) ?></a>
@@ -61,14 +61,14 @@ $courseContent = trim((string) ($course['content'] ?? ''));
 
             <div class="course-meta">
                 <?php if ($categoryName !== ''): ?>
-                    <span class="course-meta__item">分类：<?= e($categoryName) ?></span>
+                    <span class="course-meta__item"><?= e(t('分类：%s', [$categoryName])) ?></span>
                 <?php endif; ?>
-                <span class="course-meta__item">共 <?= $chapterCount ?> 个章节</span>
+                <span class="course-meta__item"><?= e(t('共 %d 个章节', [$chapterCount])) ?></span>
                 <?php if ($totalDuration > 0): ?>
-                    <span class="course-meta__item">总时长 <?= format_duration($totalDuration) ?></span>
+                    <span class="course-meta__item"><?= e(t('总时长 %s', [format_duration($totalDuration)])) ?></span>
                 <?php endif; ?>
-                <span class="course-meta__item"><?= (int) $course['view_count'] ?> 次浏览</span>
-                <span class="course-meta__item"><?= (int) $course['sales_count'] ?> 人已购买</span>
+                <span class="course-meta__item"><?= e(t('%d 次浏览', [(int) $course['view_count']])) ?></span>
+                <span class="course-meta__item"><?= e(t('%d 人已购买', [(int) $course['sales_count']])) ?></span>
             </div>
 
             <?php if ($tags !== []): ?>
@@ -81,7 +81,7 @@ $courseContent = trim((string) ($course['content'] ?? ''));
 
             <section class="section--tight" style="padding-top: 0;">
                 <div class="section-head">
-                    <h2 class="section-head__title">课程目录</h2>
+                    <h2 class="section-head__title"><?= e(t('课程目录')) ?></h2>
                 </div>
 
                 <?php if ($chapters !== []): ?>
@@ -104,9 +104,9 @@ $courseContent = trim((string) ($course['content'] ?? ''));
                                     <?php endif; ?>
 
                                     <?php if ($isPreview && !$hasAccess): ?>
-                                        <a class="badge badge--primary" href="<?= $chapterUrl ?>" title="点击试看本章">试看</a>
+                                        <a class="badge badge--primary" href="<?= $chapterUrl ?>" title="<?= e(t('点击试看本章')) ?>"><?= e(t('试看')) ?></a>
                                     <?php elseif (!$hasAccess): ?>
-                                        <span class="badge">未解锁</span>
+                                        <span class="badge"><?= e(t('未解锁')) ?></span>
                                     <?php endif; ?>
 
                                     <span class="chapter-item__duration"><?= format_duration((int) $chapter['duration']) ?></span>
@@ -117,7 +117,7 @@ $courseContent = trim((string) ($course['content'] ?? ''));
                 <?php else: ?>
                     <div class="card card--flat">
                         <div class="empty-state">
-                            <p class="mb-0">课程目录正在整理中。</p>
+                            <p class="mb-0"><?= e(t('课程目录正在整理中。')) ?></p>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -126,7 +126,7 @@ $courseContent = trim((string) ($course['content'] ?? ''));
             <?php if ($courseContent !== ''): ?>
                 <section class="section--tight">
                     <div class="section-head">
-                        <h2 class="section-head__title">课程介绍</h2>
+                        <h2 class="section-head__title"><?= e(t('课程介绍')) ?></h2>
                     </div>
                     <div class="prose">
                         <?= markdown($courseContent) ?>
@@ -145,32 +145,32 @@ $courseContent = trim((string) ($course['content'] ?? ''));
                 </div>
 
                 <?php if ($hasAccess): ?>
-                    <a class="btn btn--lg btn--block" href="<?= url('/course/' . $courseId . '/learn') ?>">开始学习</a>
-                    <p class="form-hint text-center">你已拥有这门课程</p>
+                    <a class="btn btn--lg btn--block" href="<?= url('/course/' . $courseId . '/learn') ?>"><?= e(t('开始学习')) ?></a>
+                    <p class="form-hint text-center"><?= e(t('你已拥有这门课程')) ?></p>
                 <?php elseif (Auth::check()): ?>
                     <form method="post" action="<?= url('/order/create') ?>">
                         <?= csrf_field() ?>
                         <input type="hidden" name="course_id" value="<?= $courseId ?>">
                         <button class="btn btn--lg btn--block" type="submit">
-                            <?= $price > 0 ? '立即购买' : '免费学习' ?>
+                            <?= $price > 0 ? e(t('立即购买')) : e(t('免费学习')) ?>
                         </button>
                     </form>
                 <?php else: ?>
-                    <a class="btn btn--lg btn--block" href="<?= url('/login') ?>">登录后购买</a>
-                    <p class="form-hint text-center">还没有账号？<a href="<?= url('/register') ?>">立即注册</a></p>
+                    <a class="btn btn--lg btn--block" href="<?= url('/login') ?>"><?= e(t('登录后购买')) ?></a>
+                    <p class="form-hint text-center"><?= e(t('还没有账号？')) ?><a href="<?= url('/register') ?>"><?= e(t('立即注册')) ?></a></p>
                 <?php endif; ?>
 
                 <ul class="buy-card__list">
-                    <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> 购买后永久有效，随时回看</li>
+                    <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> <?= e(t('购买后永久有效，随时回看')) ?></li>
                     <?php if ($paymentEnabled && $paymentMethods !== []): ?>
-                        <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> 支持<?= e(implode(' / ', array_values($paymentMethods))) ?></li>
+                        <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> <?= e(t('支持%s', [implode(' / ', array_values($paymentMethods))])) ?></li>
                     <?php endif; ?>
-                    <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> 在线视频流畅播放，支持进度记录</li>
-                    <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> 共 <?= $chapterCount ?> 个章节</li>
+                    <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> <?= e(t('在线视频流畅播放，支持进度记录')) ?></li>
+                    <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> <?= e(t('共 %d 个章节', [$chapterCount])) ?></li>
                 </ul>
 
                 <?php if ($price > 0 && (!$paymentEnabled || $paymentMethods === [])): ?>
-                    <p class="form-hint">支付通道维护中，暂不可在线购买，请稍后再试。</p>
+                    <p class="form-hint"><?= e(t('支付通道维护中，暂不可在线购买，请稍后再试。')) ?></p>
                 <?php endif; ?>
             </div>
         </aside>
@@ -182,8 +182,8 @@ $courseContent = trim((string) ($course['content'] ?? ''));
         <div class="container">
             <div class="section-head">
                 <div>
-                    <h2 class="section-head__title">相关课程</h2>
-                    <p class="section-head__desc">同一分类下的其他课程</p>
+                    <h2 class="section-head__title"><?= e(t('相关课程')) ?></h2>
+                    <p class="section-head__desc"><?= e(t('同一分类下的其他课程')) ?></p>
                 </div>
             </div>
 
@@ -197,7 +197,7 @@ $courseContent = trim((string) ($course['content'] ?? ''));
 <?php endif; ?>
 
 <?php // 移动端底部固定购买栏：与右侧购买卡片操作一致，仅在窄屏显示 ?>
-<div class="buy-bar" role="region" aria-label="购买操作">
+<div class="buy-bar" role="region" aria-label="<?= e(t('购买操作')) ?>">
     <div class="buy-bar__price">
         <span class="price price--lg price--accent"><?= price_html($price) ?></span>
         <?php if ($originalPrice > $price && $originalPrice > 0): ?>
@@ -207,17 +207,17 @@ $courseContent = trim((string) ($course['content'] ?? ''));
 
     <div class="buy-bar__action">
         <?php if ($hasAccess): ?>
-            <a class="btn btn--lg btn--block" href="<?= url('/course/' . $courseId . '/learn') ?>">开始学习</a>
+            <a class="btn btn--lg btn--block" href="<?= url('/course/' . $courseId . '/learn') ?>"><?= e(t('开始学习')) ?></a>
         <?php elseif (Auth::check()): ?>
             <form method="post" action="<?= url('/order/create') ?>">
                 <?= csrf_field() ?>
                 <input type="hidden" name="course_id" value="<?= $courseId ?>">
                 <button class="btn btn--lg btn--block" type="submit">
-                    <?= $price > 0 ? '立即购买' : '免费学习' ?>
+                    <?= $price > 0 ? e(t('立即购买')) : e(t('免费学习')) ?>
                 </button>
             </form>
         <?php else: ?>
-            <a class="btn btn--lg btn--block" href="<?= url('/login') ?>">登录后购买</a>
+            <a class="btn btn--lg btn--block" href="<?= url('/login') ?>"><?= e(t('登录后购买')) ?></a>
         <?php endif; ?>
     </div>
 </div>

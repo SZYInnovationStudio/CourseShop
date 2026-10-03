@@ -57,7 +57,7 @@ final class TicketController extends Controller
         $tickets    = Ticket::listForUser((int) $user['id'], $filters, $perPage, ($page - 1) * $perPage);
 
         $this->view('tickets.index', [
-            'pageTitle' => '我的工单',
+            'pageTitle' => t('我的工单'),
             'tickets'   => $tickets,
             'filters'   => $filters,
             'total'     => $total,
@@ -73,12 +73,16 @@ final class TicketController extends Controller
     {
         $this->requireUser();
 
+        if (Auth::isAdmin()) {
+            $this->fail(url('/tickets'), t('管理员账号无需提交工单，请通过后台管理工单。'));
+        }
+
         if (!Setting::bool('ticket_enabled', true)) {
-            $this->fail(url('/tickets'), '当前未开放工单提交，如有紧急问题请通过其他方式联系管理员。');
+            $this->fail(url('/tickets'), t('当前未开放工单提交，如有紧急问题请通过其他方式联系管理员。'));
         }
 
         $this->view('tickets.create', [
-            'pageTitle'      => '提交工单',
+            'pageTitle'      => t('提交工单'),
             'categories'     => Ticket::CATEGORIES,
             'maxFiles'       => TicketStorage::maxFiles(),
             'maxMb'          => TicketStorage::maxUploadMb(),
@@ -95,8 +99,12 @@ final class TicketController extends Controller
 
         $user = $this->requireUser();
 
+        if (Auth::isAdmin()) {
+            $this->fail(url('/tickets'), t('管理员账号无需提交工单，请通过后台管理工单。'));
+        }
+
         if (!Setting::bool('ticket_enabled', true)) {
-            $this->fail(url('/tickets'), '当前未开放工单提交。');
+            $this->fail(url('/tickets'), t('当前未开放工单提交。'));
         }
 
         $old = [
@@ -138,10 +146,10 @@ final class TicketController extends Controller
         }
 
         if ($errors !== []) {
-            Session::flash('error', '工单已提交，但部分附件未能上传：' . implode('；', $errors));
+            Session::flash('error', t('工单已提交，但部分附件未能上传：%s', [implode(t('；'), $errors)]));
         }
 
-        $this->success(url('/ticket/' . $ticketId), '工单提交成功，我们会尽快处理。');
+        $this->success(url('/ticket/' . $ticketId), t('工单提交成功，我们会尽快处理。'));
     }
 
     /**
@@ -153,14 +161,14 @@ final class TicketController extends Controller
         $ticket = Ticket::findByIdForUser((int) $id, (int) $user['id']);
 
         if ($ticket === null) {
-            abort(404, '工单不存在或已被删除。');
+            abort(404, t('工单不存在或已被删除。'));
         }
 
         $replies = TicketReply::listByTicket((int) $ticket['id']);
         $grouped = TicketAttachment::groupByReply((int) $ticket['id']);
 
         $this->view('tickets.show', [
-            'pageTitle'  => '工单详情',
+            'pageTitle'  => t('工单详情'),
             // 返回固定回工单列表
             'backUrl'    => url('/tickets'),
             'ticket'     => $ticket,
@@ -183,21 +191,21 @@ final class TicketController extends Controller
         $ticket = Ticket::findByIdForUser((int) $id, (int) $user['id']);
 
         if ($ticket === null) {
-            abort(404, '工单不存在或已被删除。');
+            abort(404, t('工单不存在或已被删除。'));
         }
 
         if ((string) $ticket['status'] === Ticket::STATUS_CLOSED) {
-            $this->fail(url('/ticket/' . $ticket['id']), '该工单已关闭，无法继续回复。');
+            $this->fail(url('/ticket/' . $ticket['id']), t('该工单已关闭，无法继续回复。'));
         }
 
         $content = trim((string) Request::input('content', ''));
 
         if ($content === '') {
-            $this->fail(url('/ticket/' . $ticket['id']), '回复内容不能为空。');
+            $this->fail(url('/ticket/' . $ticket['id']), t('回复内容不能为空。'));
         }
 
         if (mb_strlen($content) > self::MAX_REPLY_LENGTH) {
-            $this->fail(url('/ticket/' . $ticket['id']), '回复内容不能超过 ' . self::MAX_REPLY_LENGTH . ' 个字符。');
+            $this->fail(url('/ticket/' . $ticket['id']), t('回复内容不能超过 %d 个字符。', [self::MAX_REPLY_LENGTH]));
         }
 
         $replyId = TicketReply::create((int) $ticket['id'], (int) $user['id'], false, $content);
@@ -214,10 +222,10 @@ final class TicketController extends Controller
         }
 
         if ($errors !== []) {
-            Session::flash('error', '回复已提交，但部分附件未能上传：' . implode('；', $errors));
+            Session::flash('error', t('回复已提交，但部分附件未能上传：%s', [implode(t('；'), $errors)]));
         }
 
-        $this->success(url('/ticket/' . $ticket['id']), '回复已提交。');
+        $this->success(url('/ticket/' . $ticket['id']), t('回复已提交。'));
     }
 
     /**
@@ -231,14 +239,14 @@ final class TicketController extends Controller
         $ticket = Ticket::findByIdForUser((int) $id, (int) $user['id']);
 
         if ($ticket === null) {
-            abort(404, '工单不存在或已被删除。');
+            abort(404, t('工单不存在或已被删除。'));
         }
 
         if (!Ticket::closeByUser((int) $ticket['id'], (int) $user['id'])) {
-            $this->fail(url('/ticket/' . $ticket['id']), '工单已关闭或状态不允许关闭。');
+            $this->fail(url('/ticket/' . $ticket['id']), t('工单已关闭或状态不允许关闭。'));
         }
 
-        $this->success(url('/ticket/' . $ticket['id']), '工单已关闭。');
+        $this->success(url('/ticket/' . $ticket['id']), t('工单已关闭。'));
     }
 
     /**
@@ -252,14 +260,14 @@ final class TicketController extends Controller
         $ticket = Ticket::findByIdForUser((int) $id, (int) $user['id']);
 
         if ($ticket === null) {
-            abort(404, '工单不存在或已被删除。');
+            abort(404, t('工单不存在或已被删除。'));
         }
 
         if (!Ticket::softDeleteByUser((int) $ticket['id'], (int) $user['id'])) {
-            $this->fail(url('/ticket/' . $ticket['id']), '删除失败，请稍后重试。');
+            $this->fail(url('/ticket/' . $ticket['id']), t('删除失败，请稍后重试。'));
         }
 
-        $this->success(url('/tickets'), '工单已删除。');
+        $this->success(url('/tickets'), t('工单已删除。'));
     }
 
     /**
@@ -271,12 +279,12 @@ final class TicketController extends Controller
 
         $attachment = TicketAttachment::findById((int) $id);
         if ($attachment === null) {
-            abort(404, '附件不存在。');
+            abort(404, t('附件不存在。'));
         }
 
         $ticket = Ticket::findById((int) $attachment['ticket_id']);
         if ($ticket === null) {
-            abort(404, '附件不存在。');
+            abort(404, t('附件不存在。'));
         }
 
         $isOwner = (int) $ticket['user_id'] === (int) $user['id'];
@@ -284,12 +292,12 @@ final class TicketController extends Controller
         // 非工单所有者必须是拥有工单查看权限的后台人员（CS-08）：
         // 仅有后台身份但未获 ticket.view 的角色，不得下载他人上传的申诉材料。
         if (!$isOwner && !Permission::can('ticket.view')) {
-            abort(403, '无权访问该附件。');
+            abort(403, t('无权访问该附件。'));
         }
 
         $real = TicketStorage::resolve((string) $attachment['file_path']);
         if ($real === null) {
-            abort(404, '附件文件不存在或已被清理。');
+            abort(404, t('附件文件不存在或已被清理。'));
         }
 
         $this->outputFile($real, (string) $attachment['file_name'], (string) $attachment['mime_type']);
@@ -301,7 +309,7 @@ final class TicketController extends Controller
     public function showAppeal(): void
     {
         $this->view('tickets.appeal', [
-            'pageTitle'       => '账号申诉',
+            'pageTitle'       => t('账号申诉'),
             'captchaRequired' => Captcha::enabled(),
         ]);
     }
@@ -332,11 +340,11 @@ final class TicketController extends Controller
         // 失败过多则临时锁定，避免借申诉接口无限爆破账号密码
         $remaining = LoginThrottle::lockRemaining($username);
         if ($remaining > 0) {
-            $this->fail(url('/ticket/appeal'), sprintf('失败次数过多，请 %d 分钟后再试。', (int) ceil($remaining / 60)), $old);
+            $this->fail(url('/ticket/appeal'), t('失败次数过多，请 %d 分钟后再试。', [(int) ceil($remaining / 60)]), $old);
         }
 
         if (Captcha::enabled() && !Captcha::verify('appeal', Request::string('captcha'))) {
-            $this->fail(url('/ticket/appeal'), '图形验证码不正确或已过期。', $old);
+            $this->fail(url('/ticket/appeal'), t('图形验证码不正确或已过期。'), $old);
         }
 
         $user = User::findByUsername($username);
@@ -344,15 +352,15 @@ final class TicketController extends Controller
         // 统一提示，避免暴露账号是否存在；同时记录失败以驱动登录风控计数
         if ($user === null || !password_verify($password, (string) $user['password_hash'])) {
             User::logLogin($user === null ? null : (int) $user['id'], $username, 'fail', '账号申诉：账号或密码错误');
-            $this->fail(url('/ticket/appeal'), '用户名或密码不正确，请确认后再提交申诉。', $old);
+            $this->fail(url('/ticket/appeal'), t('用户名或密码不正确，请确认后再提交申诉。'), $old);
         }
 
         if (!Auth::isBanned($user)) {
-            $this->fail(url('/ticket/appeal'), '该账号当前未被封禁，无需申诉。如忘记密码请通过登录页找回。', $old);
+            $this->fail(url('/ticket/appeal'), t('该账号当前未被封禁，无需申诉。如忘记密码请通过登录页找回。'), $old);
         }
 
         if (Ticket::hasOpenAppeal((int) $user['id'])) {
-            $this->fail(url('/ticket/appeal'), '你已有一条正在处理的申诉，请耐心等待处理结果。', $old);
+            $this->fail(url('/ticket/appeal'), t('你已有一条正在处理的申诉，请耐心等待处理结果。'), $old);
         }
 
         $ticketId = $this->insertTicket([
@@ -369,7 +377,7 @@ final class TicketController extends Controller
             TicketNotifier::notifyAdmins($ticket, '有新的账号申诉');
         }
 
-        $this->success(url('/login'), '申诉已提交，管理员会尽快核实处理，请留意账号绑定的邮箱通知。');
+        $this->success(url('/login'), t('申诉已提交，管理员会尽快核实处理，请留意账号绑定的邮箱通知。'));
     }
 
     // ============================================================
@@ -406,7 +414,7 @@ final class TicketController extends Controller
             return Ticket::create($data);
         }
 
-        abort(500, '生成工单号失败，请稍后重试。');
+        abort(500, t('生成工单号失败，请稍后重试。'));
     }
 
     private function ticketNoExists(string $ticketNo): bool

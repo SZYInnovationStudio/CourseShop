@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 
 use App\Support\Auth;
+use App\Support\I18n;
 use App\Support\Request;
 use App\Support\Setting;
 
@@ -17,6 +18,12 @@ $user      = Auth::user();
 
 $canSwitchTheme = Setting::bool('theme_allow_user_switch', true);
 $canRegister    = Setting::bool('register_enabled', true);
+$showPackages   = Setting::bool('packages_enabled', true);
+
+// 语言切换：仅在启用两种及以上语言时展示
+$locales        = I18n::enabled();
+$showLangSwitch = count($locales) > 1;
+$currentLocale  = I18n::current();
 
 // 主导航已覆盖的顶级页面：底部导航 / 顶部导航已提供入口，
 // 这些页面不再渲染返回箭头，避免出现「无处可返」的冗余按钮
@@ -28,7 +35,7 @@ $isRootPage  = in_array($currentPath, $rootPaths, true);
 // 固定返回目标（如学习页固定返回课程目录）
 // 设置后返回按钮不再逐条回退历史，避免在同类页面之间反复返回
 $backUrl   = trim((string) ($backUrl ?? ''));
-$backLabel = $backUrl !== '' ? '返回' : '返回上一页';
+$backLabel = $backUrl !== '' ? t('返回') : t('返回上一页');
 
 /** 导航高亮 */
 $activeClass = static function (string $path) use ($current): string {
@@ -60,18 +67,20 @@ $activeClass = static function (string $path) use ($current): string {
             <?php endif; ?>
         </a>
 
-        <nav class="site-nav" aria-label="主导航">
-            <a class="site-nav__link<?= $activeClass('/') ?>" href="<?= url('/') ?>">首页</a>
-            <a class="site-nav__link<?= $activeClass('/courses') ?>" href="<?= url('/courses') ?>">全部课程</a>
-            <a class="site-nav__link<?= $activeClass('/packages') ?>" href="<?= url('/packages') ?>">优惠套餐</a>
+        <nav class="site-nav" aria-label="<?= e(t('主导航')) ?>">
+            <a class="site-nav__link<?= $activeClass('/') ?>" href="<?= url('/') ?>"><?= e(t('首页')) ?></a>
+            <a class="site-nav__link<?= $activeClass('/courses') ?>" href="<?= url('/courses') ?>"><?= e(t('全部课程')) ?></a>
+            <?php if ($showPackages): ?>
+                <a class="site-nav__link<?= $activeClass('/packages') ?>" href="<?= url('/packages') ?>"><?= e(t('优惠套餐')) ?></a>
+            <?php endif; ?>
         </nav>
 
         <div class="header-actions">
             <div class="flex-center gap-2 hide-sm">
                 <?php if ($user === null): ?>
-                    <a class="btn btn--ghost btn--sm" href="<?= url('/login') ?>">登录</a>
+                    <a class="btn btn--ghost btn--sm" href="<?= url('/login') ?>"><?= e(t('登录')) ?></a>
                     <?php if ($canRegister): ?>
-                        <a class="btn btn--sm" href="<?= url('/register') ?>">注册</a>
+                        <a class="btn btn--sm" href="<?= url('/register') ?>"><?= e(t('注册')) ?></a>
                     <?php endif; ?>
                 <?php else: ?>
                     <?php
@@ -100,23 +109,43 @@ $activeClass = static function (string $path) use ($current): string {
                         </button>
 
                         <div class="user-menu__panel" id="user-menu-panel" data-user-menu-panel>
-                            <a class="user-menu__item" href="<?= url('/my/courses') ?>">我的课程</a>
-                            <a class="user-menu__item" href="<?= url('/tickets') ?>">我的工单</a>
-                            <a class="user-menu__item" href="<?= url('/account') ?>">账户设置</a>
+                            <a class="user-menu__item" href="<?= url('/my/courses') ?>"><?= e(t('我的课程')) ?></a>
+                            <a class="user-menu__item" href="<?= url('/tickets') ?>"><?= e(t('我的工单')) ?></a>
+                            <a class="user-menu__item" href="<?= url('/account') ?>"><?= e(t('账户设置')) ?></a>
                             <?php if (Auth::isAdmin()): ?>
-                                <a class="user-menu__item" href="<?= url('/admin') ?>">管理后台</a>
+                                <a class="user-menu__item" href="<?= url('/admin') ?>"><?= e(t('管理后台')) ?></a>
                             <?php endif; ?>
                             <form class="user-menu__form" method="post" action="<?= url('/logout') ?>">
                                 <?= csrf_field() ?>
-                                <button class="user-menu__item user-menu__item--action" type="submit">退出登录</button>
+                                <button class="user-menu__item user-menu__item--action" type="submit"><?= e(t('退出登录')) ?></button>
                             </form>
                         </div>
                     </div>
                 <?php endif; ?>
             </div>
 
+            <?php if ($showLangSwitch): ?>
+                <details class="lang-menu" data-lang-menu>
+                    <summary class="lang-menu__trigger" aria-label="<?= e(t('切换语言')) ?>" title="<?= e(t('切换语言')) ?>">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <path d="M3 12h18M12 3c2.5 2.5 3.8 5.6 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.6-3.8-9S9.5 5.5 12 3z"></path>
+                        </svg>
+                        <span class="lang-menu__label"><?= e(I18n::label($currentLocale)) ?></span>
+                    </summary>
+                    <div class="lang-menu__panel">
+                        <?php foreach ($locales as $locale): ?>
+                            <a class="lang-menu__item<?= $locale === $currentLocale ? ' is-active' : '' ?>"
+                               href="<?= e(I18n::switchUrl($locale)) ?>" hreflang="<?= e(I18n::htmlLang($locale)) ?>"
+                               lang="<?= e(I18n::htmlLang($locale)) ?>"><?= e(I18n::label($locale)) ?></a>
+                        <?php endforeach; ?>
+                    </div>
+                </details>
+            <?php endif; ?>
+
             <?php if ($canSwitchTheme): ?>
-                <button type="button" class="theme-toggle" data-theme-toggle aria-label="切换深浅色主题" title="切换主题"
+                <button type="button" class="theme-toggle" data-theme-toggle aria-label="<?= e(t('切换深浅色主题')) ?>" title="<?= e(t('切换主题')) ?>"
                         <?= $user !== null ? 'data-theme-save="' . e(url('/account/theme')) . '"' : '' ?>>
                     <span class="theme-toggle__icon--sun" aria-hidden="true">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -132,8 +161,8 @@ $activeClass = static function (string $path) use ($current): string {
                 </button>
             <?php endif; ?>
 
-            <button type="button" class="nav-toggle" data-nav-toggle aria-label="打开菜单" aria-expanded="false" aria-controls="site-drawer"
-                    data-label-open="打开菜单" data-label-close="关闭菜单">
+            <button type="button" class="nav-toggle" data-nav-toggle aria-label="<?= e(t('打开菜单')) ?>" aria-expanded="false" aria-controls="site-drawer"
+                    data-label-open="<?= e(t('打开菜单')) ?>" data-label-close="<?= e(t('关闭菜单')) ?>">
                 <span class="nav-toggle__icons" aria-hidden="true">
                     <svg class="nav-toggle__icon nav-toggle__icon--menu" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                         <path d="M3 6h18M3 12h18M3 18h18"></path>
@@ -149,26 +178,41 @@ $activeClass = static function (string $path) use ($current): string {
     <div class="site-drawer" id="site-drawer" data-drawer>
         <div class="site-drawer__panel">
             <div class="container">
-                <a class="site-drawer__link<?= $activeClass('/') ?>" href="<?= url('/') ?>">首页</a>
-                <a class="site-drawer__link<?= $activeClass('/courses') ?>" href="<?= url('/courses') ?>">全部课程</a>
-                <a class="site-drawer__link<?= $activeClass('/packages') ?>" href="<?= url('/packages') ?>">优惠套餐</a>
+                <a class="site-drawer__link<?= $activeClass('/') ?>" href="<?= url('/') ?>"><?= e(t('首页')) ?></a>
+                <a class="site-drawer__link<?= $activeClass('/courses') ?>" href="<?= url('/courses') ?>"><?= e(t('全部课程')) ?></a>
+                <?php if ($showPackages): ?>
+                    <a class="site-drawer__link<?= $activeClass('/packages') ?>" href="<?= url('/packages') ?>"><?= e(t('优惠套餐')) ?></a>
+                <?php endif; ?>
 
                 <?php if ($user === null): ?>
-                    <a class="site-drawer__link" href="<?= url('/login') ?>">登录</a>
+                    <a class="site-drawer__link" href="<?= url('/login') ?>"><?= e(t('登录')) ?></a>
                     <?php if ($canRegister): ?>
-                        <a class="site-drawer__link" href="<?= url('/register') ?>">注册</a>
+                        <a class="site-drawer__link" href="<?= url('/register') ?>"><?= e(t('注册')) ?></a>
                     <?php endif; ?>
                 <?php else: ?>
-                    <a class="site-drawer__link" href="<?= url('/my/courses') ?>">我的课程</a>
-                    <a class="site-drawer__link" href="<?= url('/tickets') ?>">我的工单</a>
-                    <a class="site-drawer__link" href="<?= url('/account') ?>">账户设置</a>
+                    <a class="site-drawer__link" href="<?= url('/my/courses') ?>"><?= e(t('我的课程')) ?></a>
+                    <a class="site-drawer__link" href="<?= url('/tickets') ?>"><?= e(t('我的工单')) ?></a>
+                    <a class="site-drawer__link" href="<?= url('/account') ?>"><?= e(t('账户设置')) ?></a>
                     <?php if (Auth::isAdmin()): ?>
-                        <a class="site-drawer__link" href="<?= url('/admin') ?>">管理后台</a>
+                        <a class="site-drawer__link" href="<?= url('/admin') ?>"><?= e(t('管理后台')) ?></a>
                     <?php endif; ?>
                     <form method="post" action="<?= url('/logout') ?>">
                         <?= csrf_field() ?>
-                        <button class="site-drawer__link" type="submit">退出登录</button>
+                        <button class="site-drawer__link" type="submit"><?= e(t('退出登录')) ?></button>
                     </form>
+                <?php endif; ?>
+
+                <?php if ($showLangSwitch): ?>
+                    <div class="site-drawer__section">
+                        <span class="site-drawer__section-label"><?= e(t('语言')) ?></span>
+                        <div class="site-drawer__langs">
+                            <?php foreach ($locales as $locale): ?>
+                                <a class="site-drawer__lang<?= $locale === $currentLocale ? ' is-active' : '' ?>"
+                                   href="<?= e(I18n::switchUrl($locale)) ?>" hreflang="<?= e(I18n::htmlLang($locale)) ?>"
+                                   lang="<?= e(I18n::htmlLang($locale)) ?>"><?= e(I18n::label($locale)) ?></a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>

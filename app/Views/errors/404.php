@@ -13,11 +13,11 @@ declare(strict_types=1);
 ?>
 <div class="error-page">
     <div class="error-page__code" aria-hidden="true">404</div>
-    <h1 class="error-page__title">页面不存在</h1>
-    <p class="error-page__message"><?= e($message ?? '你访问的页面已被移除或从未存在。') ?></p>
+    <h1 class="error-page__title"><?= e(t('页面不存在')) ?></h1>
+    <p class="error-page__message"><?= e($message ?? t('你访问的页面已被移除或从未存在。')) ?></p>
 
     <div class="btn-group mt-6">
-        <a class="btn" href="<?= url('/') ?>">返回首页</a>
-        <a class="btn btn--outline" href="<?= url('/courses') ?>">浏览课程</a>
+        <a class="btn" href="<?= url('/') ?>"><?= e(t('返回首页')) ?></a>
+        <a class="btn btn--outline" href="<?= url('/courses') ?>"><?= e(t('浏览课程')) ?></a>
     </div>
 </div>

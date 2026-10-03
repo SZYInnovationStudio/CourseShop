@@ -21,7 +21,7 @@ final class CaptchaController extends Controller
     public function image(): void
     {
         if (!Captcha::enabled()) {
-            abort(404, '图形验证码未启用。');
+            abort(404, t('图形验证码未启用。'));
         }
 
         $code  = Captcha::issue(Request::string('scene', 'login'));

@@ -201,6 +201,32 @@
         });
     })();
 
+    /* ---------------- 语言切换下拉 ---------------- */
+    (function () {
+        var menu = document.querySelector('[data-lang-menu]');
+        if (!menu) {
+            return;
+        }
+
+        // 点击菜单外部收起
+        document.addEventListener('click', function (event) {
+            if (menu.open && !menu.contains(event.target)) {
+                menu.open = false;
+            }
+        });
+
+        // Esc 收起并归还焦点
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && menu.open) {
+                menu.open = false;
+                var summary = menu.querySelector('summary');
+                if (summary) {
+                    summary.focus();
+                }
+            }
+        });
+    })();
+
     /* ---------------- 提示条 ---------------- */
     function dismissAlert(element) {
         element.style.transition = 'opacity 200ms ease';
@@ -333,7 +359,9 @@
 
         var visible = input.type === 'text';
         input.type = visible ? 'password' : 'text';
-        toggle.setAttribute('aria-label', visible ? '显示密码' : '隐藏密码');
+        var showLabel = toggle.getAttribute('data-label-show') || '显示密码';
+        var hideLabel = toggle.getAttribute('data-label-hide') || '隐藏密码';
+        toggle.setAttribute('aria-label', visible ? showLabel : hideLabel);
     });
 
     /* ---------------- 复制到剪贴板 ---------------- */
@@ -351,8 +379,10 @@
         var original = button.getAttribute('data-copy-label') || button.textContent;
         button.setAttribute('data-copy-label', original);
 
+        var copiedLabel = button.getAttribute('data-copied-label') || '已复制';
+
         var done = function () {
-            button.textContent = '已复制';
+            button.textContent = copiedLabel;
             window.setTimeout(function () {
                 button.textContent = original;
             }, 1500);

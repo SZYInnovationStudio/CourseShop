@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 use App\Support\Auth;
 use App\Support\Csrf;
+use App\Support\I18n;
 use App\Support\Setting;
 
 $siteName  = Setting::string('site_name', 'CourseShop');
@@ -48,7 +49,7 @@ $modeJson     = json_encode($defaultMode, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG 
 $userModeJson = json_encode($userMode, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 ?>
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="<?= e(I18n::htmlLang()) ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -87,7 +88,7 @@ $userModeJson = json_encode($userMode, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | J
     </style>
 </head>
 <body<?= $bodyClass !== '' ? ' class="' . e($bodyClass) . '"' : '' ?>>
-<a class="skip-link" href="#main">跳到主要内容</a>
+<a class="skip-link" href="#main"><?= e(t('跳到主要内容')) ?></a>
 
 <?php require VIEW_PATH . '/partials/header.php'; ?>
 

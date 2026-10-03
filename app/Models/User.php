@@ -163,6 +163,14 @@ final class User
     }
 
     /**
+     * 更新语言偏好（zh-CN / zh-TW / en / es / ja）
+     */
+    public static function updateLocale(int $id, string $locale): void
+    {
+        Database::execute('UPDATE `users` SET `locale` = ? WHERE `id` = ?', [$locale, $id]);
+    }
+
+    /**
      * 启用两步验证（写入密钥并标记启用）
      */
     public static function enableTwoFactor(int $id, string $secret, ?int $step = null): void

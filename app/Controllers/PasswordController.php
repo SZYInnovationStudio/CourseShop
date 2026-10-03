@@ -35,7 +35,7 @@ final class PasswordController extends Controller
     public function showForgot(): void
     {
         $this->view('auth.forgot-password', [
-            'pageTitle' => '找回密码',
+            'pageTitle' => t('找回密码'),
             'captchaRequired' => Captcha::enabled(),
             'mailEnabled'     => Mailer::enabled(),
         ]);
@@ -62,7 +62,7 @@ final class PasswordController extends Controller
 
         // 图形验证码：防止脚本批量探测邮箱是否存在
         if (Captcha::enabled() && !Captcha::verify('reset', Request::string('captcha'))) {
-            $this->fail($back, '图形验证码不正确或已过期。', $old);
+            $this->fail($back, t('图形验证码不正确或已过期。'), $old);
         }
 
         // 节流：同一邮箱在间隔内重复请求时返回与成功一致的中性提示，
@@ -94,7 +94,7 @@ final class PasswordController extends Controller
             ]);
         }
 
-        $this->fail($back, '验证码发送失败，请稍后重试或联系管理员。', $old);
+        $this->fail($back, t('验证码发送失败，请稍后重试或联系管理员。'), $old);
     }
 
     /**
@@ -105,7 +105,7 @@ final class PasswordController extends Controller
         $email = strtolower(Request::string('email'));
 
         $this->view('auth.reset-password', [
-            'pageTitle' => '重置密码',
+            'pageTitle' => t('重置密码'),
             'email'     => $email,
         ]);
     }
@@ -141,25 +141,25 @@ final class PasswordController extends Controller
         $record = EmailVerification::latest($email, EmailVerification::PURPOSE_RESET);
 
         if ($record === null) {
-            $this->fail(url('/password/forgot'), '请先获取邮箱验证码。', $old);
+            $this->fail(url('/password/forgot'), t('请先获取邮箱验证码。'), $old);
         }
 
         if ((int) $record['attempts'] >= EmailVerification::MAX_ATTEMPTS) {
-            $this->fail($back, '验证码错误次数过多，请重新获取。', $old);
+            $this->fail($back, t('验证码错误次数过多，请重新获取。'), $old);
         }
 
         if (strtotime((string) $record['expires_at']) <= time()) {
-            $this->fail($back, '验证码已过期，请重新获取。', $old);
+            $this->fail($back, t('验证码已过期，请重新获取。'), $old);
         }
 
         if (!hash_equals((string) $record['code'], $code)) {
             EmailVerification::incrementAttempts((int) $record['id']);
-            $this->fail($back, '验证码不正确。', $old);
+            $this->fail($back, t('验证码不正确。'), $old);
         }
 
         $user = User::findByEmail($email);
         if ($user === null) {
-            $this->fail(url('/password/forgot'), '该邮箱未注册或账号不可用。', $old);
+            $this->fail(url('/password/forgot'), t('该邮箱未注册或账号不可用。'), $old);
         }
 
         EmailVerification::markUsed((int) $record['id']);
@@ -170,7 +170,7 @@ final class PasswordController extends Controller
 
         User::logLogin((int) $user['id'], (string) $user['username'], 'success', '通过邮箱验证码重置密码');
 
-        $this->success(url('/login'), '密码已重置，请使用新密码登录。');
+        $this->success(url('/login'), t('密码已重置，请使用新密码登录。'));
     }
 
     /**
@@ -178,9 +178,9 @@ final class PasswordController extends Controller
      */
     private function sentMessage(string $email, int $ttl = 0): string
     {
-        $suffix = $ttl > 0 ? sprintf('，%d 分钟内有效', $ttl) : '';
+        $suffix = $ttl > 0 ? t('，%d 分钟内有效', [$ttl]) : '';
 
-        return sprintf('如果该邮箱已注册，重置验证码已发送至 %s%s。', mask_email($email), $suffix);
+        return t('如果该邮箱已注册，重置验证码已发送至 %s%s。', [mask_email($email), $suffix]);
     }
 
     /**

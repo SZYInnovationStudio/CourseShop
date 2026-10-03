@@ -12,6 +12,7 @@ use App\Support\Auth;
 use App\Support\Config;
 use App\Support\Csrf;
 use App\Support\HttpException;
+use App\Support\I18n;
 use App\Support\Setting;
 
 if (!function_exists('e')) {
@@ -21,6 +22,30 @@ if (!function_exists('e')) {
     function e(mixed $value): string
     {
         return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+}
+
+if (!function_exists('t')) {
+    /**
+     * 翻译文案（以中文原文为键，未命中时原样返回）
+     *
+     * @param array<int, mixed> $args 用于 vsprintf 的占位参数
+     */
+    function t(string $text, array $args = []): string
+    {
+        return I18n::translate($text, $args);
+    }
+}
+
+if (!function_exists('__')) {
+    /**
+     * t() 的别名
+     *
+     * @param array<int, mixed> $args
+     */
+    function __(string $text, array $args = []): string
+    {
+        return I18n::translate($text, $args);
     }
 }
 
@@ -193,7 +218,7 @@ if (!function_exists('price_html')) {
     function price_html(int $cents): string
     {
         if ($cents <= 0) {
-            return '免费';
+            return t('免费');
         }
 
         return '&yen;' . format_money($cents);
@@ -270,12 +295,12 @@ if (!function_exists('device_label')) {
         $ua = (string) $ua;
 
         if ($ua === '') {
-            return '未知设备';
+            return t('未知设备');
         }
 
         $lower = strtolower($ua);
 
-        $os = '未知系统';
+        $os = t('未知系统');
         foreach ([
             'windows'   => 'Windows',
             'iphone'    => 'iPhone',
@@ -292,9 +317,9 @@ if (!function_exists('device_label')) {
         }
 
         // 注意顺序：Edge / Opera 的 UA 同样包含 chrome，需先匹配
-        $browser = '未知浏览器';
+        $browser = t('未知浏览器');
         foreach ([
-            'micromessenger' => '微信',
+            'micromessenger' => t('微信'),
             'edg/'           => 'Edge',
             'opr/'           => 'Opera',
             'chrome/'        => 'Chrome',

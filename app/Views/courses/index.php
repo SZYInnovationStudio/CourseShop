@@ -71,9 +71,9 @@ $windowStart = max(1, min($page - 2, $totalPages - 4));
 $windowEnd   = min($totalPages, $windowStart + 4);
 ?>
 <div class="page-head container">
-    <h1 class="page-head__title">全部课程</h1>
+    <h1 class="page-head__title"><?= e(t('全部课程')) ?></h1>
     <p class="page-head__desc">
-        共 <?= (int) $total ?> 门课程<?= $keyword !== '' ? '，关键词「' . e($keyword) . '」' : '' ?>
+        <?= e(t('共 %d 门课程', [(int) $total])) ?><?= $keyword !== '' ? e(t('，关键词「%s」', [$keyword])) : '' ?>
     </p>
 </div>
 
@@ -89,8 +89,8 @@ $windowEnd   = min($totalPages, $windowStart + 4);
         <div class="card__body">
             <div class="search-form mb-4">
                 <input class="input grow" type="search" name="q" value="<?= e($keyword) ?>"
-                       placeholder="搜索课程名称或简介" aria-label="搜索课程">
-                <button class="btn" type="submit">搜索</button>
+                       placeholder="<?= e(t('搜索课程名称或简介')) ?>" aria-label="<?= e(t('搜索课程')) ?>">
+                <button class="btn" type="submit"><?= e(t('搜索')) ?></button>
             </div>
 
             <?php // 移动端：唤起筛选抽屉（桌面隐藏） ?>
@@ -99,14 +99,14 @@ $windowEnd   = min($totalPages, $windowStart + 4);
                      stroke-width="2" stroke-linecap="round" aria-hidden="true">
                     <path d="M4 6h16M7 12h10M10 18h4"></path>
                 </svg>
-                筛选与排序
+                <?= e(t('筛选与排序')) ?>
             </button>
 
             <?php // 桌面为行内筛选栏；移动端变为底部抽屉 ?>
             <div class="filter-bar" id="course-filter" data-sheet="course-filter">
                 <div class="filter-bar__head">
-                    <span class="filter-bar__title">筛选与排序</span>
-                    <button type="button" class="filter-bar__close" data-sheet-close aria-label="关闭筛选">
+                    <span class="filter-bar__title"><?= e(t('筛选与排序')) ?></span>
+                    <button type="button" class="filter-bar__close" data-sheet-close aria-label="<?= e(t('关闭筛选')) ?>">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                              stroke-width="2" stroke-linecap="round" aria-hidden="true">
                             <path d="M6 6l12 12M18 6L6 18"></path>
@@ -116,10 +116,10 @@ $windowEnd   = min($totalPages, $windowStart + 4);
 
                 <div class="filter-bar__filters">
                     <div class="filter-bar__group">
-                        <span class="filter-bar__label">分类</span>
+                        <span class="filter-bar__label"><?= e(t('分类')) ?></span>
                         <div class="filter-bar__chips">
                             <a class="chip<?= $categoryId === 0 ? ' is-active' : '' ?>"
-                               href="<?= $filterUrl(['category' => 0]) ?>">全部</a>
+                               href="<?= $filterUrl(['category' => 0]) ?>"><?= e(t('全部')) ?></a>
                             <?php foreach ($categories as $category): ?>
                                 <a class="chip<?= $categoryId === (int) $category['id'] ? ' is-active' : '' ?>"
                                    href="<?= $filterUrl(['category' => (int) $category['id']]) ?>">
@@ -131,10 +131,10 @@ $windowEnd   = min($totalPages, $windowStart + 4);
 
                     <?php if ($tags !== []): ?>
                         <div class="filter-bar__group">
-                            <span class="filter-bar__label">标签</span>
+                            <span class="filter-bar__label"><?= e(t('标签')) ?></span>
                             <div class="filter-bar__chips">
                                 <a class="chip<?= $tagId === 0 ? ' is-active' : '' ?>"
-                                   href="<?= $filterUrl(['tag' => 0]) ?>">全部</a>
+                                   href="<?= $filterUrl(['tag' => 0]) ?>"><?= e(t('全部')) ?></a>
                                 <?php foreach ($tags as $tag): ?>
                                     <a class="chip<?= $tagId === (int) $tag['id'] ? ' is-active' : '' ?>"
                                        href="<?= $filterUrl(['tag' => (int) $tag['id']]) ?>">
@@ -146,16 +146,16 @@ $windowEnd   = min($totalPages, $windowStart + 4);
                     <?php endif; ?>
                 </div>
 
-                <label class="sr-only" for="sort">排序方式</label>
+                <label class="sr-only" for="sort"><?= e(t('排序方式')) ?></label>
                 <select class="select" id="sort" name="sort" data-auto-submit>
                     <?php foreach ($sortOptions as $sortKey => $sortLabel): ?>
                         <option value="<?= e($sortKey) ?>"<?= $sort === $sortKey ? ' selected' : '' ?>>
-                            <?= e($sortLabel) ?>
+                            <?= e(t($sortLabel)) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
 
-                <button type="button" class="btn btn--block filter-bar__apply" data-sheet-close>查看结果</button>
+                <button type="button" class="btn btn--block filter-bar__apply" data-sheet-close><?= e(t('查看结果')) ?></button>
             </div>
         </div>
     </form>
@@ -170,9 +170,9 @@ $windowEnd   = min($totalPages, $windowStart + 4);
         </div>
 
         <?php if ($totalPages > 1): ?>
-            <nav class="pagination" aria-label="分页">
+            <nav class="pagination" aria-label="<?= e(t('分页')) ?>">
                 <a class="pagination__item<?= $page <= 1 ? ' is-disabled' : '' ?>"
-                   href="<?= $page <= 1 ? '#' : $pageUrl($page - 1) ?>" rel="prev">上一页</a>
+                   href="<?= $page <= 1 ? '#' : $pageUrl($page - 1) ?>" rel="prev"><?= e(t('上一页')) ?></a>
 
                 <?php if ($windowStart > 1): ?>
                     <a class="pagination__item" href="<?= $pageUrl(1) ?>">1</a>
@@ -193,7 +193,7 @@ $windowEnd   = min($totalPages, $windowStart + 4);
                 <?php endif; ?>
 
                 <a class="pagination__item<?= $page >= $totalPages ? ' is-disabled' : '' ?>"
-                   href="<?= $page >= $totalPages ? '#' : $pageUrl($page + 1) ?>" rel="next">下一页</a>
+                   href="<?= $page >= $totalPages ? '#' : $pageUrl($page + 1) ?>" rel="next"><?= e(t('下一页')) ?></a>
             </nav>
         <?php endif; ?>
     <?php else: ?>
@@ -202,9 +202,9 @@ $windowEnd   = min($totalPages, $windowStart + 4);
                 <div class="empty-state__icon" aria-hidden="true">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
                 </div>
-                <p>没有找到符合条件的课程。</p>
+                <p><?= e(t('没有找到符合条件的课程。')) ?></p>
                 <p class="mb-0">
-                    <a class="btn btn--outline btn--sm" href="<?= url('/courses') ?>">重置筛选条件</a>
+                    <a class="btn btn--outline btn--sm" href="<?= url('/courses') ?>"><?= e(t('重置筛选条件')) ?></a>
                 </p>
             </div>
         </div>

@@ -18,7 +18,7 @@ final class TicketNotifier
      */
     public static function notifyOwnerReplied(array $ticket, string $content): void
     {
-        $to = self::ownerEmail($ticket);
+        $to = self::ownerRecipient($ticket);
         if ($to === null) {
             return;
         }
@@ -26,15 +26,21 @@ final class TicketNotifier
         $siteName = Setting::string('site_name', 'CourseShop');
         $url      = url('/ticket/' . (int) $ticket['id']);
 
-        $html = '<p>你好，</p>'
-            . '<p>你的工单 <strong>' . e((string) $ticket['ticket_no']) . '</strong>（'
-            . e((string) $ticket['title']) . '）有了新的回复：</p>'
-            . '<blockquote style="border-left:3px solid #4F6F52;padding-left:12px;color:#555;">'
-            . nl2br(e($content)) . '</blockquote>'
-            . '<p>查看并继续沟通：<a href="' . e($url) . '">' . e($url) . '</a></p>'
-            . '<p>—— ' . e($siteName) . '</p>';
+        [$subject, $html] = I18n::withLocale($to['locale'], static function () use ($ticket, $content, $siteName, $url): array {
+            $html = '<p>' . t('你好，') . '</p>'
+                . '<p>' . t('你的工单 %s（%s）有了新的回复：', [
+                    '<strong>' . e((string) $ticket['ticket_no']) . '</strong>',
+                    e((string) $ticket['title']),
+                ]) . '</p>'
+                . '<blockquote style="border-left:3px solid #4F6F52;padding-left:12px;color:#555;">'
+                . nl2br(e($content)) . '</blockquote>'
+                . '<p>' . t('查看并继续沟通：') . '<a href="' . e($url) . '">' . e($url) . '</a></p>'
+                . '<p>—— ' . e($siteName) . '</p>';
 
-        Mailer::send($to, $siteName . ' - 工单有新回复', $html);
+            return [$siteName . ' - ' . t('工单有新回复'), $html];
+        });
+
+        Mailer::send($to['email'], $subject, $html);
     }
 
     /**
@@ -42,22 +48,29 @@ final class TicketNotifier
      */
     public static function notifyOwnerStatusChanged(array $ticket): void
     {
-        $to = self::ownerEmail($ticket);
+        $to = self::ownerRecipient($ticket);
         if ($to === null) {
             return;
         }
 
         $siteName = Setting::string('site_name', 'CourseShop');
         $url      = url('/ticket/' . (int) $ticket['id']);
-        $status   = Ticket::statusLabel((string) $ticket['status']);
 
-        $html = '<p>你好，</p>'
-            . '<p>你的工单 <strong>' . e((string) $ticket['ticket_no']) . '</strong>（'
-            . e((string) $ticket['title']) . '）状态已更新为：<strong>' . e($status) . '</strong>。</p>'
-            . '<p>查看详情：<a href="' . e($url) . '">' . e($url) . '</a></p>'
-            . '<p>—— ' . e($siteName) . '</p>';
+        [$subject, $html] = I18n::withLocale($to['locale'], static function () use ($ticket, $siteName, $url): array {
+            $status = t(Ticket::statusLabel((string) $ticket['status']));
 
-        Mailer::send($to, $siteName . ' - 工单状态更新', $html);
+            $html = '<p>' . t('你好，') . '</p>'
+                . '<p>' . t('你的工单 %s（%s）状态已更新为：', [
+                    '<strong>' . e((string) $ticket['ticket_no']) . '</strong>',
+                    e((string) $ticket['title']),
+                ]) . '<strong>' . e($status) . '</strong>' . t('。') . '</p>'
+                . '<p>' . t('查看详情：') . '<a href="' . e($url) . '">' . e($url) . '</a></p>'
+                . '<p>—— ' . e($siteName) . '</p>';
+
+            return [$siteName . ' - ' . t('工单状态更新'), $html];
+        });
+
+        Mailer::send($to['email'], $subject, $html);
     }
 
     /**
@@ -93,9 +106,11 @@ final class TicketNotifier
     }
 
     /**
-     * 工单所有者的邮箱（仅当已绑定并验证邮箱、邮件系统可用时返回）
+     * 工单所有者的收件信息（仅当已绑定并验证邮箱、邮件系统可用时返回）
+     *
+     * @return array{email: string, locale: string}|null
      */
-    private static function ownerEmail(array $ticket): ?string
+    private static function ownerRecipient(array $ticket): ?array
     {
         if (!Mailer::enabled()) {
             return null;
@@ -107,7 +122,7 @@ final class TicketNotifier
         }
 
         $row = Database::first(
-            'SELECT `email`, `email_verified_at` FROM `users` WHERE `id` = ? LIMIT 1',
+            'SELECT `email`, `email_verified_at`, `locale` FROM `users` WHERE `id` = ? LIMIT 1',
             [$userId]
         );
 
@@ -117,7 +132,16 @@ final class TicketNotifier
 
         $email = (string) ($row['email'] ?? '');
 
-        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false ? $email : null;
+        if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            return null;
+        }
+
+        $locale = (string) ($row['locale'] ?? '');
+
+        return [
+            'email'  => $email,
+            'locale' => $locale !== '' ? $locale : I18n::DEFAULT_LOCALE,
+        ];
     }
 
     /**

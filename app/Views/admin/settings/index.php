@@ -77,6 +77,30 @@ $activeGroup = $groups[$active] ?? null;
                                         </span>
                                     </label>
                                 </div>
+                            <?php elseif ($fieldType === 'checkboxes'): ?>
+                                <?php
+                                $pickedRaw    = old($fieldKey, $fieldValue);
+                                $pickedRaw    = is_array($pickedRaw) ? implode(',', $pickedRaw) : (string) $pickedRaw;
+                                $pickedValues = $pickedRaw === '' ? [] : explode(',', $pickedRaw);
+                                ?>
+                                <div class="form-group">
+                                    <span class="form-label">
+                                        <?= e($fieldLabel) ?><?= $required ? '<span class="required">*</span>' : '' ?>
+                                    </span>
+                                    <div class="checkbox-group">
+                                        <?php foreach (($field['options'] ?? []) as $optionValue => $optionLabel): ?>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="<?= e($fieldKey) ?>[]"
+                                                       value="<?= e((string) $optionValue) ?>"
+                                                    <?= in_array((string) $optionValue, $pickedValues, true) ? ' checked' : '' ?>>
+                                                <span><?= e((string) $optionLabel) ?></span>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </div>
+                                    <?php if ($fieldHint !== ''): ?>
+                                        <p class="form-hint"><?= e($fieldHint) ?></p>
+                                    <?php endif; ?>
+                                </div>
                             <?php else: ?>
                                 <div class="form-group">
                                     <label class="form-label" for="<?= e($fieldId) ?>">

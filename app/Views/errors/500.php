@@ -20,13 +20,13 @@ if (!empty($debug) && isset($detail) && $detail instanceof \Throwable) {
 ?>
 <div class="error-page">
     <div class="error-page__code" aria-hidden="true"><?= (int) ($status ?? 500) ?></div>
-    <h1 class="error-page__title">服务暂时不可用</h1>
-    <p class="error-page__message"><?= e($message ?? '服务器出现了一点问题，请稍后再试。') ?></p>
+    <h1 class="error-page__title"><?= e(t('服务暂时不可用')) ?></h1>
+    <p class="error-page__message"><?= e($message ?? t('服务器出现了一点问题，请稍后再试。')) ?></p>
 
     <div class="btn-group mt-6">
-        <a class="btn" href="<?= url('/') ?>">返回首页</a>
+        <a class="btn" href="<?= url('/') ?>"><?= e(t('返回首页')) ?></a>
         <?php // 用当前请求地址实现「重新加载」：CSP 禁止 javascript: 协议的内联脚本 ?>
-        <a class="btn btn--outline" href="<?= e((string) ($_SERVER['REQUEST_URI'] ?? '/')) ?>">重新加载</a>
+        <a class="btn btn--outline" href="<?= e((string) ($_SERVER['REQUEST_URI'] ?? '/')) ?>"><?= e(t('重新加载')) ?></a>
     </div>
 
     <?php if ($detailText !== ''): ?>

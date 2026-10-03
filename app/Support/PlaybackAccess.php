@@ -35,28 +35,28 @@ final class PlaybackAccess
         $course = Course::find($courseId);
 
         if ($course === null) {
-            abort(404, '课程不存在或已下架。');
+            abort(404, t('课程不存在或已下架。'));
         }
 
         $hasAccess = Enrollment::hasAccess($userId > 0 ? $userId : null, $courseId);
 
         // 未购买的用户不能试看已下架课程（已购用户不受下架影响，保障其已购权益）
         if (!$hasAccess && (string) $course['status'] !== 'published') {
-            abort(404, '课程不存在或已下架。');
+            abort(404, t('课程不存在或已下架。'));
         }
 
         $chapters = Course::chapters($courseId);
         if ($chapters === []) {
-            abort(404, '该课程还没有可学习的章节。');
+            abort(404, t('该课程还没有可学习的章节。'));
         }
 
         $chapter = Chapter::find($chapterId, $courseId);
         if ($chapter === null) {
-            abort(404, '章节不存在。');
+            abort(404, t('章节不存在。'));
         }
 
         if (!Course::canPlayChapter($course, $chapters, $chapterId, $hasAccess)) {
-            abort(403, '请先购买该课程后再学习。');
+            abort(403, t('请先购买该课程后再学习。'));
         }
 
         return [
@@ -78,7 +78,7 @@ final class PlaybackAccess
         $file = VideoStorage::resolve($chapter['video_path'] ?? null);
 
         if ($file === null) {
-            abort(404, '视频文件不存在或尚未上传。');
+            abort(404, t('视频文件不存在或尚未上传。'));
         }
 
         return $file;

@@ -224,7 +224,7 @@ final class TicketStorage
 
         foreach ($files as $file) {
             if ($count >= self::maxFiles()) {
-                $errors[] = '附件数量超出上限（最多 ' . self::maxFiles() . ' 个）。';
+                $errors[] = t('附件数量超出上限（最多 %d 个）。', [self::maxFiles()]);
                 break;
             }
 
@@ -259,11 +259,11 @@ final class TicketStorage
 
         $size = (int) ($file['size'] ?? 0);
         if ($size <= 0) {
-            throw new RuntimeException('上传的附件为空。');
+            throw new RuntimeException(t('上传的附件为空。'));
         }
 
         if ($size > self::maxUploadBytes()) {
-            throw new RuntimeException('附件大小超过限制（最大 ' . self::maxUploadMb() . ' MB）。');
+            throw new RuntimeException(t('附件大小超过限制（最大 %d MB）。', [self::maxUploadMb()]));
         }
 
         $originalName = (string) ($file['name'] ?? '');
@@ -271,24 +271,24 @@ final class TicketStorage
         $allowed      = self::allowedExtensions();
 
         if ($extension === '' || !in_array($extension, $allowed, true)) {
-            throw new RuntimeException('仅支持以下附件格式：' . implode('、', $allowed) . '。');
+            throw new RuntimeException(t('仅支持以下附件格式：%s。', [implode(t('、'), $allowed)]));
         }
 
         $tmp = (string) ($file['tmp_name'] ?? '');
         if ($tmp === '' || !is_uploaded_file($tmp)) {
-            throw new RuntimeException('附件上传失败，请重试。');
+            throw new RuntimeException(t('附件上传失败，请重试。'));
         }
 
         $directory = self::localRoot() . '/ticket-' . $ticketId;
         if (!is_dir($directory) && !mkdir($directory, 0750, true) && !is_dir($directory)) {
-            throw new RuntimeException('无法创建附件存储目录，请检查写入权限。');
+            throw new RuntimeException(t('无法创建附件存储目录，请检查写入权限。'));
         }
 
         $storedName = bin2hex(random_bytes(8)) . '.' . $extension;
         $target     = $directory . '/' . $storedName;
 
         if (!move_uploaded_file($tmp, $target)) {
-            throw new RuntimeException('附件保存失败，请检查目录写入权限。');
+            throw new RuntimeException(t('附件保存失败，请检查目录写入权限。'));
         }
 
         return [
@@ -331,12 +331,12 @@ final class TicketStorage
     private static function uploadErrorMessage(int $error): string
     {
         return match ($error) {
-            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => '附件大小超过服务器限制，请调整 php.ini 的 upload_max_filesize / post_max_size。',
-            UPLOAD_ERR_PARTIAL                        => '附件仅上传了一部分，请重试。',
-            UPLOAD_ERR_NO_TMP_DIR                     => '服务器缺少临时目录。',
-            UPLOAD_ERR_CANT_WRITE                     => '服务器无法写入临时文件。',
-            UPLOAD_ERR_EXTENSION                      => '上传被 PHP 扩展中断。',
-            default                                   => '附件上传失败。',
+            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => t('附件大小超过服务器限制，请调整 php.ini 的 upload_max_filesize / post_max_size。'),
+            UPLOAD_ERR_PARTIAL                        => t('附件仅上传了一部分，请重试。'),
+            UPLOAD_ERR_NO_TMP_DIR                     => t('服务器缺少临时目录。'),
+            UPLOAD_ERR_CANT_WRITE                     => t('服务器无法写入临时文件。'),
+            UPLOAD_ERR_EXTENSION                      => t('上传被 PHP 扩展中断。'),
+            default                                   => t('附件上传失败。'),
         };
     }
 }

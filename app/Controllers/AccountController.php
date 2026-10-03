@@ -57,7 +57,7 @@ final class AccountController extends Controller
         $user = $this->user();
 
         $data = [
-            'pageTitle' => '账户设置',
+            'pageTitle' => t('账户设置'),
             'profile'   => $user,
             'tab'       => $tab,
         ];
@@ -79,7 +79,7 @@ final class AccountController extends Controller
     public function showEmail(): void
     {
         $this->view('account.email', [
-            'pageTitle'      => '绑定邮箱',
+            'pageTitle'      => t('绑定邮箱'),
             'forceEmailBind' => Auth::mustBindEmail(),
             'mailEnabled'    => Mailer::enabled(),
         ]);
@@ -94,7 +94,7 @@ final class AccountController extends Controller
 
         $user = $this->user();
         if ($user === null) {
-            $this->fail(url('/login'), '登录状态已失效，请重新登录。');
+            $this->fail(url('/login'), t('登录状态已失效，请重新登录。'));
         }
 
         $userId   = (int) $user['id'];
@@ -135,7 +135,7 @@ final class AccountController extends Controller
         User::updateAvatar($userId, $avatar !== '' ? $avatar : null);
         Auth::refresh();
 
-        $this->success($backUrl, '个人资料已更新。');
+        $this->success($backUrl, t('个人资料已更新。'));
     }
 
     /**
@@ -147,7 +147,7 @@ final class AccountController extends Controller
 
         $user = $this->user();
         if ($user === null) {
-            $this->fail(url('/login'), '登录状态已失效，请重新登录。');
+            $this->fail(url('/login'), t('登录状态已失效，请重新登录。'));
         }
 
         $backUrl         = url('/account?tab=password');
@@ -168,11 +168,11 @@ final class AccountController extends Controller
         }
 
         if (!password_verify($currentPassword, (string) $user['password_hash'])) {
-            $this->fail($backUrl, '当前密码不正确。');
+            $this->fail($backUrl, t('当前密码不正确。'));
         }
 
         if (hash_equals($currentPassword, $newPassword)) {
-            $this->fail($backUrl, '新密码不能与当前密码相同。');
+            $this->fail($backUrl, t('新密码不能与当前密码相同。'));
         }
 
         User::updatePassword((int) $user['id'], password_hash($newPassword, PASSWORD_DEFAULT));
@@ -182,7 +182,7 @@ final class AccountController extends Controller
 
         Auth::refresh();
 
-        $this->success($backUrl, '密码已修改，其他设备已退出登录，请妥善保管新密码。');
+        $this->success($backUrl, t('密码已修改，其他设备已退出登录，请妥善保管新密码。'));
     }
 
     /**
@@ -210,7 +210,7 @@ final class AccountController extends Controller
             Response::json(['code' => 0, 'message' => 'ok', 'mode' => $mode]);
         }
 
-        $this->success(url('/account?tab=theme'), '主题偏好已保存。');
+        $this->success(url('/account?tab=theme'), t('主题偏好已保存。'));
     }
 
     /**
@@ -222,7 +222,7 @@ final class AccountController extends Controller
 
         $user = $this->user();
         if ($user === null) {
-            $this->fail(url('/login'), '登录状态已失效，请重新登录。');
+            $this->fail(url('/login'), t('登录状态已失效，请重新登录。'));
         }
 
         $backUrl  = url('/account?tab=danger');
@@ -236,11 +236,11 @@ final class AccountController extends Controller
         }
 
         if (!password_verify($password, (string) $user['password_hash'])) {
-            $this->fail($backUrl, '密码不正确，无法注销账号。');
+            $this->fail($backUrl, t('密码不正确，无法注销账号。'));
         }
 
         if (Auth::isAdmin() && User::countAdmins() <= 1) {
-            $this->fail($backUrl, '系统需保留至少一名管理员，无法注销当前账号。');
+            $this->fail($backUrl, t('系统需保留至少一名管理员，无法注销当前账号。'));
         }
 
         $avatar = (string) ($user['avatar'] ?? '');
@@ -253,7 +253,7 @@ final class AccountController extends Controller
 
         Auth::logout();
 
-        $this->success(url('/'), '账号已注销，感谢你的使用。');
+        $this->success(url('/'), t('账号已注销，感谢你的使用。'));
     }
 
     /**
@@ -276,22 +276,22 @@ final class AccountController extends Controller
         }
 
         if ($user === null) {
-            $this->fail(url('/login'), '登录状态已失效，请重新登录。');
+            $this->fail(url('/login'), t('登录状态已失效，请重新登录。'));
         }
 
         if (User::emailExists($email, (int) $user['id'])) {
-            $this->fail(url('/account/email'), '该邮箱已被其他账号绑定。', $old);
+            $this->fail(url('/account/email'), t('该邮箱已被其他账号绑定。'), $old);
         }
 
         if (EmailVerification::recentCount($email, EmailVerification::PURPOSE_BIND, self::RESEND_INTERVAL) > 0) {
-            $this->fail(url('/account/email'), '验证码发送过于频繁，请稍后再试。', $old);
+            $this->fail(url('/account/email'), t('验证码发送过于频繁，请稍后再试。'), $old);
         }
 
         $issued = EmailVerification::issue((int) $user['id'], $email, EmailVerification::PURPOSE_BIND);
         $ttl    = max(1, (int) ceil($issued['ttl'] / 60));
 
         if (Mailer::sendCode($email, $issued['code'], 'bind')) {
-            $this->success(url('/account/email'), sprintf('验证码已发送至 %s，%d 分钟内有效。', mask_email($email), $ttl), $old);
+            $this->success(url('/account/email'), t('验证码已发送至 %s，%d 分钟内有效。', [mask_email($email), $ttl]), $old);
         }
 
         // 邮件发送失败：调试模式下仅将验证码写入受控日志，不在接口回显，
@@ -303,7 +303,7 @@ final class AccountController extends Controller
             ]);
         }
 
-        $this->fail(url('/account/email'), '验证码发送失败，请稍后重试或联系管理员。', $old);
+        $this->fail(url('/account/email'), t('验证码发送失败，请稍后重试或联系管理员。'), $old);
     }
 
     /**
@@ -328,33 +328,33 @@ final class AccountController extends Controller
         }
 
         if ($user === null) {
-            $this->fail(url('/login'), '登录状态已失效，请重新登录。');
+            $this->fail(url('/login'), t('登录状态已失效，请重新登录。'));
         }
 
         $record = EmailVerification::latest($email, EmailVerification::PURPOSE_BIND);
 
         if ($record === null) {
-            $this->fail(url('/account/email'), '请先获取邮箱验证码。', $old);
+            $this->fail(url('/account/email'), t('请先获取邮箱验证码。'), $old);
         }
 
         if ((int) $record['attempts'] >= EmailVerification::MAX_ATTEMPTS) {
-            $this->fail(url('/account/email'), '验证码错误次数过多，请重新获取。', $old);
+            $this->fail(url('/account/email'), t('验证码错误次数过多，请重新获取。'), $old);
         }
 
         if (strtotime((string) $record['expires_at']) <= time()) {
-            $this->fail(url('/account/email'), '验证码已过期，请重新获取。', $old);
+            $this->fail(url('/account/email'), t('验证码已过期，请重新获取。'), $old);
         }
 
         if (!hash_equals((string) $record['code'], $code)) {
             EmailVerification::incrementAttempts((int) $record['id']);
-            $this->fail(url('/account/email'), '验证码不正确。', $old);
+            $this->fail(url('/account/email'), t('验证码不正确。'), $old);
         }
 
         EmailVerification::markUsed((int) $record['id']);
         User::bindEmail((int) $user['id'], $email);
         Auth::refresh();
 
-        $this->success($this->intended('/'), '邮箱绑定成功。');
+        $this->success($this->intended('/'), t('邮箱绑定成功。'));
     }
 
     // ============================================================
@@ -368,11 +368,11 @@ final class AccountController extends Controller
     {
         $user = $this->user();
         if ($user === null) {
-            $this->fail(url('/login'), '登录状态已失效，请重新登录。');
+            $this->fail(url('/login'), t('登录状态已失效，请重新登录。'));
         }
 
         if ((int) ($user['two_factor_enabled'] ?? 0) === 1) {
-            $this->success(url('/account?tab=security'), '两步验证已处于开启状态。');
+            $this->success(url('/account?tab=security'), t('两步验证已处于开启状态。'));
         }
 
         // 复用会话中已有的待确认密钥，避免校验失败重定向回本页时刷新二维码、
@@ -389,7 +389,7 @@ final class AccountController extends Controller
             : (string) $user['username'];
 
         $this->view('account.two-factor', [
-            'pageTitle'  => '启用两步验证',
+            'pageTitle'  => t('启用两步验证'),
             'secret'     => $secret,
             'secretText' => Totp::formatSecret($secret),
             'otpauthUri' => Totp::provisioningUri($secret, $account, Setting::string('site_name', 'CourseShop')),
@@ -405,19 +405,19 @@ final class AccountController extends Controller
 
         $user = $this->user();
         if ($user === null) {
-            $this->fail(url('/login'), '登录状态已失效，请重新登录。');
+            $this->fail(url('/login'), t('登录状态已失效，请重新登录。'));
         }
 
         $secret = (string) Session::get(self::TWO_FACTOR_SETUP_KEY, '');
 
         if ($secret === '') {
-            $this->fail(url('/account/2fa/setup'), '设置已过期，请重新生成密钥。');
+            $this->fail(url('/account/2fa/setup'), t('设置已过期，请重新生成密钥。'));
         }
 
         $step = Totp::verifyStep($secret, Request::string('code'));
 
         if ($step === null) {
-            $this->fail(url('/account/2fa/setup'), '动态口令不正确，请确认验证器时间同步后重试。');
+            $this->fail(url('/account/2fa/setup'), t('动态口令不正确，请确认验证器时间同步后重试。'));
         }
 
         // 记录本次通过的时间步，避免同一验证码在有效窗口内被重复使用
@@ -425,7 +425,7 @@ final class AccountController extends Controller
         Session::forget(self::TWO_FACTOR_SETUP_KEY);
         Auth::refresh();
 
-        $this->success(url('/account?tab=security'), '两步验证已启用，下次登录需输入动态口令。');
+        $this->success(url('/account?tab=security'), t('两步验证已启用，下次登录需输入动态口令。'));
     }
 
     /**
@@ -437,25 +437,25 @@ final class AccountController extends Controller
 
         $user = $this->user();
         if ($user === null) {
-            $this->fail(url('/login'), '登录状态已失效，请重新登录。');
+            $this->fail(url('/login'), t('登录状态已失效，请重新登录。'));
         }
 
         $backUrl  = url('/account?tab=security');
         $password = Request::raw('password');
 
         if ($password === '') {
-            $this->fail($backUrl, '请输入当前密码以关闭两步验证。');
+            $this->fail($backUrl, t('请输入当前密码以关闭两步验证。'));
         }
 
         if (!password_verify($password, (string) $user['password_hash'])) {
-            $this->fail($backUrl, '当前密码不正确。');
+            $this->fail($backUrl, t('当前密码不正确。'));
         }
 
         User::disableTwoFactor((int) $user['id']);
         Session::forget(self::TWO_FACTOR_SETUP_KEY);
         Auth::refresh();
 
-        $this->success($backUrl, '两步验证已关闭。');
+        $this->success($backUrl, t('两步验证已关闭。'));
     }
 
     // ============================================================
@@ -471,7 +471,7 @@ final class AccountController extends Controller
 
         $user = $this->user();
         if ($user === null) {
-            $this->fail(url('/login'), '登录状态已失效，请重新登录。');
+            $this->fail(url('/login'), t('登录状态已失效，请重新登录。'));
         }
 
         $backUrl  = url('/account?tab=security');
@@ -479,18 +479,18 @@ final class AccountController extends Controller
         $userId   = (int) $user['id'];
 
         if ($deviceId <= 0) {
-            $this->fail($backUrl, '指定设备不存在。');
+            $this->fail($backUrl, t('指定设备不存在。'));
         }
 
         // 当前设备应使用「退出登录」，避免误操作将自己踢下线
         $token = LoginDevice::tokenOf($deviceId, $userId);
         if ($token !== null && $token === Auth::deviceToken()) {
-            $this->fail($backUrl, '这是当前正在使用的设备，请直接退出登录。');
+            $this->fail($backUrl, t('这是当前正在使用的设备，请直接退出登录。'));
         }
 
         LoginDevice::revoke($deviceId, $userId);
 
-        $this->success($backUrl, '该设备已退出登录。');
+        $this->success($backUrl, t('该设备已退出登录。'));
     }
 
     /**
@@ -502,7 +502,7 @@ final class AccountController extends Controller
 
         $user = $this->user();
         if ($user === null) {
-            $this->fail(url('/login'), '登录状态已失效，请重新登录。');
+            $this->fail(url('/login'), t('登录状态已失效，请重新登录。'));
         }
 
         $backUrl = url('/account?tab=security');
@@ -512,7 +512,7 @@ final class AccountController extends Controller
 
         $this->success(
             $backUrl,
-            $count > 0 ? sprintf('已退出其他 %d 台设备。', $count) : '当前没有其他已登录的设备。'
+            $count > 0 ? t('已退出其他 %d 台设备。', [$count]) : t('当前没有其他已登录的设备。')
         );
     }
 
@@ -535,38 +535,38 @@ final class AccountController extends Controller
 
         $size = (int) ($file['size'] ?? 0);
         if ($size <= 0) {
-            throw new RuntimeException('上传的头像文件为空。');
+            throw new RuntimeException(t('上传的头像文件为空。'));
         }
 
         if ($size > self::AVATAR_MAX_BYTES) {
-            throw new RuntimeException('头像大小不能超过 ' . (self::AVATAR_MAX_BYTES / 1024 / 1024) . ' MB。');
+            throw new RuntimeException(t('头像大小不能超过 %d MB。', [self::AVATAR_MAX_BYTES / 1024 / 1024]));
         }
 
         $extension = strtolower((string) pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
         if ($extension === '' || !in_array($extension, self::AVATAR_EXTENSIONS, true)) {
-            throw new RuntimeException('头像仅支持 jpg、jpeg、png、gif、webp 格式。');
+            throw new RuntimeException(t('头像仅支持 jpg、jpeg、png、gif、webp 格式。'));
         }
 
         $tmp = (string) ($file['tmp_name'] ?? '');
         if ($tmp === '' || !is_uploaded_file($tmp)) {
-            throw new RuntimeException('头像上传失败，请重试。');
+            throw new RuntimeException(t('头像上传失败，请重试。'));
         }
 
         // 二次确认确为图片，防止伪造扩展名
         if (@getimagesize($tmp) === false) {
-            throw new RuntimeException('上传的文件不是有效的图片。');
+            throw new RuntimeException(t('上传的文件不是有效的图片。'));
         }
 
         $directory = PUBLIC_PATH . '/' . self::AVATAR_DIR;
         if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
-            throw new RuntimeException('无法创建头像存储目录，请检查写入权限。');
+            throw new RuntimeException(t('无法创建头像存储目录，请检查写入权限。'));
         }
 
         $storedName = bin2hex(random_bytes(8)) . '.' . $extension;
         $target     = $directory . '/' . $storedName;
 
         if (!move_uploaded_file($tmp, $target)) {
-            throw new RuntimeException('头像保存失败，请检查目录写入权限。');
+            throw new RuntimeException(t('头像保存失败，请检查目录写入权限。'));
         }
 
         return self::AVATAR_DIR . '/' . $storedName;
@@ -606,12 +606,12 @@ final class AccountController extends Controller
     private static function uploadErrorMessage(int $error): string
     {
         return match ($error) {
-            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => '头像大小超过服务器限制。',
-            UPLOAD_ERR_PARTIAL                        => '头像上传不完整，请重试。',
-            UPLOAD_ERR_NO_FILE                        => '请选择要上传的头像文件。',
-            UPLOAD_ERR_NO_TMP_DIR                     => '服务器缺少临时目录，请联系管理员。',
-            UPLOAD_ERR_CANT_WRITE                     => '服务器写入文件失败，请联系管理员。',
-            default                                   => '头像上传失败，请重试。',
+            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => t('头像大小超过服务器限制。'),
+            UPLOAD_ERR_PARTIAL                        => t('头像上传不完整，请重试。'),
+            UPLOAD_ERR_NO_FILE                        => t('请选择要上传的头像文件。'),
+            UPLOAD_ERR_NO_TMP_DIR                     => t('服务器缺少临时目录，请联系管理员。'),
+            UPLOAD_ERR_CANT_WRITE                     => t('服务器写入文件失败，请联系管理员。'),
+            default                                   => t('头像上传失败，请重试。'),
         };
     }
 }

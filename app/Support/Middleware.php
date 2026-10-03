@@ -21,7 +21,7 @@ final class Middleware
         if (Request::method() === 'GET') {
             Session::set('_intended', Request::path());
         }
-        Session::flash('error', '请先登录后再继续操作。');
+        Session::flash('error', t('请先登录后再继续操作。'));
         Response::redirect(url('/login'));
     }
 
@@ -78,7 +78,7 @@ final class Middleware
             return;
         }
 
-        Session::flash('error', '请先完成邮箱绑定后再继续操作。');
+        Session::flash('error', t('请先完成邮箱绑定后再继续操作。'));
         Response::redirect(url('/account/email'));
     }
 
@@ -108,10 +108,10 @@ final class Middleware
         }
 
         if (Request::isAjax()) {
-            Response::json(['code' => 403, 'message' => '请先完成邮箱绑定。'], 403);
+            Response::json(['code' => 403, 'message' => t('请先完成邮箱绑定。')], 403);
         }
 
-        Session::flash('error', '请先完成邮箱绑定后再继续操作。');
+        Session::flash('error', t('请先完成邮箱绑定后再继续操作。'));
         Response::redirect(url('/account/email'));
     }
 

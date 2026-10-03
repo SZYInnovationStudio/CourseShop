@@ -14,7 +14,7 @@ $effectiveDate = $effectiveAt !== '' ? substr($effectiveAt, 0, 10) : '';
 <div class="page-head container">
     <h1 class="page-head__title"><?= e($agreement['title']) ?></h1>
     <p class="page-head__desc">
-        版本 <?= e($agreement['version']) ?><?= $effectiveDate !== '' ? ' · 生效日期 ' . e($effectiveDate) : '' ?>
+        <?= e(t('版本')) ?> <?= e($agreement['version']) ?><?= $effectiveDate !== '' ? ' · ' . e(t('生效日期')) . ' ' . e($effectiveDate) : '' ?>
     </p>
 </div>
 

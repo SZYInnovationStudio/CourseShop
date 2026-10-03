@@ -199,6 +199,6 @@ final class PaymentController extends Controller
             Request::ip()
         );
 
-        $this->success(url('/order/' . $orderNo), '支付成功，课程已开通！');
+        $this->success(url('/order/' . $orderNo), t('支付成功，课程已开通！'));
     }
 }

@@ -45,10 +45,10 @@ $prevId   = $position !== false && $position > 0 ? $playableIds[$position - 1] :
 $nextId   = $position !== false && $position < count($playableIds) - 1 ? $playableIds[$position + 1] : 0;
 ?>
 <div class="container">
-    <nav class="breadcrumb" aria-label="面包屑导航">
-        <a href="<?= url('/') ?>">首页</a>
+    <nav class="breadcrumb" aria-label="<?= e(t('面包屑导航')) ?>">
+        <a href="<?= url('/') ?>"><?= e(t('首页')) ?></a>
         <span class="breadcrumb__sep">/</span>
-        <a href="<?= url('/my/courses') ?>">我的课程</a>
+        <a href="<?= url('/my/courses') ?>"><?= e(t('我的课程')) ?></a>
         <span class="breadcrumb__sep">/</span>
         <a href="<?= url('/course/' . $courseId) ?>"><?= e($courseTitle) ?></a>
         <span class="breadcrumb__sep">/</span>
@@ -74,10 +74,10 @@ $nextId   = $position !== false && $position < count($playableIds) - 1 ? $playab
                            <?php if ($cover !== ''): ?>poster="<?= e($cover) ?>"<?php endif; ?>
                            <?php if ($initialSrc !== ''): ?>src="<?= e($initialSrc) ?>"<?php endif; ?>></video>
 
-                    <p class="player__status" data-video-status hidden>进度已记录</p>
+                    <p class="player__status" data-video-status hidden><?= e(t('进度已记录')) ?></p>
                 <?php else: ?>
                     <div class="player__empty">
-                        <p>本章节暂时没有可播放的视频。</p>
+                        <p><?= e(t('本章节暂时没有可播放的视频。')) ?></p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -87,12 +87,12 @@ $nextId   = $position !== false && $position < count($playableIds) - 1 ? $playab
                 <div class="learn__actions">
                     <?php if ($prevId > 0): ?>
                         <a class="btn btn--outline btn--sm" href="<?= url('/course/' . $courseId . '/learn/' . $prevId) ?>">
-                            &larr; 上一节
+                            &larr; <?= e(t('上一节')) ?>
                         </a>
                     <?php endif; ?>
                     <?php if ($nextId > 0): ?>
                         <a class="btn btn--outline btn--sm" href="<?= url('/course/' . $courseId . '/learn/' . $nextId) ?>">
-                            下一节 &rarr;
+                            <?= e(t('下一节')) ?> &rarr;
                         </a>
                     <?php endif; ?>
                 </div>
@@ -100,19 +100,19 @@ $nextId   = $position !== false && $position < count($playableIds) - 1 ? $playab
 
             <?php if (!$hasAccess): ?>
                 <div class="alert alert--info">
-                    当前为试看章节，购买课程后可解锁全部内容。
-                    <a href="<?= url('/course/' . $courseId) ?>">去看看课程</a>
+                    <?= e(t('当前为试看章节，购买课程后可解锁全部内容。')) ?>
+                    <a href="<?= url('/course/' . $courseId) ?>"><?= e(t('去看看课程')) ?></a>
                 </div>
             <?php elseif ($resume > 0): ?>
-                <p class="text-faint learn__resume">上次播放到 <?= format_duration((int) $resume) ?>，已为你自动续播。</p>
+                <p class="text-faint learn__resume"><?= e(t('上次播放到 %s，已为你自动续播。', [format_duration((int) $resume)])) ?></p>
             <?php endif; ?>
         </div>
 
         <aside class="learn__aside">
             <div class="card">
                 <div class="card__header flex-between">
-                    <span>课程目录</span>
-                    <span class="text-faint"><?= count($chapters) ?> 章</span>
+                    <span><?= e(t('课程目录')) ?></span>
+                    <span class="text-faint"><?= e(t('%d 章', [count($chapters)])) ?></span>
                 </div>
 
                 <?php if ($chapters !== []): ?>
@@ -129,7 +129,7 @@ $nextId   = $position !== false && $position < count($playableIds) - 1 ? $playab
                             <li class="chapter-item<?= $isCurrent ? ' is-active' : '' ?>">
                                 <span class="chapter-item__index">
                                     <?php if ((int) $itemProgress['finished'] === 1): ?>
-                                        <span class="chapter-item__done" title="已学完"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
+                                        <span class="chapter-item__done" title="<?= e(t('已学完')) ?>"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
                                     <?php else: ?>
                                         <?= $index + 1 ?>
                                     <?php endif; ?>
@@ -143,9 +143,9 @@ $nextId   = $position !== false && $position < count($playableIds) - 1 ? $playab
                                 <?php endif; ?>
 
                                 <?php if ($isPreview && !$hasAccess): ?>
-                                    <a class="badge badge--primary" href="<?= $itemUrl ?>">试看</a>
+                                    <a class="badge badge--primary" href="<?= $itemUrl ?>"><?= e(t('试看')) ?></a>
                                 <?php elseif (!$canPlay): ?>
-                                    <span class="badge">未解锁</span>
+                                    <span class="badge"><?= e(t('未解锁')) ?></span>
                                 <?php endif; ?>
 
                                 <span class="chapter-item__duration"><?= format_duration((int) $item['duration']) ?></span>
@@ -154,7 +154,7 @@ $nextId   = $position !== false && $position < count($playableIds) - 1 ? $playab
                     </ul>
                 <?php else: ?>
                     <div class="empty-state">
-                        <p class="mb-0">课程目录正在整理中。</p>
+                        <p class="mb-0"><?= e(t('课程目录正在整理中。')) ?></p>
                     </div>
                 <?php endif; ?>
             </div>

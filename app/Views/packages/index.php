@@ -21,8 +21,8 @@ $windowStart = max(1, min($page - 2, $totalPages - 4));
 $windowEnd   = min($totalPages, $windowStart + 4);
 ?>
 <div class="page-head container">
-    <h1 class="page-head__title">优惠套餐</h1>
-    <p class="page-head__desc">组合购买更划算，一次开通套餐内全部课程</p>
+    <h1 class="page-head__title"><?= e(t('优惠套餐')) ?></h1>
+    <p class="page-head__desc"><?= e(t('组合购买更划算，一次开通套餐内全部课程')) ?></p>
 </div>
 
 <div class="container">
@@ -66,7 +66,7 @@ $windowEnd   = min($totalPages, $windowStart + 4);
                                 <?php endif; ?>
                             </span>
 
-                            <span class="badge badge--primary">含 <?= $pkgCourses ?> 门课程</span>
+                            <span class="badge badge--primary"><?= e(t('含 %d 门课程', [$pkgCourses])) ?></span>
                         </div>
                     </div>
                 </article>
@@ -74,9 +74,9 @@ $windowEnd   = min($totalPages, $windowStart + 4);
         </div>
 
         <?php if ($totalPages > 1): ?>
-            <nav class="pagination" aria-label="分页">
+            <nav class="pagination" aria-label="<?= e(t('分页')) ?>">
                 <a class="pagination__item<?= $page <= 1 ? ' is-disabled' : '' ?>"
-                   href="<?= $page <= 1 ? '#' : $pageUrl($page - 1) ?>" rel="prev">上一页</a>
+                   href="<?= $page <= 1 ? '#' : $pageUrl($page - 1) ?>" rel="prev"><?= e(t('上一页')) ?></a>
 
                 <?php if ($windowStart > 1): ?>
                     <a class="pagination__item" href="<?= $pageUrl(1) ?>">1</a>
@@ -97,7 +97,7 @@ $windowEnd   = min($totalPages, $windowStart + 4);
                 <?php endif; ?>
 
                 <a class="pagination__item<?= $page >= $totalPages ? ' is-disabled' : '' ?>"
-                   href="<?= $page >= $totalPages ? '#' : $pageUrl($page + 1) ?>" rel="next">下一页</a>
+                   href="<?= $page >= $totalPages ? '#' : $pageUrl($page + 1) ?>" rel="next"><?= e(t('下一页')) ?></a>
             </nav>
         <?php endif; ?>
     <?php else: ?>
@@ -106,7 +106,7 @@ $windowEnd   = min($totalPages, $windowStart + 4);
                 <div class="empty-state__icon" aria-hidden="true">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"></rect><path d="M12 8v13"></path><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"></path></svg>
                 </div>
-                <p class="mb-0">暂无上架套餐，敬请期待。</p>
+                <p class="mb-0"><?= e(t('暂无上架套餐，敬请期待。')) ?></p>
             </div>
         </div>
     <?php endif; ?>

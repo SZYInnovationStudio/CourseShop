@@ -65,11 +65,11 @@ final class EpayGateway implements PaymentGateway
         $methods = [];
 
         if (Setting::bool('epay_wxpay_enabled', true)) {
-            $methods['wxpay'] = '微信支付';
+            $methods['wxpay'] = t('微信支付');
         }
 
         if (Setting::bool('epay_alipay_enabled', true)) {
-            $methods['alipay'] = '支付宝';
+            $methods['alipay'] = t('支付宝');
         }
 
         return $methods;
@@ -87,7 +87,7 @@ final class EpayGateway implements PaymentGateway
             'out_trade_no' => (string) $order['order_no'],
             'notify_url'   => $notifyUrl,
             'return_url'   => $returnUrl,
-            'name'         => mb_substr((string) ($order['course_title'] ?? '课程'), 0, 64),
+            'name'         => mb_substr((string) ($order['course_title'] ?? t('课程')), 0, 64),
             // 易支付金额单位为「元」，保留两位小数
             'money'        => format_money((int) $order['amount']),
             'sitename'     => Setting::string('site_name', 'CourseShop'),

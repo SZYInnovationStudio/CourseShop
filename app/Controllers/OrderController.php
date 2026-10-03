@@ -15,6 +15,7 @@ use App\Support\OrderNotifier;
 use App\Support\Payment\PaymentManager;
 use App\Support\Request;
 use App\Support\Response;
+use App\Support\Setting;
 use Throwable;
 
 /**
@@ -25,12 +26,19 @@ final class OrderController extends Controller
     /** 我的订单每页条数 */
     private const PER_PAGE = 10;
 
-    /** @var array<string, string> 支付方式展示名（网关未启用时也能正确展示历史订单） */
-    private const PAY_TYPE_LABELS = [
-        'wxpay'  => '微信支付',
-        'alipay' => '支付宝',
-        'free'   => '免费开通',
-    ];
+    /**
+     * 支付方式展示名（网关未启用时也能正确展示历史订单）
+     *
+     * @return array<string, string>
+     */
+    private static function payTypeLabels(): array
+    {
+        return [
+            'wxpay'  => t('微信支付'),
+            'alipay' => t('支付宝'),
+            'free'   => t('免费开通'),
+        ];
+    }
 
     /**
      * 我的订单列表
@@ -54,12 +62,12 @@ final class OrderController extends Controller
         $orders     = Order::listForUser($userId, $perPage, ($page - 1) * $perPage);
 
         $this->view('orders.index', [
-            'pageTitle'    => '我的订单',
+            'pageTitle'    => t('我的订单'),
             'orders'       => $orders,
             'total'        => $total,
             'page'         => $page,
             'totalPages'   => $totalPages,
-            'payTypeLabel' => self::PAY_TYPE_LABELS,
+            'payTypeLabel' => self::payTypeLabels(),
         ]);
     }
 
@@ -90,11 +98,11 @@ final class OrderController extends Controller
         $course   = $courseId > 0 ? Course::findPublished($courseId) : null;
 
         if ($course === null) {
-            abort(404, '课程不存在或已下架。');
+            abort(404, t('课程不存在或已下架。'));
         }
 
         if (Enrollment::hasAccess($userId, $courseId)) {
-            $this->success(url('/my/courses'), '你已拥有该课程，可直接开始学习。');
+            $this->success(url('/my/courses'), t('你已拥有该课程，可直接开始学习。'));
         }
 
         Order::closeExpired();
@@ -113,13 +121,13 @@ final class OrderController extends Controller
                 OrderNotifier::notifyPaid($freeOrder);
             }
 
-            $this->success(url('/my/courses'), '课程已开通，开始学习吧！');
+            $this->success(url('/my/courses'), t('课程已开通，开始学习吧！'));
         }
 
         // ---------- 付费课程：复用未过期待支付订单 ----------
         $pending = Order::pendingForUserCourse($userId, $courseId);
         if ($pending !== null) {
-            $this->success(url('/order/' . $pending['order_no']), '你有一笔待支付订单，请继续完成支付。');
+            $this->success(url('/order/' . $pending['order_no']), t('你有一笔待支付订单，请继续完成支付。'));
         }
 
         $orderId = $this->insertOrder($user, $course, $amount, '');
@@ -143,7 +151,7 @@ final class OrderController extends Controller
         $order = $this->resolveOrder($orderNo);
 
         if ($order === null) {
-            abort(404, '订单不存在。');
+            abort(404, t('订单不存在。'));
         }
 
         $order = $this->closeIfExpired($order);
@@ -153,12 +161,12 @@ final class OrderController extends Controller
             && !$this->isExpired($order);
 
         $this->view('orders.show', [
-            'pageTitle'      => '订单详情',
+            'pageTitle'      => t('订单详情'),
             // 返回固定回订单列表
             'backUrl'        => url('/orders'),
             'order'          => $order,
-            'statusLabel'    => Order::label((string) $order['status']),
-            'payTypeLabel'   => self::PAY_TYPE_LABELS,
+            'statusLabel'    => t(Order::label((string) $order['status'])),
+            'payTypeLabel'   => self::payTypeLabels(),
             'methods'        => $gateway->methods(),
             'gatewayEnabled' => $gateway->enabled() && (int) $order['amount'] > 0,
             'payable'        => $payable,
@@ -176,28 +184,28 @@ final class OrderController extends Controller
         $order = $this->resolveOrder($orderNo);
 
         if ($order === null) {
-            abort(404, '订单不存在。');
+            abort(404, t('订单不存在。'));
         }
 
         if (in_array((string) $order['status'], [Order::STATUS_PAID, Order::STATUS_COMPLETED], true)) {
-            $this->success(url('/my/courses'), '该订单已完成支付。');
+            $this->success(url('/my/courses'), t('该订单已完成支付。'));
         }
 
         if (!in_array((string) $order['status'], [Order::STATUS_PENDING, Order::STATUS_PAYING], true) || $this->isExpired($order)) {
             Order::close((int) $order['id']);
-            $this->fail(url('/order/' . $orderNo), '订单已关闭，请重新下单。');
+            $this->fail(url('/order/' . $orderNo), t('订单已关闭，请重新下单。'));
         }
 
         $payType = Request::string('pay_type');
         $gateway = PaymentManager::gateway();
 
         if (!$gateway->enabled()) {
-            $this->fail(url('/order/' . $orderNo), '支付通道尚未配置，请联系客服。');
+            $this->fail(url('/order/' . $orderNo), t('支付通道尚未配置，请联系客服。'));
         }
 
         $methods = $gateway->methods();
         if (!isset($methods[$payType])) {
-            $this->fail(url('/order/' . $orderNo), '请选择有效的支付方式。');
+            $this->fail(url('/order/' . $orderNo), t('请选择有效的支付方式。'));
         }
 
         Order::markPaying((int) $order['id'], $payType);
@@ -212,7 +220,7 @@ final class OrderController extends Controller
         } catch (Throwable $e) {
             \App\Support\Logger::error('创建支付失败：' . $e->getMessage());
             PaymentLog::record((int) $order['id'], $orderNo, 'create', 'fail', $e->getMessage(), Request::ip());
-            $this->fail(url('/order/' . $orderNo), '发起支付失败，请稍后重试或联系客服。');
+            $this->fail(url('/order/' . $orderNo), t('发起支付失败，请稍后重试或联系客服。'));
         }
 
         PaymentLog::record((int) $order['id'], $orderNo, 'create', 'success', (string) json_encode($payment, JSON_UNESCAPED_UNICODE), Request::ip());
@@ -238,27 +246,27 @@ final class OrderController extends Controller
         $order = $this->resolveOrder($orderNo);
 
         if ($order === null) {
-            abort(404, '订单不存在。');
+            abort(404, t('订单不存在。'));
         }
 
         $backUrl = url('/order/' . $orderNo);
 
         if ((string) $order['status'] !== Order::STATUS_PENDING || $this->isExpired($order)) {
-            $this->fail($backUrl, '当前订单不可使用优惠券。');
+            $this->fail($backUrl, t('当前订单不可使用优惠券。'));
         }
 
         if (!empty($order['coupon_id'])) {
-            $this->fail($backUrl, '该订单已使用优惠券，无法重复使用。');
+            $this->fail($backUrl, t('该订单已使用优惠券，无法重复使用。'));
         }
 
         $code = strtoupper(trim(Request::string('code')));
         if ($code === '') {
-            $this->fail($backUrl, '请输入优惠码。');
+            $this->fail($backUrl, t('请输入优惠码。'));
         }
 
         $coupon = Coupon::findByCode($code);
         if ($coupon === null) {
-            $this->fail($backUrl, '优惠码无效。');
+            $this->fail($backUrl, t('优惠码无效。'));
         }
 
         $user     = $this->user();
@@ -274,18 +282,18 @@ final class OrderController extends Controller
         // 应用阶段占用校验：同一张券不允许同时挂在多笔未关闭订单上，
         // 否则可在核销（限额统计）生效前对多笔订单重复打折。
         if (Order::hasOpenCouponOrder($userId, (int) $coupon['id'], (int) $order['id'])) {
-            $this->fail($backUrl, '该优惠券已用于其他未完成订单，请先完成或关闭该订单。');
+            $this->fail($backUrl, t('该优惠券已用于其他未完成订单，请先完成或关闭该订单。'));
         }
 
         $discount = Coupon::discountFor($coupon, $base);
         if ($discount <= 0) {
-            $this->fail($backUrl, '该优惠券对当前订单无抵扣。');
+            $this->fail($backUrl, t('该优惠券对当前订单无抵扣。'));
         }
 
         $newAmount = max(0, $base - $discount);
 
         if (!Order::applyCoupon((int) $order['id'], (int) $coupon['id'], $userId, $base, $newAmount, $discount)) {
-            $this->fail($backUrl, '优惠券应用失败，请刷新后重试。');
+            $this->fail($backUrl, t('优惠券应用失败，请刷新后重试。'));
         }
 
         PaymentLog::record((int) $order['id'], $orderNo, 'coupon', 'success', (string) json_encode([
@@ -305,13 +313,13 @@ final class OrderController extends Controller
                     OrderNotifier::notifyPaid($paidOrder);
                 }
 
-                $this->success(url('/my/courses'), '优惠券已全额抵扣，订单已开通，开始学习吧！');
+                $this->success(url('/my/courses'), t('优惠券已全额抵扣，订单已开通，开始学习吧！'));
             }
 
-            $this->success($backUrl, '优惠券已应用，请查看订单状态。');
+            $this->success($backUrl, t('优惠券已应用，请查看订单状态。'));
         }
 
-        $this->success($backUrl, '优惠券已应用，应付金额已更新。');
+        $this->success($backUrl, t('优惠券已应用，应付金额已更新。'));
     }
 
     /**
@@ -322,7 +330,7 @@ final class OrderController extends Controller
         $order = $this->resolveOrder($orderNo);
 
         if ($order === null) {
-            Response::json(['code' => 1, 'message' => '订单不存在'], 404);
+            Response::json(['code' => 1, 'message' => t('订单不存在')], 404);
         }
 
         $order = $this->closeIfExpired($order);
@@ -393,17 +401,21 @@ final class OrderController extends Controller
      */
     private function createPackageOrder(array $user, int $packageId): void
     {
+        if (!Setting::bool('packages_enabled', true)) {
+            $this->fail(url('/courses'), t('套餐功能已关闭，暂不可购买。'));
+        }
+
         $package = Package::findPublished($packageId);
 
         if ($package === null) {
-            abort(404, '套餐不存在或已下架。');
+            abort(404, t('套餐不存在或已下架。'));
         }
 
         $userId    = (int) $user['id'];
         $courseIds = Package::courseIds($packageId);
 
         if ($courseIds === []) {
-            abort(404, '该套餐暂无可售课程。');
+            abort(404, t('该套餐暂无可售课程。'));
         }
 
         // 已拥有套餐内全部课程时无需重复购买
@@ -416,7 +428,7 @@ final class OrderController extends Controller
         }
 
         if ($ownedAll) {
-            $this->success(url('/my/courses'), '你已拥有该套餐内全部课程，可直接开始学习。');
+            $this->success(url('/my/courses'), t('你已拥有该套餐内全部课程，可直接开始学习。'));
         }
 
         Order::closeExpired();
@@ -435,13 +447,13 @@ final class OrderController extends Controller
                 OrderNotifier::notifyPaid($freeOrder);
             }
 
-            $this->success(url('/my/courses'), '套餐已开通，开始学习吧！');
+            $this->success(url('/my/courses'), t('套餐已开通，开始学习吧！'));
         }
 
         // ---------- 付费套餐：复用未过期待支付订单 ----------
         $pending = Order::pendingForUserPackage($userId, $packageId);
         if ($pending !== null) {
-            $this->success(url('/order/' . $pending['order_no']), '你有一笔待支付订单，请继续完成支付。');
+            $this->success(url('/order/' . $pending['order_no']), t('你有一笔待支付订单，请继续完成支付。'));
         }
 
         $orderId = $this->insertOrder($user, $package, $amount, '', 'package');
@@ -492,6 +504,6 @@ final class OrderController extends Controller
             return Order::create($data);
         }
 
-        abort(500, '生成订单号失败，请稍后重试。');
+        abort(500, t('生成订单号失败，请稍后重试。'));
     }
 }

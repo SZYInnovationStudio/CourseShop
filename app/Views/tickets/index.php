@@ -13,6 +13,7 @@ declare(strict_types=1);
  */
 
 use App\Models\Ticket;
+use App\Support\Auth;
 
 $statusBadges = [
     Ticket::STATUS_PENDING    => 'badge--warning',
@@ -35,10 +36,12 @@ $windowStart = max(1, $windowEnd - 4);
 <div class="page-head container">
     <div class="flex-between flex-wrap gap-3">
         <div>
-            <h1 class="page-head__title">我的工单</h1>
-            <p class="page-head__desc mb-0">共 <?= (int) $total ?> 条工单，提交问题后可在此跟踪处理进度。</p>
+            <h1 class="page-head__title"><?= e(t('我的工单')) ?></h1>
+            <p class="page-head__desc mb-0"><?= e(t('共 %d 条工单，提交问题后可在此跟踪处理进度。', [(int) $total])) ?></p>
         </div>
-        <a class="btn" href="<?= url('/ticket/create') ?>">提交工单</a>
+        <?php if (!Auth::isAdmin()): ?>
+            <a class="btn" href="<?= url('/ticket/create') ?>"><?= e(t('提交工单')) ?></a>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -46,22 +49,22 @@ $windowStart = max(1, $windowEnd - 4);
     <form class="admin-toolbar" method="get" action="<?= url('/tickets') ?>">
         <div class="admin-toolbar__field admin-toolbar__field--grow">
             <input class="input" type="text" name="keyword" value="<?= e($filters['keyword']) ?>"
-                   placeholder="搜索工单号或标题">
+                   placeholder="<?= e(t('搜索工单号或标题')) ?>">
         </div>
         <div class="admin-toolbar__field">
             <select class="select" name="status">
-                <option value="">全部状态</option>
+                <option value=""><?= e(t('全部状态')) ?></option>
                 <?php foreach (Ticket::STATUS_LABELS as $value => $label): ?>
                     <option value="<?= e($value) ?>" <?= $filters['status'] === $value ? 'selected' : '' ?>>
-                        <?= e($label) ?>
+                        <?= e(t($label)) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
         </div>
         <div class="admin-toolbar__actions">
-            <button class="btn btn--sm" type="submit">筛选</button>
+            <button class="btn btn--sm" type="submit"><?= e(t('筛选')) ?></button>
             <?php if ($filters['keyword'] !== '' || $filters['status'] !== ''): ?>
-                <a class="btn btn--sm btn--ghost" href="<?= url('/tickets') ?>">重置</a>
+                <a class="btn btn--sm btn--ghost" href="<?= url('/tickets') ?>"><?= e(t('重置')) ?></a>
             <?php endif; ?>
         </div>
     </form>
@@ -72,8 +75,10 @@ $windowStart = max(1, $windowEnd - 4);
                 <div class="empty-state__icon" aria-hidden="true">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path><path d="M13 5v2"></path><path d="M13 17v2"></path><path d="M13 11v2"></path></svg>
                 </div>
-                <p>还没有工单记录。</p>
-                <p class="mb-0"><a class="btn btn--sm" href="<?= url('/ticket/create') ?>">提交第一条工单</a></p>
+                <p><?= e(t('还没有工单记录。')) ?></p>
+                <?php if (!Auth::isAdmin()): ?>
+                    <p class="mb-0"><a class="btn btn--sm" href="<?= url('/ticket/create') ?>"><?= e(t('提交第一条工单')) ?></a></p>
+                <?php endif; ?>
             </div>
         </div>
     <?php else: ?>
@@ -82,13 +87,13 @@ $windowStart = max(1, $windowEnd - 4);
                 <table class="table">
                     <thead>
                     <tr>
-                        <th>工单号</th>
-                        <th>标题</th>
-                        <th>类型</th>
-                        <th>状态</th>
-                        <th>回复</th>
-                        <th>最近更新</th>
-                        <th>操作</th>
+                        <th><?= e(t('工单号')) ?></th>
+                        <th><?= e(t('标题')) ?></th>
+                        <th><?= e(t('类型')) ?></th>
+                        <th><?= e(t('状态')) ?></th>
+                        <th><?= e(t('回复')) ?></th>
+                        <th><?= e(t('最近更新')) ?></th>
+                        <th><?= e(t('操作')) ?></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -104,18 +109,18 @@ $windowStart = max(1, $windowEnd - 4);
                             </td>
                             <td>
                                 <span class="badge <?= $type === Ticket::TYPE_APPEAL ? 'badge--warning' : 'badge--info' ?>">
-                                    <?= e(Ticket::typeLabel($type)) ?>
+                                    <?= e(t(Ticket::typeLabel($type))) ?>
                                 </span>
                             </td>
                             <td>
                                 <span class="badge <?= e($statusBadges[$status] ?? 'badge') ?>">
-                                    <?= e(Ticket::statusLabel($status)) ?>
+                                    <?= e(t(Ticket::statusLabel($status))) ?>
                                 </span>
                             </td>
                             <td><?= (int) $ticket['reply_count'] ?></td>
                             <td class="text-faint"><?= e($ticket['last_reply_at'] ?? $ticket['updated_at']) ?></td>
                             <td>
-                                <a class="btn btn--outline btn--sm" href="<?= url('/ticket/' . (int) $ticket['id']) ?>">查看</a>
+                                <a class="btn btn--outline btn--sm" href="<?= url('/ticket/' . (int) $ticket['id']) ?>"><?= e(t('查看')) ?></a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -125,9 +130,9 @@ $windowStart = max(1, $windowEnd - 4);
         </div>
 
         <?php if ($totalPages > 1): ?>
-            <nav class="pagination" aria-label="分页">
+            <nav class="pagination" aria-label="<?= e(t('分页')) ?>">
                 <a class="pagination__item<?= $page <= 1 ? ' is-disabled' : '' ?>"
-                   href="<?= $page <= 1 ? '#' : $pageUrl($page - 1) ?>" rel="prev">上一页</a>
+                   href="<?= $page <= 1 ? '#' : $pageUrl($page - 1) ?>" rel="prev"><?= e(t('上一页')) ?></a>
 
                 <?php if ($windowStart > 1): ?>
                     <a class="pagination__item" href="<?= $pageUrl(1) ?>">1</a>
@@ -148,7 +153,7 @@ $windowStart = max(1, $windowEnd - 4);
                 <?php endif; ?>
 
                 <a class="pagination__item<?= $page >= $totalPages ? ' is-disabled' : '' ?>"
-                   href="<?= $page >= $totalPages ? '#' : $pageUrl($page + 1) ?>" rel="next">下一页</a>
+                   href="<?= $page >= $totalPages ? '#' : $pageUrl($page + 1) ?>" rel="next"><?= e(t('下一页')) ?></a>
             </nav>
         <?php endif; ?>
     <?php endif; ?>

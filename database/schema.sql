@@ -28,6 +28,7 @@ CREATE TABLE `users` (
   `banned_until`        DATETIME        DEFAULT NULL COMMENT '临时封禁到期时间',
   `ban_reason`          VARCHAR(255)    DEFAULT NULL COMMENT '当前封禁原因',
   `dark_mode`           VARCHAR(10)     NOT NULL DEFAULT 'system' COMMENT '主题偏好：light/dark/system',
+  `locale`              VARCHAR(10)     NOT NULL DEFAULT 'zh-CN' COMMENT '语言偏好：zh-CN/zh-TW/en/es/ja',
   `two_factor_secret`   VARCHAR(64)     DEFAULT NULL COMMENT '2FA 密钥（P2）',
   `two_factor_enabled`  TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '是否启用 2FA（P2）',
   `two_factor_last_step` BIGINT UNSIGNED DEFAULT NULL COMMENT '2FA 上次通过校验的时间步（防重放）',

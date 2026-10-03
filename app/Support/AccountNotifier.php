@@ -34,25 +34,30 @@ final class AccountNotifier
             }
 
             $siteName = Setting::string('site_name', 'CourseShop');
-            $banLabel = $banType === 'permanent' ? '永久封禁' : '限时封禁';
 
-            $html = '<p>你好，' . e($user['name']) . '：</p>'
-                . '<p>你的账号已被管理员处理为：<strong>' . e($banLabel) . '</strong>。</p>'
-                . '<ul>';
+            [$subject, $html] = I18n::withLocale($user['locale'], static function () use ($user, $siteName, $banType, $bannedUntil, $reason): array {
+                $banLabel = $banType === 'permanent' ? t('永久封禁') : t('限时封禁');
 
-            if ($banType === 'temp' && $bannedUntil !== null) {
-                $html .= '<li>解封时间：' . e($bannedUntil) . '</li>';
-            }
+                $html = '<p>' . t('你好，%s：', [e($user['name'])]) . '</p>'
+                    . '<p>' . t('你的账号已被管理员处理为：') . '<strong>' . e($banLabel) . '</strong>' . t('。') . '</p>'
+                    . '<ul>';
 
-            if ($reason !== null && trim($reason) !== '') {
-                $html .= '<li>原因：' . e($reason) . '</li>';
-            }
+                if ($banType === 'temp' && $bannedUntil !== null) {
+                    $html .= '<li>' . t('解封时间：') . e($bannedUntil) . '</li>';
+                }
 
-            $html .= '</ul>'
-                . '<p>如对处理结果有疑问，可登录后提交工单进行申诉。</p>'
-                . '<p>—— ' . e($siteName) . '</p>';
+                if ($reason !== null && trim($reason) !== '') {
+                    $html .= '<li>' . t('原因：') . e($reason) . '</li>';
+                }
 
-            Mailer::send($user['email'], $siteName . ' - 账号封禁通知', $html);
+                $html .= '</ul>'
+                    . '<p>' . t('如对处理结果有疑问，可登录后提交工单进行申诉。') . '</p>'
+                    . '<p>—— ' . e($siteName) . '</p>';
+
+                return [$siteName . ' - ' . t('账号封禁通知'), $html];
+            });
+
+            Mailer::send($user['email'], $subject, $html);
         } catch (Throwable $e) {
             Logger::error('发送账号封禁通知邮件失败：' . $e->getMessage());
         }
@@ -77,12 +82,16 @@ final class AccountNotifier
 
             $siteName = Setting::string('site_name', 'CourseShop');
 
-            $html = '<p>你好，' . e($user['name']) . '：</p>'
-                . '<p>管理员已为你重置登录密码，新的密码为：<strong>' . e($password) . '</strong></p>'
-                . '<p>为保障账号安全，请登录后立即修改密码。</p>'
-                . '<p>—— ' . e($siteName) . '</p>';
+            [$subject, $html] = I18n::withLocale($user['locale'], static function () use ($user, $siteName, $password): array {
+                $html = '<p>' . t('你好，%s：', [e($user['name'])]) . '</p>'
+                    . '<p>' . t('管理员已为你重置登录密码，新的密码为：') . '<strong>' . e($password) . '</strong></p>'
+                    . '<p>' . t('为保障账号安全，请登录后立即修改密码。') . '</p>'
+                    . '<p>—— ' . e($siteName) . '</p>';
 
-            return Mailer::send($user['email'], $siteName . ' - 密码已重置', $html);
+                return [$siteName . ' - ' . t('密码已重置'), $html];
+            });
+
+            return Mailer::send($user['email'], $subject, $html);
         } catch (Throwable $e) {
             Logger::error('发送密码重置通知邮件失败：' . $e->getMessage());
 
@@ -93,7 +102,7 @@ final class AccountNotifier
     /**
      * 解析收件人（仅当用户存在、已绑定并验证邮箱、邮箱格式合法时返回）
      *
-     * @return array{email: string, name: string}|null
+     * @return array{email: string, name: string, locale: string}|null
      */
     private static function recipient(int $userId): ?array
     {
@@ -102,7 +111,7 @@ final class AccountNotifier
         }
 
         $row = Database::first(
-            'SELECT `email`, `email_verified_at`, `nickname`, `username`
+            'SELECT `email`, `email_verified_at`, `nickname`, `username`, `locale`
                FROM `users` WHERE `id` = ? AND `deleted_at` IS NULL LIMIT 1',
             [$userId]
         );
@@ -118,7 +127,12 @@ final class AccountNotifier
 
         $nickname = trim((string) ($row['nickname'] ?? ''));
         $name     = $nickname !== '' ? $nickname : (string) ($row['username'] ?? '');
+        $locale   = (string) ($row['locale'] ?? '');
 
-        return ['email' => $email, 'name' => $name];
+        return [
+            'email'  => $email,
+            'name'   => $name,
+            'locale' => $locale !== '' ? $locale : I18n::DEFAULT_LOCALE,
+        ];
     }
 }

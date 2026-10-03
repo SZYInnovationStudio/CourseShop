@@ -15,65 +15,44 @@ declare(strict_types=1);
 use App\Support\Setting;
 
 $siteName    = Setting::string('site_name', 'CourseShop');
-$siteDesc    = Setting::string('site_description', '精选优质课程，助你高效掌握实用技能。');
+$siteDesc    = Setting::string('site_description', t('精选优质课程，助你高效掌握实用技能。'));
 $hasCourses  = $courses !== [];
+$showPackages = Setting::bool('packages_enabled', true);
 ?>
 <section class="hero">
     <div class="container hero__inner">
         <div class="hero__content">
-            <span class="hero__eyebrow"><?= e($siteName) ?> · 在线课程平台</span>
-            <h1 class="hero__title">系统学习，从入门到实战</h1>
+            <span class="hero__eyebrow"><?= e($siteName) ?> · <?= e(t('在线课程平台')) ?></span>
+            <h1 class="hero__title"><?= e(t('系统学习，从入门到实战')) ?></h1>
             <p class="hero__desc"><?= e($siteDesc) ?></p>
 
             <div class="hero__actions">
-                <a class="btn btn--lg" href="<?= url('/courses') ?>">浏览全部课程</a>
-                <a class="btn btn--outline btn--lg" href="<?= url('/courses?sort=latest') ?>">查看最新上架</a>
+                <a class="btn btn--lg" href="<?= url('/courses') ?>"><?= e(t('浏览全部课程')) ?></a>
+                <a class="btn btn--outline btn--lg" href="<?= url('/courses?sort=latest') ?>"><?= e(t('查看最新上架')) ?></a>
             </div>
         </div>
 
         <div class="hero__stats">
             <div class="hero__stat">
                 <div class="hero__stat-value"><?= (int) $totalCourses ?></div>
-                <div class="hero__stat-label">在售课程</div>
+                <div class="hero__stat-label"><?= e(t('在售课程')) ?></div>
             </div>
             <div class="hero__stat">
                 <div class="hero__stat-value"><?= count($categories) ?></div>
-                <div class="hero__stat-label">课程分类</div>
+                <div class="hero__stat-label"><?= e(t('课程分类')) ?></div>
             </div>
         </div>
     </div>
 </section>
 
-<?php if ($categories !== []): ?>
-    <section class="section section--tight">
-        <div class="container">
-            <div class="section-head">
-                <div>
-                    <h2 class="section-head__title">课程分类</h2>
-                    <p class="section-head__desc">按方向挑选你需要的课程</p>
-                </div>
-            </div>
-
-            <div class="flex flex-wrap gap-2">
-                <?php foreach ($categories as $category): ?>
-                    <a class="chip" href="<?= url('/courses?category=' . (int) $category['id']) ?>">
-                        <?= e($category['name']) ?>
-                        <span class="text-faint">&nbsp;<?= (int) $category['course_count'] ?></span>
-                    </a>
-                <?php endforeach; ?>
-            </div>
-        </div>
-    </section>
-<?php endif; ?>
-
 <section class="section">
     <div class="container">
         <div class="section-head">
             <div>
-                <h2 class="section-head__title">精选课程</h2>
-                <p class="section-head__desc">编辑推荐，值得优先学习</p>
+                <h2 class="section-head__title"><?= e(t('精选课程')) ?></h2>
+                <p class="section-head__desc"><?= e(t('编辑推荐，值得优先学习')) ?></p>
             </div>
-            <a class="btn btn--outline btn--sm" href="<?= url('/courses') ?>">查看全部</a>
+            <a class="btn btn--outline btn--sm" href="<?= url('/courses') ?>"><?= e(t('查看全部')) ?></a>
         </div>
 
         <?php if ($hasCourses): ?>
@@ -88,22 +67,22 @@ $hasCourses  = $courses !== [];
                     <div class="empty-state__icon" aria-hidden="true">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>
                     </div>
-                    <p class="mb-0">暂无上架课程，敬请期待。</p>
+                    <p class="mb-0"><?= e(t('暂无上架课程，敬请期待。')) ?></p>
                 </div>
             </div>
         <?php endif; ?>
     </div>
 </section>
 
-<?php if ($packages !== []): ?>
+<?php if ($showPackages && $packages !== []): ?>
     <section class="section section--tight">
         <div class="container">
             <div class="section-head">
                 <div>
-                    <h2 class="section-head__title">推荐套餐</h2>
-                    <p class="section-head__desc">组合购买更划算，一次开通多门课程</p>
+                    <h2 class="section-head__title"><?= e(t('推荐套餐')) ?></h2>
+                    <p class="section-head__desc"><?= e(t('组合购买更划算，一次开通多门课程')) ?></p>
                 </div>
-                <a class="btn btn--outline btn--sm" href="<?= url('/packages') ?>">查看全部</a>
+                <a class="btn btn--outline btn--sm" href="<?= url('/packages') ?>"><?= e(t('查看全部')) ?></a>
             </div>
 
             <div class="course-grid">
@@ -142,7 +121,7 @@ $hasCourses  = $courses !== [];
                                     <?php endif; ?>
                                 </span>
 
-                                <span class="badge badge--primary">含 <?= $pkgCourses ?> 门课程</span>
+                                <span class="badge badge--primary"><?= e(t('含 %d 门课程', [$pkgCourses])) ?></span>
                             </div>
                         </div>
                     </article>
@@ -157,7 +136,7 @@ $hasCourses  = $courses !== [];
         <div class="container">
             <div class="section-head">
                 <div>
-                    <h2 class="section-head__title">站点公告</h2>
+                    <h2 class="section-head__title"><?= e(t('站点公告')) ?></h2>
                 </div>
             </div>
 

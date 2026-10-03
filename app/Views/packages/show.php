@@ -27,10 +27,10 @@ $saved         = max(0, $strikeTotal - $price);
 $packageContent = trim((string) ($package['content'] ?? ''));
 ?>
 <div class="container">
-    <nav class="breadcrumb" aria-label="面包屑导航">
-        <a href="<?= url('/') ?>">首页</a>
+    <nav class="breadcrumb" aria-label="<?= e(t('面包屑导航')) ?>">
+        <a href="<?= url('/') ?>"><?= e(t('首页')) ?></a>
         <span class="breadcrumb__sep">/</span>
-        <a href="<?= url('/packages') ?>">优惠套餐</a>
+        <a href="<?= url('/packages') ?>"><?= e(t('优惠套餐')) ?></a>
         <span class="breadcrumb__sep">/</span>
         <span><?= e($package['title']) ?></span>
     </nav>
@@ -52,16 +52,16 @@ $packageContent = trim((string) ($package['content'] ?? ''));
             <?php endif; ?>
 
             <div class="course-meta">
-                <span class="course-meta__item">套餐包含 <?= $courseCount ?> 门课程</span>
+                <span class="course-meta__item"><?= e(t('套餐包含 %d 门课程', [$courseCount])) ?></span>
                 <?php if ($saved > 0): ?>
-                    <span class="course-meta__item">比单独购买省 &yen;<?= format_money($saved) ?></span>
+                    <span class="course-meta__item"><?= e(t('比单独购买省')) ?> &yen;<?= format_money($saved) ?></span>
                 <?php endif; ?>
-                <span class="course-meta__item"><?= (int) $package['sales_count'] ?> 人已购买</span>
+                <span class="course-meta__item"><?= e(t('%d 人已购买', [(int) $package['sales_count']])) ?></span>
             </div>
 
             <section class="section--tight" style="padding-top: 0;">
                 <div class="section-head">
-                    <h2 class="section-head__title">套餐包含课程</h2>
+                    <h2 class="section-head__title"><?= e(t('套餐包含课程')) ?></h2>
                 </div>
 
                 <div class="card">
@@ -77,7 +77,7 @@ $packageContent = trim((string) ($package['content'] ?? ''));
                                 <a class="chapter-item__title" href="<?= $courseUrl ?>"><?= e($course['title']) ?></a>
 
                                 <?php if ($isOwned): ?>
-                                    <span class="badge badge--success">已拥有</span>
+                                    <span class="badge badge--success"><?= e(t('已拥有')) ?></span>
                                 <?php endif; ?>
 
                                 <span class="chapter-item__duration">
@@ -92,7 +92,7 @@ $packageContent = trim((string) ($package['content'] ?? ''));
             <?php if ($packageContent !== ''): ?>
                 <section class="section--tight">
                     <div class="section-head">
-                        <h2 class="section-head__title">套餐介绍</h2>
+                        <h2 class="section-head__title"><?= e(t('套餐介绍')) ?></h2>
                     </div>
                     <div class="prose">
                         <?= markdown($packageContent) ?>
@@ -111,34 +111,34 @@ $packageContent = trim((string) ($package['content'] ?? ''));
                 </div>
 
                 <?php if ($hasAll): ?>
-                    <a class="btn btn--lg btn--block" href="<?= url('/my/courses') ?>">开始学习</a>
-                    <p class="form-hint text-center">你已拥有该套餐内全部课程</p>
+                    <a class="btn btn--lg btn--block" href="<?= url('/my/courses') ?>"><?= e(t('开始学习')) ?></a>
+                    <p class="form-hint text-center"><?= e(t('你已拥有该套餐内全部课程')) ?></p>
                 <?php elseif (Auth::check()): ?>
                     <form method="post" action="<?= url('/order/create') ?>">
                         <?= csrf_field() ?>
                         <input type="hidden" name="package_id" value="<?= $packageId ?>">
                         <button class="btn btn--lg btn--block" type="submit">
-                            <?= $price > 0 ? '立即购买套餐' : '免费开通套餐' ?>
+                            <?= $price > 0 ? e(t('立即购买套餐')) : e(t('免费开通套餐')) ?>
                         </button>
                     </form>
                 <?php else: ?>
-                    <a class="btn btn--lg btn--block" href="<?= url('/login') ?>">登录后购买</a>
-                    <p class="form-hint text-center">还没有账号？<a href="<?= url('/register') ?>">立即注册</a></p>
+                    <a class="btn btn--lg btn--block" href="<?= url('/login') ?>"><?= e(t('登录后购买')) ?></a>
+                    <p class="form-hint text-center"><?= e(t('还没有账号？')) ?><a href="<?= url('/register') ?>"><?= e(t('立即注册')) ?></a></p>
                 <?php endif; ?>
 
                 <ul class="buy-card__list">
-                    <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> 一次开通套餐内 <?= $courseCount ?> 门课程</li>
-                    <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> 购买后永久有效，随时回看</li>
+                    <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> <?= e(t('一次开通套餐内 %d 门课程', [$courseCount])) ?></li>
+                    <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> <?= e(t('购买后永久有效，随时回看')) ?></li>
                     <?php if ($paymentEnabled && $paymentMethods !== []): ?>
-                        <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> 支持<?= e(implode(' / ', array_values($paymentMethods))) ?></li>
+                        <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> <?= e(t('支持%s', [implode(' / ', array_values($paymentMethods))])) ?></li>
                     <?php endif; ?>
                     <?php if ($saved > 0): ?>
-                        <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> 相比单独购买立省 &yen;<?= format_money($saved) ?></li>
+                        <li><span class="list-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span> <?= e(t('相比单独购买立省')) ?> &yen;<?= format_money($saved) ?></li>
                     <?php endif; ?>
                 </ul>
 
                 <?php if ($price > 0 && (!$paymentEnabled || $paymentMethods === [])): ?>
-                    <p class="form-hint">支付通道维护中，暂不可在线购买，请稍后再试。</p>
+                    <p class="form-hint"><?= e(t('支付通道维护中，暂不可在线购买，请稍后再试。')) ?></p>
                 <?php endif; ?>
             </div>
         </aside>
@@ -146,7 +146,7 @@ $packageContent = trim((string) ($package['content'] ?? ''));
 </div>
 
 <?php // 移动端底部固定购买栏：与右侧购买卡片操作一致，仅在窄屏显示 ?>
-<div class="buy-bar" role="region" aria-label="购买操作">
+<div class="buy-bar" role="region" aria-label="<?= e(t('购买操作')) ?>">
     <div class="buy-bar__price">
         <span class="price price--lg price--accent"><?= price_html($price) ?></span>
         <?php if ($strikeTotal > $price && $price > 0): ?>
@@ -156,17 +156,17 @@ $packageContent = trim((string) ($package['content'] ?? ''));
 
     <div class="buy-bar__action">
         <?php if ($hasAll): ?>
-            <a class="btn btn--lg btn--block" href="<?= url('/my/courses') ?>">开始学习</a>
+            <a class="btn btn--lg btn--block" href="<?= url('/my/courses') ?>"><?= e(t('开始学习')) ?></a>
         <?php elseif (Auth::check()): ?>
             <form method="post" action="<?= url('/order/create') ?>">
                 <?= csrf_field() ?>
                 <input type="hidden" name="package_id" value="<?= $packageId ?>">
                 <button class="btn btn--lg btn--block" type="submit">
-                    <?= $price > 0 ? '立即购买套餐' : '免费开通套餐' ?>
+                    <?= $price > 0 ? e(t('立即购买套餐')) : e(t('免费开通套餐')) ?>
                 </button>
             </form>
         <?php else: ?>
-            <a class="btn btn--lg btn--block" href="<?= url('/login') ?>">登录后购买</a>
+            <a class="btn btn--lg btn--block" href="<?= url('/login') ?>"><?= e(t('登录后购买')) ?></a>
         <?php endif; ?>
     </div>
 </div>

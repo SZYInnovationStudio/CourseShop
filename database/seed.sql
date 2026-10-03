@@ -56,6 +56,8 @@ INSERT IGNORE INTO `settings` (`key`, `value`, `group_name`, `description`) VALU
 ('ticket_enabled',         '1',                                              'ticket',   '是否允许提交工单'),
 ('ticket_attachment_types','jpg,jpeg,png,gif,pdf,zip,rar,7z,txt',            'ticket',   '工单附件允许的扩展名'),
 ('ticket_attachment_max_mb','10',                                            'ticket',   '工单附件大小上限（MB）'),
+-- 课程与套餐
+('packages_enabled',       '1',                                              'catalog',  '是否在前台显示优惠套餐'),
 -- 视频
 ('video_signed_ttl',       '1800',                                           'video',    '视频访问签名有效期（秒）'),
 ('video_storage_driver',   'local',                                          'video',    '视频存储驱动：local/oss/cos/s3'),

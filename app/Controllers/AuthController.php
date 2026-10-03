@@ -41,7 +41,7 @@ final class AuthController extends Controller
     public function showLogin(): void
     {
         $this->view('auth.login', [
-            'pageTitle'       => '登录',
+            'pageTitle'       => t('登录'),
             'captchaRequired' => LoginThrottle::needsCaptcha(),
         ]);
     }
@@ -68,13 +68,13 @@ final class AuthController extends Controller
         // 1. 失败过多则临时锁定
         $remaining = LoginThrottle::lockRemaining($username);
         if ($remaining > 0) {
-            $this->fail(url('/login'), sprintf('失败次数过多，请 %d 分钟后再试。', (int) ceil($remaining / 60)), $old);
+            $this->fail(url('/login'), sprintf(t('失败次数过多，请 %d 分钟后再试。'), (int) ceil($remaining / 60)), $old);
         }
 
         // 2. 触发阈值后必须通过图形验证码
         if (LoginThrottle::needsCaptcha($username) && !Captcha::verify('login', Request::string('captcha'))) {
             User::logLogin(null, $username, 'fail', '图形验证码错误');
-            $this->fail(url('/login'), '图形验证码不正确或已过期。', $old);
+            $this->fail(url('/login'), t('图形验证码不正确或已过期。'), $old);
         }
 
         // 3. 校验账号密码
@@ -82,17 +82,17 @@ final class AuthController extends Controller
 
         if ($user === null || !password_verify($password, (string) $user['password_hash'])) {
             User::logLogin($user === null ? null : (int) $user['id'], $username, 'fail', '账号或密码错误');
-            $this->fail(url('/login'), '账号或密码不正确。', $old);
+            $this->fail(url('/login'), t('账号或密码不正确。'), $old);
         }
 
         if ((int) $user['status'] !== User::STATUS_ACTIVE) {
             User::logLogin((int) $user['id'], $username, 'fail', '账号已被禁用');
-            $this->fail(url('/login'), '该账号已被禁用，如有疑问请联系管理员。', $old);
+            $this->fail(url('/login'), t('该账号已被禁用，如有疑问请联系管理员。'), $old);
         }
 
         if (Auth::isBanned($user)) {
             User::logLogin((int) $user['id'], $username, 'fail', '账号已被封禁');
-            $this->fail(url('/login'), '该账号已被封禁，如有疑问请联系管理员。', $old);
+            $this->fail(url('/login'), t('该账号已被封禁，如有疑问请联系管理员。'), $old);
         }
 
         // 已启用两步验证：先进入动态口令校验，通过后才真正登录
@@ -100,14 +100,14 @@ final class AuthController extends Controller
             self::startTwoFactorChallenge((int) $user['id']);
             User::logLogin((int) $user['id'], $username, 'success', '密码校验通过，等待两步验证');
 
-            $this->success(url('/login/2fa'), '请输入两步验证动态口令。');
+            $this->success(url('/login/2fa'), t('请输入两步验证动态口令。'));
         }
 
         Auth::login($user);
         User::touchLogin((int) $user['id']);
         User::logLogin((int) $user['id'], $username, 'success');
 
-        $this->success($this->intended('/'), '登录成功，欢迎回来！');
+        $this->success($this->intended('/'), t('登录成功，欢迎回来！'));
     }
 
     /**
@@ -116,11 +116,11 @@ final class AuthController extends Controller
     public function showTwoFactor(): void
     {
         if (self::pendingUserId() === null) {
-            $this->fail(url('/login'), '请先登录。');
+            $this->fail(url('/login'), t('请先登录。'));
         }
 
         $this->view('auth.two-factor', [
-            'pageTitle' => '两步验证',
+            'pageTitle' => t('两步验证'),
         ]);
     }
 
@@ -134,14 +134,14 @@ final class AuthController extends Controller
         $userId = self::pendingUserId();
 
         if ($userId === null) {
-            $this->fail(url('/login'), '两步验证已超时，请重新登录。');
+            $this->fail(url('/login'), t('两步验证已超时，请重新登录。'));
         }
 
         $attempts = (int) Session::get(self::TWO_FACTOR_ATTEMPTS_KEY, 0);
 
         if ($attempts >= self::TWO_FACTOR_MAX_ATTEMPTS) {
             self::clearTwoFactorChallenge();
-            $this->fail(url('/login'), '动态口令错误次数过多，请重新登录。');
+            $this->fail(url('/login'), t('动态口令错误次数过多，请重新登录。'));
         }
 
         $code  = Request::string('code');
@@ -150,7 +150,7 @@ final class AuthController extends Controller
 
         if ($user === null || $secret === '') {
             self::clearTwoFactorChallenge();
-            $this->fail(url('/login'), '账号状态异常，请重新登录。');
+            $this->fail(url('/login'), t('账号状态异常，请重新登录。'));
         }
 
         $step = Totp::verifyStep($secret, $code);
@@ -160,7 +160,7 @@ final class AuthController extends Controller
             Session::set(self::TWO_FACTOR_ATTEMPTS_KEY, $attempts + 1);
             User::logLogin($userId, (string) $user['username'], 'fail', '两步验证动态口令错误');
 
-            $this->fail(url('/login/2fa'), '动态口令不正确，请重试。');
+            $this->fail(url('/login/2fa'), t('动态口令不正确，请重试。'));
         }
 
         self::clearTwoFactorChallenge();
@@ -169,7 +169,7 @@ final class AuthController extends Controller
         User::touchLogin($userId);
         User::logLogin($userId, (string) $user['username'], 'success', '两步验证通过');
 
-        $this->success($this->intended('/'), '登录成功，欢迎回来！');
+        $this->success($this->intended('/'), t('登录成功，欢迎回来！'));
     }
 
     /**
@@ -178,11 +178,11 @@ final class AuthController extends Controller
     public function showRegister(): void
     {
         if (!Setting::bool('register_enabled', true)) {
-            abort(404, '当前未开放注册。');
+            abort(404, t('当前未开放注册。'));
         }
 
         $this->view('auth.register', [
-            'pageTitle'       => '注册',
+            'pageTitle'       => t('注册'),
             'captchaRequired' => Captcha::enabled(),
             'forceEmailBind'  => Setting::bool('force_email_bind', false),
             'terms'           => Agreement::current('terms'),
@@ -198,7 +198,7 @@ final class AuthController extends Controller
         Csrf::check();
 
         if (!Setting::bool('register_enabled', true)) {
-            $this->fail(url('/register'), '当前未开放注册。');
+            $this->fail(url('/register'), t('当前未开放注册。'));
         }
 
         $username = Request::string('username');
@@ -222,11 +222,11 @@ final class AuthController extends Controller
         }
 
         if (Captcha::enabled() && !Captcha::verify('register', Request::string('captcha'))) {
-            $this->fail(url('/register'), '图形验证码不正确或已过期。', $old);
+            $this->fail(url('/register'), t('图形验证码不正确或已过期。'), $old);
         }
 
         if (User::usernameExists($username)) {
-            $this->fail(url('/register'), '该用户名已被注册，请更换一个。', $old);
+            $this->fail(url('/register'), t('该用户名已被注册，请更换一个。'), $old);
         }
 
         $userId = User::create($username, password_hash($password, PASSWORD_DEFAULT));
@@ -242,7 +242,7 @@ final class AuthController extends Controller
         $user = User::findById($userId);
 
         if ($user === null) {
-            $this->fail(url('/register'), '注册失败，请稍后重试。', $old);
+            $this->fail(url('/register'), t('注册失败，请稍后重试。'), $old);
         }
 
         Auth::login($user);
@@ -250,8 +250,8 @@ final class AuthController extends Controller
         User::logLogin($userId, $username, 'success', '注册后自动登录');
 
         $message = Setting::bool('force_email_bind', false)
-            ? '注册成功！请先绑定邮箱以启用完整功能。'
-            : '注册成功，欢迎加入！';
+            ? t('注册成功！请先绑定邮箱以启用完整功能。')
+            : t('注册成功，欢迎加入！');
 
         $this->success($this->intended('/'), $message);
     }
@@ -265,7 +265,7 @@ final class AuthController extends Controller
 
         Auth::logout();
 
-        $this->success(url('/'), '你已安全退出。');
+        $this->success(url('/'), t('你已安全退出。'));
     }
 
     /**

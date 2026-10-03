@@ -32,6 +32,7 @@ use App\Controllers\AuthController;
 use App\Controllers\CaptchaController;
 use App\Controllers\CourseController;
 use App\Controllers\HomeController;
+use App\Controllers\LocaleController;
 use App\Controllers\MyCourseController;
 use App\Controllers\OrderController;
 use App\Controllers\PackageController;
@@ -40,11 +41,15 @@ use App\Controllers\PaymentController;
 use App\Controllers\TicketController;
 use App\Controllers\VideoController;
 use App\Support\Router;
+use App\Support\I18n;
 use App\Support\Setting;
 
 return static function (Router $router): void {
     // ---------------- 前台：首页 ----------------
     $router->get('/', [HomeController::class, 'index']);
+
+    // ---------------- 前台：语言切换 ----------------
+    $router->get('/lang/{locale}', [LocaleController::class, 'switch']);
 
     // ---------------- PWA ----------------
     // 动态输出 Web App Manifest，使应用名称、主题色与后台配置保持一致
@@ -56,7 +61,7 @@ return static function (Router $router): void {
             'name'             => $name,
             'short_name'       => mb_substr($name, 0, 12),
             'description'      => Setting::string('site_description', ''),
-            'lang'             => 'zh-CN',
+            'lang'             => I18n::htmlLang(),
             'start_url'        => './',
             'scope'            => './',
             'display'          => 'standalone',

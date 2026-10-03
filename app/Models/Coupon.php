@@ -253,26 +253,26 @@ final class Coupon
     public static function usableError(array $coupon, int $userId, int $courseId, int $baseAmount): ?string
     {
         if ((int) $coupon['is_active'] !== 1) {
-            return '该优惠券已停用。';
+            return t('该优惠券已停用。');
         }
 
         $now = time();
 
         if (!empty($coupon['start_at']) && strtotime((string) $coupon['start_at']) > $now) {
-            return '该优惠券尚未开始使用。';
+            return t('该优惠券尚未开始使用。');
         }
 
         if (!empty($coupon['end_at']) && strtotime((string) $coupon['end_at']) < $now) {
-            return '该优惠券已过期。';
+            return t('该优惠券已过期。');
         }
 
         if ($baseAmount < (int) $coupon['min_amount']) {
-            return '订单金额未满 ' . format_money((int) $coupon['min_amount']) . ' 元，无法使用该优惠券。';
+            return t('订单金额未满 %s 元，无法使用该优惠券。', [format_money((int) $coupon['min_amount'])]);
         }
 
         $limitCourseId = (int) ($coupon['course_id'] ?? 0);
         if ($limitCourseId > 0 && $limitCourseId !== $courseId) {
-            return '该优惠券仅限指定课程使用。';
+            return t('该优惠券仅限指定课程使用。');
         }
 
         // 总量校验须计入「未支付订单已占用」的名额，否则多用户可在支付前抢占最后一张券（CS-07）
@@ -280,12 +280,12 @@ final class Coupon
         if ($totalQuantity > 0
             && (int) $coupon['used_quantity'] + self::reservedCount((int) $coupon['id']) >= $totalQuantity
         ) {
-            return '该优惠券已被领完。';
+            return t('该优惠券已被领完。');
         }
 
         $perUserLimit = (int) $coupon['per_user_limit'];
         if ($perUserLimit > 0 && self::usageCount((int) $coupon['id'], $userId) >= $perUserLimit) {
-            return '你已使用过该优惠券。';
+            return t('你已使用过该优惠券。');
         }
 
         return null;

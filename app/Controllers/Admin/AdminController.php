@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers\Admin;
 
 use App\Controllers\Controller;
+use App\Support\I18n;
 use App\Support\Ids;
 use App\Support\Request;
 
@@ -18,6 +19,13 @@ abstract class AdminController extends Controller
 {
     /** 单次批量操作允许处理的最大记录数 */
     protected const BATCH_MAX = 500;
+
+    public function __construct()
+    {
+        // 后台管理界面固定使用简体中文：共享类（校验器、HTTP 异常、模型消息）的多语言
+        // 消息是全局翻译的，这里强制语言可避免其影响后台。此操作不写 Cookie。
+        I18n::force(I18n::DEFAULT_LOCALE);
+    }
 
     /**
      * @param array<string, mixed> $data

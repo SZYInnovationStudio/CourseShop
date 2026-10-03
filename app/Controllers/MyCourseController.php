@@ -33,7 +33,7 @@ final class MyCourseController extends Controller
         $courses = Enrollment::coursesForUser($userId, self::PER_PAGE, ($page - 1) * self::PER_PAGE);
 
         $this->view('my.index', [
-            'pageTitle'  => '我的课程',
+            'pageTitle'  => t('我的课程'),
             'courses'    => $courses,
             'total'      => $total,
             'page'       => $page,
@@ -54,14 +54,14 @@ final class MyCourseController extends Controller
         $course    = Course::find($courseId);
 
         if ($course === null) {
-            abort(404, '课程不存在或已下架。');
+            abort(404, t('课程不存在或已下架。'));
         }
 
         $hasAccess = Enrollment::hasAccess($userId > 0 ? $userId : null, $courseId);
 
         // 未购买的用户不能试看已下架课程（与 PlaybackAccess 保持一致）
         if (!$hasAccess && (string) $course['status'] !== 'published') {
-            abort(404, '课程不存在或已下架。');
+            abort(404, t('课程不存在或已下架。'));
         }
 
         $chapters = Course::chapters($courseId);

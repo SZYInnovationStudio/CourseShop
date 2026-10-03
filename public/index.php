@@ -6,6 +6,7 @@ declare(strict_types=1);
  * 站点唯一入口（前端控制器）
  */
 
+use App\Support\I18n;
 use App\Support\Installer;
 use App\Support\Middleware;
 use App\Support\Response;
@@ -31,6 +32,9 @@ if (!Installer::isInstalled() && !Installer::hasExistingAdmin()) {
     $base = rtrim(str_replace('\\', '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '/index.php'))), '/');
     Response::redirect($base . '/install.php');
 }
+
+// 多语言：解析当前语言并同步 Cookie（须在任何输出之前）
+I18n::boot();
 
 // 全局安全响应头：在任何输出之前下发
 SecurityHeaders::apply();

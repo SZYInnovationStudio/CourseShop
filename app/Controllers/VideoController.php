@@ -36,7 +36,7 @@ final class VideoController extends Controller
             Request::int('e'),
             Request::string('s')
         )) {
-            abort(403, '播放地址无效或已过期，请刷新页面后重试。');
+            abort(403, t('播放地址无效或已过期，请刷新页面后重试。'));
         }
 
         $context = PlaybackAccess::context($courseId, $chapterId, $userId);
@@ -60,7 +60,7 @@ final class VideoController extends Controller
         $signature = Request::string('s');
 
         if (!VideoStorage::verifySignature($courseId, $chapterId, $userId, $expires, $signature)) {
-            abort(403, '播放地址无效或已过期，请刷新页面后重试。');
+            abort(403, t('播放地址无效或已过期，请刷新页面后重试。'));
         }
 
         // 再次校验已购或试看权限
@@ -69,13 +69,13 @@ final class VideoController extends Controller
         $key = VideoStorage::hlsKey($chapterId, $file);
 
         if ($key === null) {
-            abort(404, '播放资源不存在。');
+            abort(404, t('播放资源不存在。'));
         }
 
         $path = VideoStorage::resolve($key);
 
         if ($path === null) {
-            abort(404, '播放资源不存在或尚未转码完成。');
+            abort(404, t('播放资源不存在或尚未转码完成。'));
         }
 
         if (str_ends_with(strtolower($path), '.m3u8')) {
@@ -136,7 +136,7 @@ final class VideoController extends Controller
 
         $handle = fopen($file, 'rb');
         if ($handle === false) {
-            abort(500, '视频文件读取失败。');
+            abort(500, t('视频文件读取失败。'));
         }
 
         fseek($handle, $start);
@@ -171,7 +171,7 @@ final class VideoController extends Controller
         $content = @file_get_contents($file);
 
         if ($content === false) {
-            abort(404, '播放列表读取失败。');
+            abort(404, t('播放列表读取失败。'));
         }
 
         // 会话可能仍持有文件锁，先释放，避免分片请求被串行阻塞

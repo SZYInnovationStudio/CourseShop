@@ -33,17 +33,21 @@ final class OrderNotifier
 
             $siteName = Setting::string('site_name', 'CourseShop');
 
-            $html = '<p>你好，' . e($user['name']) . '：</p>'
-                . '<p>你购买的课程已开通成功。</p>'
-                . '<ul>'
-                . '<li>课程：' . e((string) ($order['course_title'] ?? '')) . '</li>'
-                . '<li>订单号：' . e((string) ($order['order_no'] ?? '')) . '</li>'
-                . '<li>金额：&yen;' . format_money((int) ($order['amount'] ?? 0)) . '</li>'
-                . '</ul>'
-                . '<p>现在就可以访问「我的课程」开始学习了。</p>'
-                . '<p>—— ' . e($siteName) . '</p>';
+            [$subject, $html] = I18n::withLocale($user['locale'], static function () use ($order, $user, $siteName): array {
+                $html = '<p>' . t('你好，%s：', [e($user['name'])]) . '</p>'
+                    . '<p>' . t('你购买的课程已开通成功。') . '</p>'
+                    . '<ul>'
+                    . '<li>' . t('课程：') . e((string) ($order['course_title'] ?? '')) . '</li>'
+                    . '<li>' . t('订单号：') . e((string) ($order['order_no'] ?? '')) . '</li>'
+                    . '<li>' . t('金额：') . '&yen;' . format_money((int) ($order['amount'] ?? 0)) . '</li>'
+                    . '</ul>'
+                    . '<p>' . t('现在就可以访问「我的课程」开始学习了。') . '</p>'
+                    . '<p>—— ' . e($siteName) . '</p>';
 
-            Mailer::send($user['email'], $siteName . ' - 课程开通通知', $html);
+                return [$siteName . ' - ' . t('课程开通通知'), $html];
+            });
+
+            Mailer::send($user['email'], $subject, $html);
         } catch (Throwable $e) {
             Logger::error('发送课程开通通知邮件失败：' . $e->getMessage());
         }
@@ -69,17 +73,21 @@ final class OrderNotifier
             $siteName = Setting::string('site_name', 'CourseShop');
             $url      = url('/order/' . (string) ($order['order_no'] ?? ''));
 
-            $html = '<p>你好，' . e($user['name']) . '：</p>'
-                . '<p>你的订单已处理完成。</p>'
-                . '<ul>'
-                . '<li>课程：' . e((string) ($order['course_title'] ?? '')) . '</li>'
-                . '<li>订单号：' . e((string) ($order['order_no'] ?? '')) . '</li>'
-                . '<li>金额：&yen;' . format_money((int) ($order['amount'] ?? 0)) . '</li>'
-                . '</ul>'
-                . '<p>查看订单详情：<a href="' . e($url) . '">' . e($url) . '</a></p>'
-                . '<p>—— ' . e($siteName) . '</p>';
+            [$subject, $html] = I18n::withLocale($user['locale'], static function () use ($order, $user, $siteName, $url): array {
+                $html = '<p>' . t('你好，%s：', [e($user['name'])]) . '</p>'
+                    . '<p>' . t('你的订单已处理完成。') . '</p>'
+                    . '<ul>'
+                    . '<li>' . t('课程：') . e((string) ($order['course_title'] ?? '')) . '</li>'
+                    . '<li>' . t('订单号：') . e((string) ($order['order_no'] ?? '')) . '</li>'
+                    . '<li>' . t('金额：') . '&yen;' . format_money((int) ($order['amount'] ?? 0)) . '</li>'
+                    . '</ul>'
+                    . '<p>' . t('查看订单详情：') . '<a href="' . e($url) . '">' . e($url) . '</a></p>'
+                    . '<p>—— ' . e($siteName) . '</p>';
 
-            Mailer::send($user['email'], $siteName . ' - 订单完成通知', $html);
+                return [$siteName . ' - ' . t('订单完成通知'), $html];
+            });
+
+            Mailer::send($user['email'], $subject, $html);
         } catch (Throwable $e) {
             Logger::error('发送订单完成通知邮件失败：' . $e->getMessage());
         }
@@ -106,17 +114,21 @@ final class OrderNotifier
             // 退款金额优先取 refund_amount，缺失时回退订单金额
             $amount   = (int) ($order['refund_amount'] ?? $order['amount'] ?? 0);
 
-            $html = '<p>你好，' . e($user['name']) . '：</p>'
-                . '<p>你的订单已完成退款，课程访问权限已同步关闭。</p>'
-                . '<ul>'
-                . '<li>课程：' . e((string) ($order['course_title'] ?? '')) . '</li>'
-                . '<li>订单号：' . e((string) ($order['order_no'] ?? '')) . '</li>'
-                . '<li>退款金额：&yen;' . format_money($amount) . '</li>'
-                . '</ul>'
-                . '<p>如有疑问请联系客服。</p>'
-                . '<p>—— ' . e($siteName) . '</p>';
+            [$subject, $html] = I18n::withLocale($user['locale'], static function () use ($order, $user, $siteName, $amount): array {
+                $html = '<p>' . t('你好，%s：', [e($user['name'])]) . '</p>'
+                    . '<p>' . t('你的订单已完成退款，课程访问权限已同步关闭。') . '</p>'
+                    . '<ul>'
+                    . '<li>' . t('课程：') . e((string) ($order['course_title'] ?? '')) . '</li>'
+                    . '<li>' . t('订单号：') . e((string) ($order['order_no'] ?? '')) . '</li>'
+                    . '<li>' . t('退款金额：') . '&yen;' . format_money($amount) . '</li>'
+                    . '</ul>'
+                    . '<p>' . t('如有疑问请联系客服。') . '</p>'
+                    . '<p>—— ' . e($siteName) . '</p>';
 
-            Mailer::send($user['email'], $siteName . ' - 订单退款通知', $html);
+                return [$siteName . ' - ' . t('订单退款通知'), $html];
+            });
+
+            Mailer::send($user['email'], $subject, $html);
         } catch (Throwable $e) {
             Logger::error('发送订单退款通知邮件失败：' . $e->getMessage());
         }
@@ -125,7 +137,7 @@ final class OrderNotifier
     /**
      * 解析收件人（仅当用户存在、已绑定并验证邮箱、邮箱格式合法时返回）
      *
-     * @return array{email: string, name: string}|null
+     * @return array{email: string, name: string, locale: string}|null
      */
     private static function recipient(int $userId): ?array
     {
@@ -134,7 +146,7 @@ final class OrderNotifier
         }
 
         $row = Database::first(
-            'SELECT `email`, `email_verified_at`, `nickname`, `username`
+            'SELECT `email`, `email_verified_at`, `nickname`, `username`, `locale`
                FROM `users` WHERE `id` = ? AND `deleted_at` IS NULL LIMIT 1',
             [$userId]
         );
@@ -150,7 +162,12 @@ final class OrderNotifier
 
         $nickname = trim((string) ($row['nickname'] ?? ''));
         $name     = $nickname !== '' ? $nickname : (string) ($row['username'] ?? '');
+        $locale   = (string) ($row['locale'] ?? '');
 
-        return ['email' => $email, 'name' => $name];
+        return [
+            'email'  => $email,
+            'name'   => $name,
+            'locale' => $locale !== '' ? $locale : I18n::DEFAULT_LOCALE,
+        ];
     }
 }

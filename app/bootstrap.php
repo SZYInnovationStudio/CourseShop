@@ -21,6 +21,7 @@ define('CONFIG_PATH', BASE_PATH . '/config');
 define('STORAGE_PATH', BASE_PATH . '/storage');
 define('PUBLIC_PATH', BASE_PATH . '/public');
 define('VIEW_PATH', APP_PATH . '/Views');
+define('LANG_PATH', BASE_PATH . '/lang');
 
 // ---------------- 自动加载（App\ -> app/） ----------------
 spl_autoload_register(static function (string $class): void {

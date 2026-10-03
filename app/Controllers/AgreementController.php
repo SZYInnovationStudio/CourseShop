@@ -14,13 +14,13 @@ final class AgreementController extends Controller
     public function show(string $type): void
     {
         if (!in_array($type, Agreement::TYPES, true)) {
-            abort(404, '协议不存在。');
+            abort(404, t('协议不存在。'));
         }
 
         $agreement = Agreement::current($type);
 
         if ($agreement === null) {
-            abort(404, '协议不存在。');
+            abort(404, t('协议不存在。'));
         }
 
         $this->view('agreements.show', [

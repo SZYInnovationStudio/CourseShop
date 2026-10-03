@@ -44,7 +44,7 @@ final class CourseController extends Controller
         $courses = Course::search($filters, $sort, self::PER_PAGE, ($page - 1) * self::PER_PAGE);
 
         $this->view('courses.index', [
-            'pageTitle'     => '全部课程',
+            'pageTitle'     => t('全部课程'),
             'categories'    => Category::all(),
             'tags'          => Course::allTags(),
             'courses'       => $courses,
@@ -69,7 +69,7 @@ final class CourseController extends Controller
         $course   = $courseId > 0 ? Course::findPublished($courseId) : null;
 
         if ($course === null) {
-            abort(404, '课程不存在或已下架。');
+            abort(404, t('课程不存在或已下架。'));
         }
 
         Course::incrementViews($courseId);

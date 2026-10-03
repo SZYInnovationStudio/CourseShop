@@ -77,18 +77,24 @@ final class Mailer
      */
     public static function sendCode(string $to, string $code, string $scene = 'bind'): bool
     {
-        $siteName   = Setting::string('site_name', 'CourseShop');
-        $ttlMinutes = (int) ceil(max(60, Setting::int('mail_code_ttl', 600)) / 60);
-        $action     = $scene === 'reset' ? '找回密码' : '绑定邮箱';
+        $siteName = Setting::string('site_name', 'CourseShop');
+        $locale   = self::recipientLocale($to);
 
-        $subject = $siteName . ' - 邮箱验证码';
+        [$subject, $html] = I18n::withLocale($locale, static function () use ($code, $scene, $siteName): array {
+            $ttlMinutes = (int) ceil(max(60, Setting::int('mail_code_ttl', 600)) / 60);
+            $action     = $scene === 'reset' ? t('找回密码') : t('绑定邮箱');
 
-        $html = '<p>你好，</p>'
-            . '<p>你正在执行「' . e($action) . '」操作，本次验证码为：</p>'
-            . '<p style="font-size:24px;font-weight:700;letter-spacing:6px;color:#4F6F52;">' . e($code) . '</p>'
-            . '<p>验证码 ' . $ttlMinutes . ' 分钟内有效，请勿泄露给他人。</p>'
-            . '<p>如果这不是你本人的操作，请忽略本邮件。</p>'
-            . '<p>—— ' . e($siteName) . '</p>';
+            $subject = $siteName . ' - ' . t('邮箱验证码');
+
+            $html = '<p>' . t('你好，') . '</p>'
+                . '<p>' . t('你正在执行「%s」操作，本次验证码为：', [e($action)]) . '</p>'
+                . '<p style="font-size:24px;font-weight:700;letter-spacing:6px;color:#4F6F52;">' . e($code) . '</p>'
+                . '<p>' . t('验证码 %d 分钟内有效，请勿泄露给他人。', [$ttlMinutes]) . '</p>'
+                . '<p>' . t('如果这不是你本人的操作，请忽略本邮件。') . '</p>'
+                . '<p>—— ' . e($siteName) . '</p>';
+
+            return [$subject, $html];
+        });
 
         if (!self::validate($to, $subject)) {
             return false;
@@ -329,6 +335,28 @@ final class Mailer
         $host = (string) preg_replace('/[^A-Za-z0-9.\-]/', '', $host);
 
         return $host === '' ? 'localhost' : $host;
+    }
+
+    /**
+     * 依据收件邮箱解析语言偏好（未注册或未设置时回退当前语言）
+     */
+    private static function recipientLocale(string $email): string
+    {
+        try {
+            $row = Database::first(
+                'SELECT `locale` FROM `users` WHERE `email` = ? AND `deleted_at` IS NULL LIMIT 1',
+                [$email]
+            );
+
+            $code = (string) ($row['locale'] ?? '');
+            if ($code !== '' && I18n::isSupported($code)) {
+                return $code;
+            }
+        } catch (Throwable $e) {
+            // 查询失败不影响发信，回退当前语言
+        }
+
+        return I18n::current();
     }
 
     private static function log(string $to, string $subject, string $status, string $error = ''): void

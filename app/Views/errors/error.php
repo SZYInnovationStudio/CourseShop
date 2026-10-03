@@ -12,23 +12,23 @@ declare(strict_types=1);
  */
 
 $titles = [
-    400 => '请求无效',
-    401 => '需要登录',
-    403 => '无权访问',
-    405 => '请求方法不被允许',
-    419 => '页面已过期',
-    429 => '请求过于频繁',
+    400 => t('请求无效'),
+    401 => t('需要登录'),
+    403 => t('无权访问'),
+    405 => t('请求方法不被允许'),
+    419 => t('页面已过期'),
+    429 => t('请求过于频繁'),
 ];
 
-$title = $titles[(int) ($status ?? 400)] ?? '请求无法完成';
+$title = $titles[(int) ($status ?? 400)] ?? t('请求无法完成');
 ?>
 <div class="error-page">
     <div class="error-page__code" aria-hidden="true"><?= (int) ($status ?? 400) ?></div>
     <h1 class="error-page__title"><?= e($title) ?></h1>
-    <p class="error-page__message"><?= e($message ?? '请求无法完成，请返回后重试。') ?></p>
+    <p class="error-page__message"><?= e($message ?? t('请求无法完成，请返回后重试。')) ?></p>
 
     <div class="btn-group mt-6">
-        <a class="btn" href="<?= url('/') ?>">返回首页</a>
-        <a class="btn btn--outline" href="<?= url('/courses') ?>">浏览课程</a>
+        <a class="btn" href="<?= url('/') ?>"><?= e(t('返回首页')) ?></a>
+        <a class="btn btn--outline" href="<?= url('/courses') ?>"><?= e(t('浏览课程')) ?></a>
     </div>
 </div>
