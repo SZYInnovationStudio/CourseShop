@@ -75,7 +75,9 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.ver.outputs.image }}:${{ steps.ver.outputs.current }}
+          tags: |
+            ${{ steps.ver.outputs.image }}:${{ steps.ver.outputs.current }}
+            ${{ steps.ver.outputs.image }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
