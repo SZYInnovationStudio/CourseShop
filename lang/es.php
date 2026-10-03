@@ -602,4 +602,10 @@ return [
     '无法扫码？展开手动输入' => '¿No puedes escanear? Introduce la clave manualmente',
     '管理员账号无需提交工单，请通过后台管理工单。' => 'Las cuentas de administrador no necesitan enviar tickets; gestiónalos en el panel de administración.',
     '套餐功能已关闭，暂不可购买。' => 'Los paquetes no están disponibles por ahora.',
+    '接下来：%s' => 'A continuación: %s',
+    '%d 秒后自动播放' => 'Reproducción automática en %d segundos',
+    '立即播放' => 'Reproducir ahora',
+    '本章已学完' => 'Capítulo completado',
+    '按 Esc 可取消自动播放' => 'Pulsa Esc para cancelar la reproducción automática',
+'点击继续播放' => 'Haz clic para reproducir',
 ];

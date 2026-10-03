@@ -586,6 +586,44 @@
             }
         });
 
+        /* ---------------- 自动播放（由上一节自动跳转而来时） ---------------- */
+        var playHint = player.querySelector('[data-playhint]');
+        var autoPlayNext = player.getAttribute('data-autoplay') === '1';
+
+        var showPlayHint = function () {
+            if (playHint) {
+                playHint.hidden = false;
+            }
+        };
+
+        if (playHint) {
+            var playHintButton = playHint.querySelector('[data-playhint-button]');
+
+            if (playHintButton) {
+                playHintButton.addEventListener('click', function () {
+                    playHint.hidden = true;
+                    video.play();
+                });
+            }
+        }
+
+        if (autoPlayNext) {
+            var attemptPlay = function () {
+                var promise = video.play();
+
+                // 浏览器拦截自动播放（无用户手势）时，给一个「点击继续播放」入口
+                if (promise && typeof promise.catch === 'function') {
+                    promise.catch(showPlayHint);
+                }
+            };
+
+            if (video.readyState >= 1) {
+                attemptPlay();
+            } else {
+                video.addEventListener('loadedmetadata', attemptPlay, { once: true });
+            }
+        }
+
         var report = function (force) {
             var position = Math.max(0, Math.floor(video.currentTime || 0));
             var duration = Math.max(0, Math.floor(video.duration || 0));
@@ -654,6 +692,135 @@
         });
 
         window.addEventListener('pagehide', function () { report(true); });
+
+        /* ---------------- 播完自动进入下一节（5 秒倒计时，可随时取消） ---------------- */
+        var nextUrl = player.getAttribute('data-next-url') || '';
+        // 自动跳转时带上 autoplay 标记，让下一节尝试自动播放
+        var nextUrlAuto = nextUrl === '' ? '' : nextUrl + (nextUrl.indexOf('?') === -1 ? '?' : '&') + 'autoplay=1';
+        var autoNextBox = player.querySelector('[data-autonext]');
+        var autoNextCountdown = autoNextBox ? autoNextBox.querySelector('[data-autonext-countdown]') : null;
+        var autoNextTimer = null;
+        var AUTO_NEXT_SECONDS = 5;
+
+        var cancelAutoNext = function () {
+            if (autoNextTimer) {
+                window.clearInterval(autoNextTimer);
+                autoNextTimer = null;
+            }
+
+            if (autoNextBox) {
+                autoNextBox.hidden = true;
+            }
+        };
+
+        var startAutoNext = function () {
+            if (!autoNextBox || !autoNextCountdown || nextUrl === '') {
+                return;
+            }
+
+            var template = autoNextBox.getAttribute('data-countdown-template') || '%d';
+            var remaining = AUTO_NEXT_SECONDS;
+
+            autoNextBox.hidden = false;
+            autoNextCountdown.textContent = template.replace('%d', String(remaining));
+
+            autoNextTimer = window.setInterval(function () {
+                remaining -= 1;
+
+                if (remaining <= 0) {
+                    window.clearInterval(autoNextTimer);
+                    autoNextTimer = null;
+                    window.location.href = nextUrlAuto;
+                    return;
+                }
+
+                autoNextCountdown.textContent = template.replace('%d', String(remaining));
+            }, 1000);
+        };
+
+        if (autoNextBox) {
+            var autoNextCancel = autoNextBox.querySelector('[data-autonext-cancel]');
+
+            if (autoNextCancel) {
+                autoNextCancel.addEventListener('click', cancelAutoNext);
+            }
+        }
+
+        // 用户回看、重播或拖动进度时取消自动切换
+        ['play', 'seeking'].forEach(function (name) {
+            video.addEventListener(name, cancelAutoNext);
+        });
+
+        video.addEventListener('ended', function () {
+            var status = player.querySelector('[data-video-status]');
+            var finishedLabel = status ? status.getAttribute('data-label-finished') : '';
+
+            // 最后一节没有下一节可播，改为提示本章已学完
+            if (nextUrl === '' && status && finishedLabel) {
+                status.textContent = finishedLabel;
+            }
+
+            startAutoNext();
+        });
+
+        /* ---------------- 键盘快捷键（鼠标悬停播放器或视频获得焦点时生效） ---------------- */
+        var playerActive = false;
+
+        player.addEventListener('mouseenter', function () { playerActive = true; });
+        player.addEventListener('mouseleave', function () { playerActive = false; });
+        video.addEventListener('focus', function () { playerActive = true; });
+        video.addEventListener('blur', function () { playerActive = false; });
+
+        document.addEventListener('keydown', function (event) {
+            var target = event.target;
+
+            // 输入框内不拦截，避免影响站内搜索等操作
+            if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA'
+                || target.tagName === 'SELECT' || target.isContentEditable)) {
+                return;
+            }
+
+            if (event.ctrlKey || event.metaKey || event.altKey) {
+                return;
+            }
+
+            if (event.key === 'Escape') {
+                if (autoNextBox && !autoNextBox.hidden) {
+                    cancelAutoNext();
+                }
+
+                return;
+            }
+
+            if (!playerActive) {
+                return;
+            }
+
+            if (event.key === ' ' || event.key === 'k' || event.key === 'K') {
+                if (video.paused) {
+                    video.play();
+                } else {
+                    video.pause();
+                }
+
+                event.preventDefault();
+                return;
+            }
+
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                var step = event.key === 'ArrowLeft' ? -5 : 5;
+                var limit = isFinite(video.duration) ? Math.max(0, video.duration - 0.5) : Infinity;
+                var position = Math.min(Math.max(0, (video.currentTime || 0) + step), limit);
+
+                try {
+                    video.currentTime = position;
+                } catch (e) {
+                    /* 元数据未就绪时忽略 */
+                }
+
+                event.preventDefault();
+            }
+        });
     }
 
     /* ---------------- 移动端底部抽屉（筛选 / 排序等） ---------------- */

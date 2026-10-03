@@ -602,4 +602,10 @@ return [
     '无法扫码？展开手动输入' => 'Cannot scan? Enter the key manually',
     '管理员账号无需提交工单，请通过后台管理工单。' => 'Administrator accounts do not need to submit tickets; manage tickets in the admin panel.',
     '套餐功能已关闭，暂不可购买。' => 'Packages are currently unavailable.',
+    '接下来：%s' => 'Up next: %s',
+    '%d 秒后自动播放' => 'Auto-playing in %d seconds',
+    '立即播放' => 'Play now',
+    '本章已学完' => 'Chapter completed',
+    '按 Esc 可取消自动播放' => 'Press Esc to cancel auto-play',
+'点击继续播放' => 'Click to play',
 ];

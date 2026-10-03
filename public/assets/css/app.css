@@ -1907,6 +1907,76 @@ a.chapter-item__title:hover { color: var(--color-primary-strong); }
 
 .player__status.is-visible { opacity: 1; }
 
+/* 自动播放下一节浮层（5 秒倒计时，可取消） */
+.player__autonext {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    background: rgba(14, 18, 16, 0.84);
+    color: #E7EAE7;
+    text-align: center;
+}
+
+.player__autonext[hidden] { display: none; }
+
+.player__autonext-title {
+    margin: 0;
+    font-size: var(--text-base);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.player__autonext-countdown {
+    margin: 0;
+    color: #A9B2AE;
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+}
+
+.player__autonext-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+}
+
+.player__autonext-hint {
+    margin: 0;
+    color: #8D9691;
+    font-size: var(--text-xs);
+}
+
+.player__autonext-actions .btn--outline {
+    color: #E7EAE7;
+    border-color: rgba(231, 234, 231, 0.42);
+    background: transparent;
+}
+
+.player__autonext-actions .btn--outline:hover {
+    border-color: #E7EAE7;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* 浏览器拦截自动播放时的「点击继续播放」入口 */
+.player__playhint {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(14, 18, 16, 0.62);
+}
+
+.player__playhint[hidden] { display: none; }
+
 /* 移动端：播放器通栏占满，忽略容器内边距 */
 @media (max-width: 559px) {
     .player {

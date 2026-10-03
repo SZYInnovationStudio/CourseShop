@@ -43,6 +43,25 @@ foreach ($chapters as $item) {
 $position = array_search((int) $currentId, $playableIds, true);
 $prevId   = $position !== false && $position > 0 ? $playableIds[$position - 1] : 0;
 $nextId   = $position !== false && $position < count($playableIds) - 1 ? $playableIds[$position + 1] : 0;
+
+// 自动播放下一节所需的地址与标题（无可播放的下一节时为空）
+$nextUrl   = '';
+$nextTitle = '';
+
+if ($nextId > 0) {
+    foreach ($chapters as $item) {
+        if ((int) $item['id'] === $nextId) {
+            $nextTitle = (string) $item['title'];
+            break;
+        }
+    }
+
+    $nextUrl = url('/course/' . $courseId . '/learn/' . $nextId);
+}
+
+// 由「播完自动下一节」跳转而来时尝试自动播放
+$autoPlayNext  = (string) ($_GET['autoplay'] ?? '') === '1';
+$nextUrlAuto   = $nextUrl === '' ? '' : $nextUrl . '?autoplay=1';
 ?>
 <div class="container">
     <nav class="breadcrumb" aria-label="<?= e(t('面包屑导航')) ?>">
@@ -64,7 +83,9 @@ $nextId   = $position !== false && $position < count($playableIds) - 1 ? $playab
                  data-progress-url="<?= e($progressUrl) ?>"
                  data-resume="<?= (int) $resume ?>"
                  data-hls="<?= e($hlsUrl) ?>"
-                 data-mp4="<?= e($videoUrl) ?>">
+                 data-mp4="<?= e($videoUrl) ?>"
+                 data-next-url="<?= e($nextUrl) ?>"
+                 data-autoplay="<?= $autoPlayNext ? '1' : '0' ?>">
                 <?php if ($hasVideo): ?>
                     <video class="player__video"
                            controls
@@ -74,7 +95,25 @@ $nextId   = $position !== false && $position < count($playableIds) - 1 ? $playab
                            <?php if ($cover !== ''): ?>poster="<?= e($cover) ?>"<?php endif; ?>
                            <?php if ($initialSrc !== ''): ?>src="<?= e($initialSrc) ?>"<?php endif; ?>></video>
 
-                    <p class="player__status" data-video-status hidden><?= e(t('进度已记录')) ?></p>
+                    <p class="player__status" data-video-status hidden
+                       data-label-finished="<?= e(t('本章已学完')) ?>"><?= e(t('进度已记录')) ?></p>
+
+                    <div class="player__playhint" data-playhint hidden>
+                        <button type="button" class="btn" data-playhint-button><?= e(t('点击继续播放')) ?></button>
+                    </div>
+
+                    <?php if ($nextUrl !== ''): ?>
+                        <div class="player__autonext" data-autonext hidden
+                             data-countdown-template="<?= e(t('%d 秒后自动播放')) ?>">
+                            <p class="player__autonext-title"><?= e(t('接下来：%s', [$nextTitle])) ?></p>
+                            <p class="player__autonext-countdown" data-autonext-countdown></p>
+                            <div class="player__autonext-actions">
+                                <a class="btn btn--sm" href="<?= e($nextUrlAuto) ?>" data-autonext-play><?= e(t('立即播放')) ?></a>
+                                <button type="button" class="btn btn--outline btn--sm" data-autonext-cancel><?= e(t('取消')) ?></button>
+                            </div>
+                            <p class="player__autonext-hint"><?= e(t('按 Esc 可取消自动播放')) ?></p>
+                        </div>
+                    <?php endif; ?>
                 <?php else: ?>
                     <div class="player__empty">
                         <p><?= e(t('本章节暂时没有可播放的视频。')) ?></p>
