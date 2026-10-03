@@ -17,15 +17,18 @@ jobs:
     name: Build & push image
     runs-on: ubuntu-latest
     permissions:
-      contents: write # 构建完成后需要把新版本号提交回仓库
+      contents: write # 构建完成后需要推送版本 tag
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 需要读取全部 git tag 来推算版本号
 
       # 版本规则：major.minor.patch，每段一位数，满 10 向左进 1
       # 例：1.0.8 -> 1.0.9 -> 1.1.0 -> ... -> 1.9.9 -> 2.0.0
-      # 本次构建用 VERSION 里的当前值打标签，写完新值供下次构建使用
+      # 版本号以 git tag 形式保存，不产生任何机器人提交；
+      # 首次还没有 tag 时，用 VERSION 文件里的值作为起点
       # 需在仓库 Secrets 中配置 DOCKERHUB_USERNAME 与 DOCKERHUB_TOKEN
       - name: Resolve image & version
         id: ver
@@ -36,7 +39,10 @@ jobs:
 
           image="${DOCKERHUB_USERNAME,,}/courseshop"
 
-          current=$(tr -d '[:space:]' < VERSION)
+          current=$(git tag --list | sort -V | tail -n1)
+          if [ -z "$current" ]; then
+            current=$(tr -d '[:space:]' < VERSION)
+          fi
           IFS='.' read -r major minor patch <<< "$current"
 
           if [ "$patch" -ge 9 ]; then
@@ -49,12 +55,10 @@ jobs:
             minor=0
             major=$((major + 1))
           fi
-          next="${major}.${minor}.${patch}"
+          version="${major}.${minor}.${patch}"
 
-          echo "$next" > VERSION
           echo "image=$image" >> "$GITHUB_OUTPUT"
-          echo "current=$current" >> "$GITHUB_OUTPUT"
-          echo "next=$next" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -76,18 +80,14 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ steps.ver.outputs.image }}:${{ steps.ver.outputs.current }}
+            ${{ steps.ver.outputs.image }}:${{ steps.ver.outputs.version }}
             ${{ steps.ver.outputs.image }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # 镜像推送成功后再提交新版本号，构建失败则版本号不前进
-      # 用 GITHUB_TOKEN 提交不会再次触发本工作流
-      - name: Commit next version
+      # 镜像推送成功后再打版本 tag，构建失败则版本号不前进
+      - name: Push version tag
         if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add VERSION
-          git commit -m "chore: 版本号更新至 ${{ steps.ver.outputs.next }} [skip ci]"
-          git push
+          git tag "${{ steps.ver.outputs.version }}"
+          git push origin "${{ steps.ver.outputs.version }}"
