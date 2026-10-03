@@ -3,12 +3,11 @@ name: Docker Image
 on:
   push:
     branches: [ main, master ]
-    tags: [ 'v*' ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
 
-# 同一分支/标签只保留最近一次构建，新构建会取消上一次未完成的运行
+# 同一分支只保留最近一次构建，新构建会取消上一次未完成的运行
 concurrency:
   group: docker-${{ github.ref }}
   cancel-in-progress: true
@@ -17,17 +16,45 @@ jobs:
   build:
     name: Build & push image
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # 构建完成后需要把新版本号提交回仓库
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Docker Hub 仓库名必须全小写，统一转成小写后供后续步骤使用
+      # 版本规则：major.minor.patch，每段一位数，满 10 向左进 1
+      # 例：1.0.8 -> 1.0.9 -> 1.1.0 -> ... -> 1.9.9 -> 2.0.0
+      # 本次构建用 VERSION 里的当前值打标签，写完新值供下次构建使用
       # 需在仓库 Secrets 中配置 DOCKERHUB_USERNAME 与 DOCKERHUB_TOKEN
-      - name: Resolve image name
+      - name: Resolve image & version
+        id: ver
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-        run: echo "IMAGE_NAME=${DOCKERHUB_USERNAME,,}/courseshop" >> "$GITHUB_ENV"
+        run: |
+          set -euo pipefail
+
+          image="${DOCKERHUB_USERNAME,,}/courseshop"
+
+          current=$(tr -d '[:space:]' < VERSION)
+          IFS='.' read -r major minor patch <<< "$current"
+
+          if [ "$patch" -ge 9 ]; then
+            patch=0
+            minor=$((minor + 1))
+          else
+            patch=$((patch + 1))
+          fi
+          if [ "$minor" -ge 10 ]; then
+            minor=0
+            major=$((major + 1))
+          fi
+          next="${major}.${minor}.${patch}"
+
+          echo "$next" > VERSION
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+          echo "next=$next" >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -42,26 +69,23 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Generate tags & labels
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha,format=short
-            type=raw,value=latest,enable={{is_default_branch}}
-
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.ver.outputs.image }}:${{ steps.ver.outputs.current }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # 镜像推送成功后再提交新版本号，构建失败则版本号不前进
+      # 用 GITHUB_TOKEN 提交不会再次触发本工作流
+      - name: Commit next version
+        if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add VERSION
+          git commit -m "chore: 版本号更新至 ${{ steps.ver.outputs.next }} [skip ci]"
+          git push
