@@ -1,0 +1,22 @@
+# 版本控制与编辑器
+.git
+.github
+.idea
+.vscode
+
+# 本地环境与密钥
+.env
+.dev
+
+# 运行时产物（镜像启动时会自动创建目录）
+storage/installed.lock
+storage/logs/*
+storage/cache/*
+storage/uploads/*
+storage/private/*
+storage/backups/*
+public/uploads/*
+*.log
+
+# 本地开发脚本
+scripts
