@@ -25,7 +25,8 @@ $creditLine = static function (string $template, array $args) use ($studioLink):
 $beian      = Setting::string('site_beian', '');
 $gongan     = Setting::string('site_gongan', '');
 $gonganUrl  = Setting::string('site_gongan_url', '');
-$sourceUrl  = Setting::string('footer_open_source_url', '');
+// 开源地址为项目固定信息，写死不允许后台修改
+$sourceUrl  = 'https://github.com/SZYInnovationStudio/CourseShop';
 ?>
 <footer class="site-footer">
     <div class="container">
@@ -80,9 +81,7 @@ $sourceUrl  = Setting::string('footer_open_source_url', '');
                 <?php if ($gongan !== ''): ?>
                     <a href="<?= e($gonganUrl !== '' ? $gonganUrl : 'https://beian.mps.gov.cn/') ?>" target="_blank" rel="noopener noreferrer"><?= e($gongan) ?></a>
                 <?php endif; ?>
-                <?php if ($sourceUrl !== ''): ?>
-                    <a href="<?= e($sourceUrl) ?>" target="_blank" rel="noopener noreferrer"><?= e(t('开源地址')) ?></a>
-                <?php endif; ?>
+                <a href="<?= e($sourceUrl) ?>" target="_blank" rel="noopener noreferrer"><?= e(t('开源地址')) ?></a>
             </div>
         </div>
     </div>

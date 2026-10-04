@@ -393,7 +393,6 @@ return [
     '类型选择「基于时间（TOTP）」，位数 6 位，周期 30 秒。' => 'Elige el tipo «Basado en tiempo (TOTP)», 6 dígitos, periodo de 30 segundos.',
     '精选优质课程，助你高效掌握实用技能。' => 'Cursos seleccionados para dominar habilidades prácticas con eficacia.',
     '精选课程' => 'Cursos destacados',
-    '系统学习，从入门到实战' => 'Aprende de forma sistemática, de cero a la práctica',
     '系统需保留至少一名管理员，无法注销当前账号。' => 'El sistema debe conservar al menos un administrador, así que esta cuenta no se puede eliminar.',
     '组合购买更划算，一次开通多门课程' => 'Comprar en conjunto sale mejor: desbloquea varios cursos de una vez',
     '组合购买更划算，一次开通套餐内全部课程' => 'Comprar en conjunto sale mejor: desbloquea todos los cursos del paquete de una vez',

@@ -292,13 +292,13 @@ final class SettingsController extends AdminController
                 'desc'  => '站点名称、SEO 信息与页脚展示内容。',
                 'fields' => [
                     ['key' => 'site_name', 'label' => '站点名称', 'type' => 'text', 'required' => true, 'max' => 50, 'default' => 'CourseShop'],
+                    ['key' => 'site_hero_title', 'label' => '首页主标题', 'type' => 'text', 'max' => 100, 'default' => '系统学习，从入门到实战', 'hint' => '显示在首页顶部的大标题。'],
                     ['key' => 'site_description', 'label' => '站点简介', 'type' => 'textarea', 'max' => 255, 'default' => '', 'hint' => '用于首页与搜索结果的站点描述。'],
                     ['key' => 'site_keywords', 'label' => 'SEO 关键词', 'type' => 'text', 'max' => 255, 'default' => '', 'hint' => '多个关键词用英文逗号分隔。'],
                     ['key' => 'site_logo', 'label' => '站点 Logo', 'type' => 'image', 'subdir' => 'logo', 'max' => 255, 'default' => '', 'hint' => '可直接填写图片地址，或选择本地图片上传；留空则使用文字标识与默认图标。'],
                     ['key' => 'site_beian', 'label' => 'ICP 备案号', 'type' => 'text', 'max' => 50, 'default' => '', 'hint' => '留空则不显示。'],
                     ['key' => 'site_gongan', 'label' => '公网安备号', 'type' => 'text', 'max' => 50, 'default' => '', 'hint' => '留空则不显示。'],
                     ['key' => 'site_gongan_url', 'label' => '公网安备查询地址', 'type' => 'text', 'max' => 255, 'default' => 'https://beian.mps.gov.cn'],
-                    ['key' => 'footer_open_source_url', 'label' => '开源地址', 'type' => 'text', 'max' => 255, 'default' => ''],
                 ],
             ],
             'security' => [

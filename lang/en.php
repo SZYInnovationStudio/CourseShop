@@ -393,7 +393,6 @@ return [
     '类型选择「基于时间（TOTP）」，位数 6 位，周期 30 秒。' => 'Choose the "Time-based (TOTP)" type, 6 digits, 30-second period.',
     '精选优质课程，助你高效掌握实用技能。' => 'Handpicked courses to help you master practical skills efficiently.',
     '精选课程' => 'Featured courses',
-    '系统学习，从入门到实战' => 'Learn systematically, from basics to real projects',
     '系统需保留至少一名管理员，无法注销当前账号。' => 'The system must keep at least one administrator, so this account cannot be deleted.',
     '组合购买更划算，一次开通多门课程' => 'Bundle and save—unlock multiple courses at once',
     '组合购买更划算，一次开通套餐内全部课程' => 'Bundle and save—unlock every course in the package at once',

@@ -11,13 +11,13 @@ SET NAMES utf8mb4;
 INSERT IGNORE INTO `settings` (`key`, `value`, `group_name`, `description`) VALUES
 -- 站点信息
 ('site_name',              'CourseShop',                                     'site',     '站点名称'),
+('site_hero_title',        '系统学习，从入门到实战',                          'site',     '首页主标题'),
 ('site_description',       '专注实用技术的在线课程平台',                       'site',     '站点简介'),
 ('site_logo',              '',                                               'site',     '站点 Logo 地址，留空使用文字标识与默认图标'),
 ('site_keywords',          '课程,在线学习,编程,video',                        'site',     'SEO 关键词'),
 ('site_beian',             '',                                               'site',     'ICP 备案号（留空则不显示）'),
 ('site_gongan',            '',                                               'site',     '公网安备号（留空则不显示）'),
 ('site_gongan_url',        'https://beian.mps.gov.cn',                        'site',     '公网安备查询地址'),
-('footer_open_source_url', 'https://github.com/SZYInnovationStudio/CourseShop', 'site',  '开源地址'),
 -- 注册与账户
 ('register_enabled',       '1',                                              'security', '是否开放新用户注册'),
 ('register_email_verify',  '1',                                              'security', '注册是否必须完成邮箱验证'),
