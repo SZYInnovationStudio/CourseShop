@@ -1424,19 +1424,24 @@
                 player.addEventListener(name, wakeControls);
             });
 
-            /* 缓冲指示：等待数据时显示 */
+            /* 缓冲指示：仅在真正等待数据时显示 */
             var setSpinner = function (visible) {
-                if (spinner) {
+                if (spinner && spinner.hidden === visible) {
                     spinner.hidden = !visible;
                 }
             };
 
+            // 只把 waiting 当作缓冲信号：stalled 在 MSE(hls.js) 与已缓冲完的 mp4 上
+            // 会被浏览器误触发，重放时加载图标会一直挂在画面中间
             video.addEventListener('waiting', function () { setSpinner(true); });
-            video.addEventListener('stalled', function () { setSpinner(true); });
             video.addEventListener('playing', function () { setSpinner(false); });
             video.addEventListener('canplay', function () { setSpinner(false); });
+            video.addEventListener('canplaythrough', function () { setSpinner(false); });
+            video.addEventListener('seeked', function () { setSpinner(false); });
             video.addEventListener('pause', function () { setSpinner(false); });
             video.addEventListener('error', function () { setSpinner(false); });
+            // 兜底：时间在推进就说明没有卡在缓冲，任何异常路径都不把图标留在屏幕上
+            video.addEventListener('timeupdate', function () { setSpinner(false); });
 
             /* 初始化完成：移除原生控件，启用自绘控件条（失败时保留原生控件兜底） */
             video.removeAttribute('controls');
