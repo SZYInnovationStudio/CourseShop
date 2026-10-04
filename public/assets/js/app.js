@@ -506,18 +506,24 @@
             document.head.appendChild(script);
         };
 
-        var setupHls = function (url, fallbackUrl) {
-            var instance = null;
+        // 当前 hls.js 实例：页内切换章节换源前必须先销毁，避免旧实例继续拉流
+        var hlsInstance = null;
 
-            var fallback = function () {
-                if (instance) {
-                    try {
-                        instance.destroy();
-                    } catch (e) {
-                        /* 忽略销毁异常 */
-                    }
-                    instance = null;
+        var destroyHls = function () {
+            if (hlsInstance) {
+                try {
+                    hlsInstance.destroy();
+                } catch (e) {
+                    /* 忽略销毁异常 */
                 }
+
+                hlsInstance = null;
+            }
+        };
+
+        var setupHls = function (url, fallbackUrl) {
+            var fallback = function () {
+                destroyHls();
 
                 if (fallbackUrl !== '' && video.getAttribute('src') !== fallbackUrl) {
                     video.src = fallbackUrl;
@@ -530,16 +536,16 @@
                     return false;
                 }
 
-                instance = new window.Hls({ maxBufferLength: 30, enableWorker: true });
+                hlsInstance = new window.Hls({ maxBufferLength: 30, enableWorker: true });
 
-                instance.on(window.Hls.Events.ERROR, function (event, data) {
+                hlsInstance.on(window.Hls.Events.ERROR, function (event, data) {
                     if (data && data.fatal) {
                         fallback();
                     }
                 });
 
-                instance.loadSource(url);
-                instance.attachMedia(video);
+                hlsInstance.loadSource(url);
+                hlsInstance.attachMedia(video);
                 return true;
             };
 
@@ -552,6 +558,27 @@
                     fallback();
                 }
             });
+        };
+
+        // 页内换源：Safari 用原生 HLS，其余浏览器走 hls.js，最终兜底 mp4
+        var applySource = function (mp4, hls) {
+            destroyHls();
+
+            if (hls !== '' && video.canPlayType('application/vnd.apple.mpegurl') !== '') {
+                video.src = hls;
+                video.load();
+                return;
+            }
+
+            if (hls !== '' && (window.MediaSource || window.WebKitMediaSource)) {
+                video.removeAttribute('src');
+                video.load();
+                setupHls(hls, mp4);
+                return;
+            }
+
+            video.src = mp4;
+            video.load();
         };
 
         var hlsUrl = player.getAttribute('data-hls') || '';
@@ -598,9 +625,17 @@
         var playHint = player.querySelector('[data-playhint]');
         var autoPlayNext = player.getAttribute('data-autoplay') === '1';
 
+        // 浮层（自动播放提示 / 自动下一节）显示时隐藏中央播放按钮，避免两个播放按钮互相叠加
+        var syncOverlayClass = function () {
+            var hintVisible = playHint && !playHint.hidden;
+            var nextVisible = autoNextBox && !autoNextBox.hidden;
+            player.classList.toggle('has-overlay', !!(hintVisible || nextVisible));
+        };
+
         var showPlayHint = function () {
             if (playHint) {
                 playHint.hidden = false;
+                syncOverlayClass();
             }
         };
 
@@ -610,13 +645,15 @@
             if (playHintButton) {
                 playHintButton.addEventListener('click', function () {
                     playHint.hidden = true;
+                    syncOverlayClass();
                     video.play();
                 });
             }
 
-            // 用户通过原生控制条自行播放时同样收起提示
+            // 用户通过控件条或画面点击自行播放时同样收起提示
             video.addEventListener('play', function () {
                 playHint.hidden = true;
+                syncOverlayClass();
             });
         }
 
@@ -724,6 +761,8 @@
             if (autoNextBox) {
                 autoNextBox.hidden = true;
             }
+
+            syncOverlayClass();
         };
 
         var startAutoNext = function () {
@@ -738,6 +777,7 @@
             var remaining = AUTO_NEXT_SECONDS;
 
             autoNextBox.hidden = false;
+            syncOverlayClass();
             autoNextCountdown.textContent = template.replace('%d', String(remaining));
 
             autoNextTimer = window.setInterval(function () {
@@ -746,7 +786,7 @@
                 if (remaining <= 0) {
                     window.clearInterval(autoNextTimer);
                     autoNextTimer = null;
-                    window.location.href = nextUrlAuto;
+                    gotoNextChapter();
                     return;
                 }
 
@@ -759,6 +799,18 @@
 
             if (autoNextCancel) {
                 autoNextCancel.addEventListener('click', cancelAutoNext);
+            }
+
+            // 全屏下点「立即播放」同样走页内切换，避免整页跳转退出全屏
+            var autoNextPlay = autoNextBox.querySelector('[data-autonext-play]');
+
+            if (autoNextPlay) {
+                autoNextPlay.addEventListener('click', function (event) {
+                    if (inFullscreen() && nextUrl !== '') {
+                        event.preventDefault();
+                        switchChapter(nextUrl);
+                    }
+                });
             }
         }
 
@@ -776,8 +828,626 @@
                 status.textContent = finishedLabel;
             }
 
+            // iPhone 原生视频全屏（webkitEnterFullscreen）下页面浮层不可见：
+            // 播放结束后主动退出全屏，让「自动下一节」倒计时在当前页面正常显示
+            if (video.webkitDisplayingFullscreen && typeof video.webkitExitFullscreen === 'function') {
+                try {
+                    video.webkitExitFullscreen();
+                } catch (e) {
+                    /* 退出失败时忽略，不影响后续逻辑 */
+                }
+            }
+
+            // 收起倍速菜单：避免倒计时与页内切换后残留上一节的浮层
+            if (typeof closeSpeedMenu === 'function') {
+                closeSpeedMenu();
+            }
+
             startAutoNext();
         });
+
+        /* ---------------- 页内切换章节：全屏下自动下一节时保持全屏，不做整页跳转 ---------------- */
+        var inFullscreen = function () {
+            return !!(document.fullscreenElement || document.webkitFullscreenElement);
+        };
+
+        var switchChapter = function (url) {
+            var target = url + (url.indexOf('?') === -1 ? '?' : '&') + 'autoplay=1';
+            var spinnerEl = player.querySelector('[data-player-spinner]');
+
+            // 收起倒计时浮层与倍速菜单，并给出加载指示，等待下一节的页面数据
+            if (autoNextBox) {
+                autoNextBox.hidden = true;
+            }
+
+            if (typeof closeSpeedMenu === 'function') {
+                closeSpeedMenu();
+            }
+
+            syncOverlayClass();
+
+            if (spinnerEl) {
+                spinnerEl.hidden = false;
+            }
+
+            // 复用学习页本身：服务端渲染的数据（签名地址、续播位置、权限）即唯一事实来源
+            fetch(url, {
+                credentials: 'same-origin',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('bad status');
+                    }
+
+                    return response.text();
+                })
+                .then(function (html) {
+                    var doc = new DOMParser().parseFromString(html, 'text/html');
+                    var nextPlayer = doc.querySelector('[data-video-player]');
+                    var nextVideo = nextPlayer ? nextPlayer.querySelector('video') : null;
+
+                    if (!nextPlayer || !nextVideo) {
+                        throw new Error('player not found');
+                    }
+
+                    var nextMp4 = nextPlayer.getAttribute('data-mp4') || '';
+                    var nextHls = nextPlayer.getAttribute('data-hls') || '';
+
+                    if (nextMp4 === '' && nextHls === '') {
+                        throw new Error('source not found');
+                    }
+
+                    // 同步播放器上的服务端数据：进度上报地址、续播位置、下一节信息
+                    ['data-progress-url', 'data-resume', 'data-hls', 'data-mp4', 'data-next-url'].forEach(function (name) {
+                        player.setAttribute(name, nextPlayer.getAttribute(name) || '');
+                    });
+
+                    progressUrl = player.getAttribute('data-progress-url') || progressUrl;
+                    resumeSeconds = parseFloat(player.getAttribute('data-resume')) || 0;
+                    lastSent = -1;
+                    nextUrl = player.getAttribute('data-next-url') || '';
+                    nextUrlAuto = nextUrl === '' ? '' : nextUrl + (nextUrl.indexOf('?') === -1 ? '?' : '&') + 'autoplay=1';
+
+                    // 更新「自动下一节」浮层的标题、倒计时模板与立即播放链接
+                    var nextAutoNext = nextPlayer.querySelector('[data-autonext]');
+
+                    if (autoNextBox && nextAutoNext) {
+                        autoNextBox.setAttribute(
+                            'data-countdown-template',
+                            nextAutoNext.getAttribute('data-countdown-template') || '%d'
+                        );
+
+                        var nextTitleEl = nextAutoNext.querySelector('.player__autonext-title');
+                        var currentTitleEl = autoNextBox.querySelector('.player__autonext-title');
+
+                        if (nextTitleEl && currentTitleEl) {
+                            currentTitleEl.textContent = nextTitleEl.textContent;
+                        }
+
+                        var nextPlayEl = nextAutoNext.querySelector('[data-autonext-play]');
+                        var currentPlayEl = autoNextBox.querySelector('[data-autonext-play]');
+
+                        if (nextPlayEl && currentPlayEl) {
+                            currentPlayEl.setAttribute('href', nextPlayEl.getAttribute('href') || '');
+                        }
+                    }
+
+                    // 同步页面外壳：章节标题、上/下一节按钮、试看提示、续播说明、目录高亮、面包屑
+                    var currentMain = document.querySelector('.learn__main');
+                    var nextMain = doc.querySelector('.learn__main');
+
+                    if (currentMain && nextMain) {
+                        var currentHead = currentMain.querySelector('.learn__head');
+                        var nextHead = nextMain.querySelector('.learn__head');
+
+                        if (currentHead && nextHead) {
+                            currentHead.replaceWith(nextHead);
+                        }
+
+                        var syncBlock = function (selector) {
+                            var current = currentMain.querySelector(selector);
+                            var next = nextMain.querySelector(selector);
+
+                            if (current && next) {
+                                current.replaceWith(next);
+                            } else if (current) {
+                                current.remove();
+                            } else if (next) {
+                                var anchor = currentMain.querySelector('.learn__head');
+
+                                if (anchor) {
+                                    anchor.insertAdjacentElement('afterend', next);
+                                }
+                            }
+                        };
+
+                        syncBlock('.learn__resume');
+                        syncBlock('.alert');
+                    }
+
+                    var currentAside = document.querySelector('.learn__aside');
+                    var nextAside = doc.querySelector('.learn__aside');
+
+                    if (currentAside && nextAside) {
+                        currentAside.replaceWith(nextAside);
+                    }
+
+                    var currentCrumb = document.querySelector('nav.breadcrumb');
+                    var nextCrumb = doc.querySelector('nav.breadcrumb');
+
+                    if (currentCrumb && nextCrumb) {
+                        currentCrumb.replaceWith(nextCrumb);
+                    }
+
+                    if (doc.title !== '') {
+                        document.title = doc.title;
+                    }
+
+                    // 地址栏替换为当前章节：不新增历史记录，避免后退回到未更新的旧章节
+                    try {
+                        window.history.replaceState(null, '', url);
+                    } catch (e) {
+                        /* 忽略 */
+                    }
+
+                    // 换源并续播；自动播放被浏览器拦截时由「点击继续播放」浮层兜底
+                    var nextPoster = nextVideo.getAttribute('poster');
+
+                    if (nextPoster) {
+                        video.setAttribute('poster', nextPoster);
+                    } else {
+                        video.removeAttribute('poster');
+                    }
+
+                    // 续播位置随换源重新生效（首次加载时可能已错过 loadedmetadata 监听）
+                    video.addEventListener('loadedmetadata', function () {
+                        applyResume();
+                    }, { once: true });
+
+                    applySource(nextMp4, nextHls);
+
+                    var promise = video.play();
+
+                    if (promise && typeof promise.catch === 'function') {
+                        promise.catch(showPlayHint);
+                    }
+                })
+                .catch(function () {
+                    // 任何异常都退回整页跳转，保证一定能继续播放
+                    window.location.href = target;
+                });
+        };
+
+        var gotoNextChapter = function () {
+            if (nextUrl === '') {
+                return;
+            }
+
+            // 容器全屏下改为页内切换章节：整页跳转必然退出全屏
+            if (inFullscreen()) {
+                switchChapter(nextUrl);
+                return;
+            }
+
+            window.location.href = nextUrlAuto;
+        };
+
+        /* ---------------- 自定义播放器控件（初始化成功后接管原生控件） ---------------- */
+        var controlsBar = player.querySelector('[data-player-controls]');
+        var playButton = player.querySelector('[data-player-play]');
+        var muteButton = player.querySelector('[data-player-mute]');
+        var fullButton = player.querySelector('[data-player-fullscreen]');
+        var bigPlayButton = player.querySelector('[data-player-bigplay]');
+        var spinner = player.querySelector('[data-player-spinner]');
+        var seek = player.querySelector('[data-player-seek]');
+        var currentTimeLabel = player.querySelector('[data-player-current]');
+        var durationLabel = player.querySelector('[data-player-duration]');
+
+        if (controlsBar && playButton && seek) {
+            var formatClock = function (value) {
+                if (!isFinite(value) || value < 0) {
+                    value = 0;
+                }
+
+                var total = Math.floor(value);
+                var hours = Math.floor(total / 3600);
+                var minutes = Math.floor((total % 3600) / 60);
+                var seconds = total % 60;
+
+                var pad = function (part) {
+                    return part < 10 ? '0' + part : String(part);
+                };
+
+                return (hours > 0 ? hours + ':' + pad(minutes) : String(minutes)) + ':' + pad(seconds);
+            };
+
+            /* 播放 / 暂停 */
+            var syncPlayState = function () {
+                var paused = video.paused;
+                player.classList.toggle('is-paused', paused);
+
+                var label = playButton.getAttribute(paused ? 'data-label-play' : 'data-label-pause');
+                if (label) {
+                    playButton.setAttribute('aria-label', label);
+                }
+            };
+
+            var togglePlay = function () {
+                if (video.paused) {
+                    var promise = video.play();
+
+                    // 自动播放被拦截时静默处理，由「点击继续播放」浮层兜底
+                    if (promise && typeof promise.catch === 'function') {
+                        promise.catch(function () {});
+                    }
+                } else {
+                    video.pause();
+                }
+            };
+
+            playButton.addEventListener('click', togglePlay);
+
+            if (bigPlayButton) {
+                bigPlayButton.addEventListener('click', togglePlay);
+            }
+
+            // 点击画面任意位置播放 / 暂停（移动端主要交互）
+            video.addEventListener('click', togglePlay);
+
+            video.addEventListener('play', syncPlayState);
+            video.addEventListener('pause', syncPlayState);
+            video.addEventListener('ended', syncPlayState);
+
+            /* 进度条 */
+            var seeking = false;
+
+            var renderProgress = function () {
+                if (seeking) {
+                    return;
+                }
+
+                var duration = isFinite(video.duration) ? video.duration : 0;
+                var ratio = duration > 0 ? (video.currentTime || 0) / duration : 0;
+                var value = Math.max(0, Math.min(1000, Math.round(ratio * 1000)));
+
+                seek.value = String(value);
+                seek.style.setProperty('--player-fill', (value / 10) + '%');
+
+                if (currentTimeLabel) {
+                    currentTimeLabel.textContent = formatClock(video.currentTime || 0);
+                }
+            };
+
+            var renderDuration = function () {
+                if (durationLabel) {
+                    durationLabel.textContent = formatClock(video.duration || 0);
+                }
+
+                renderProgress();
+            };
+
+            seek.addEventListener('input', function () {
+                seeking = true;
+
+                var duration = video.duration;
+                var ratio = Number(seek.value) / 1000;
+
+                if (isFinite(duration) && duration > 0) {
+                    try {
+                        video.currentTime = ratio * duration;
+                    } catch (e) {
+                        /* 元数据未就绪时忽略 */
+                    }
+                }
+
+                seek.style.setProperty('--player-fill', (ratio * 100) + '%');
+
+                if (currentTimeLabel) {
+                    currentTimeLabel.textContent = formatClock(ratio * (isFinite(duration) ? duration : 0));
+                }
+            });
+
+            var finishSeek = function () {
+                seeking = false;
+                renderProgress();
+            };
+
+            seek.addEventListener('change', finishSeek);
+            seek.addEventListener('pointerup', finishSeek);
+            // 触摸被系统中断（来电、手势返回等）时同样结束拖动状态，避免进度条卡住
+            seek.addEventListener('pointercancel', finishSeek);
+            seek.addEventListener('blur', finishSeek);
+
+            video.addEventListener('timeupdate', renderProgress);
+            video.addEventListener('seeked', renderProgress);
+            video.addEventListener('durationchange', renderDuration);
+            video.addEventListener('loadedmetadata', renderDuration);
+
+            if (video.readyState >= 1) {
+                renderDuration();
+            }
+
+            /* 静音 */
+            var syncMuteState = function () {
+                player.classList.toggle('is-muted', video.muted || video.volume === 0);
+            };
+
+            if (muteButton) {
+                muteButton.addEventListener('click', function () {
+                    video.muted = !video.muted;
+                });
+            }
+
+            video.addEventListener('volumechange', syncMuteState);
+
+            /* 倍速播放：选择后记录到本地，切换章节后保持同一倍速 */
+            var RATE_KEY = 'courseshop-playback-rate';
+            var speedButton = player.querySelector('[data-player-speed]');
+            var speedLabel = player.querySelector('[data-player-speed-label]');
+            var speedMenu = player.querySelector('[data-player-speed-menu]');
+            var speedWrap = player.querySelector('[data-player-speed-wrap]');
+            var speedItems = speedMenu ? speedMenu.querySelectorAll('[data-rate]') : [];
+            var rateMenuOpen = false;
+            var desiredRate = 1;
+
+            try {
+                var savedRate = parseFloat(window.localStorage.getItem(RATE_KEY) || '');
+
+                if (isFinite(savedRate) && savedRate > 0) {
+                    desiredRate = savedRate;
+                }
+            } catch (e) {
+                /* 隐私模式下 localStorage 不可用，用默认倍速 */
+            }
+
+            var applyRate = function (rate, persist) {
+                desiredRate = rate;
+                // 同步 defaultPlaybackRate：HLS 接管 / 切换视频源后浏览器会回落到该值
+                video.defaultPlaybackRate = rate;
+                video.playbackRate = rate;
+
+                if (persist) {
+                    try {
+                        window.localStorage.setItem(RATE_KEY, String(rate));
+                    } catch (e) {
+                        /* 忽略持久化失败 */
+                    }
+                }
+            };
+
+            var syncRate = function () {
+                var rate = video.playbackRate || desiredRate;
+
+                if (speedLabel) {
+                    speedLabel.textContent = String(rate) + 'x';
+                }
+
+                speedItems.forEach(function (item) {
+                    var itemRate = parseFloat(item.getAttribute('data-rate') || '');
+                    item.classList.toggle('is-active', Math.abs(itemRate - rate) < 0.001);
+                });
+            };
+
+            var closeSpeedMenu = function () {
+                if (!speedMenu || !rateMenuOpen) {
+                    return;
+                }
+
+                speedMenu.hidden = true;
+                rateMenuOpen = false;
+
+                if (speedButton) {
+                    speedButton.setAttribute('aria-expanded', 'false');
+                }
+
+                // 收起后恢复正常空闲计时（展开期间控件条被锁定为常显）
+                wakeControls();
+            };
+
+            if (speedButton && speedMenu) {
+                speedButton.addEventListener('click', function () {
+                    rateMenuOpen = !rateMenuOpen;
+                    speedMenu.hidden = !rateMenuOpen;
+                    speedButton.setAttribute('aria-expanded', rateMenuOpen ? 'true' : 'false');
+
+                    // 展开时取消已排定的自动隐藏，避免菜单随控件条一起淡出
+                    if (rateMenuOpen) {
+                        wakeControls();
+                    }
+                });
+
+                speedItems.forEach(function (item) {
+                    item.addEventListener('click', function () {
+                        var rate = parseFloat(item.getAttribute('data-rate') || '');
+
+                        if (isFinite(rate) && rate > 0) {
+                            applyRate(rate, true);
+                        }
+
+                        closeSpeedMenu();
+                    });
+                });
+            }
+
+            // 点击别处或按 Esc 收起倍速菜单
+            document.addEventListener('click', function (event) {
+                if (rateMenuOpen && speedWrap && !speedWrap.contains(event.target)) {
+                    closeSpeedMenu();
+                }
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    closeSpeedMenu();
+                }
+            });
+
+            video.addEventListener('ratechange', syncRate);
+
+            applyRate(desiredRate, false);
+            syncRate();
+
+            // HLS 接管等换源场景浏览器可能重置倍率，元数据就绪后再校正一次
+            video.addEventListener('loadedmetadata', function () {
+                applyRate(desiredRate, false);
+                syncRate();
+            });
+
+            /* 全屏：容器全屏优先（可锁定横屏、自定义控件在横屏下继续可用）；
+               iPhone 不支持容器全屏，回退到原生视频全屏（webkitEnterFullscreen） */
+            var fullscreenElement = function () {
+                return document.fullscreenElement || document.webkitFullscreenElement || null;
+            };
+
+            var lockLandscape = function () {
+                var orientation = window.screen && window.screen.orientation;
+
+                if (!orientation || typeof orientation.lock !== 'function') {
+                    return;
+                }
+
+                // 竖屏视频不强制横屏，避免两侧出现大面积黑边
+                if (video.videoWidth > 0 && video.videoWidth < video.videoHeight) {
+                    return;
+                }
+
+                try {
+                    var promise = orientation.lock('landscape');
+
+                    if (promise && typeof promise.catch === 'function') {
+                        promise.catch(function () {});
+                    }
+                } catch (e) {
+                    /* 桌面端等不支持方向锁定时忽略 */
+                }
+            };
+
+            var enterNativeFullscreen = function () {
+                if (typeof video.webkitEnterFullscreen === 'function') {
+                    try {
+                        video.webkitEnterFullscreen();
+                    } catch (e) {
+                        /* 忽略 */
+                    }
+                }
+            };
+
+            var syncFullscreenState = function () {
+                var active = !!fullscreenElement() || !!video.webkitDisplayingFullscreen;
+                player.classList.toggle('is-fullscreen', active);
+
+                if (fullButton) {
+                    var label = fullButton.getAttribute(active ? 'data-label-exit' : 'data-label-enter');
+                    if (label) {
+                        fullButton.setAttribute('aria-label', label);
+                    }
+                }
+            };
+
+            if (fullButton) {
+                fullButton.addEventListener('click', function () {
+                    if (fullscreenElement()) {
+                        var exit = document.exitFullscreen || document.webkitExitFullscreen;
+
+                        if (typeof exit === 'function') {
+                            try {
+                                var exiting = exit.call(document);
+
+                                if (exiting && typeof exiting.catch === 'function') {
+                                    exiting.catch(function () {});
+                                }
+                            } catch (e) {
+                                /* 忽略 */
+                            }
+                        }
+
+                        return;
+                    }
+
+                    var request = player.requestFullscreen || player.webkitRequestFullscreen;
+
+                    if (typeof request === 'function') {
+                        try {
+                            var result = request.call(player);
+
+                            if (result && typeof result.then === 'function') {
+                                result.then(lockLandscape).catch(enterNativeFullscreen);
+                            } else {
+                                lockLandscape();
+                            }
+                        } catch (e) {
+                            enterNativeFullscreen();
+                        }
+                    } else {
+                        enterNativeFullscreen();
+                    }
+                });
+            }
+
+            document.addEventListener('fullscreenchange', syncFullscreenState);
+            document.addEventListener('webkitfullscreenchange', syncFullscreenState);
+            video.addEventListener('webkitbeginfullscreen', syncFullscreenState);
+            video.addEventListener('webkitendfullscreen', syncFullscreenState);
+
+            /* 播放中无操作时自动隐藏控件条与光标 */
+            var IDLE_DELAY = 3500;
+            var idleTimer = null;
+
+            var scheduleIdle = function () {
+                if (idleTimer) {
+                    window.clearTimeout(idleTimer);
+                    idleTimer = null;
+                }
+
+                // 倍速菜单展开期间不自动隐藏控件条，避免菜单跟着一起消失
+                if (rateMenuOpen || video.paused || video.ended) {
+                    player.classList.remove('is-idle');
+                    return;
+                }
+
+                idleTimer = window.setTimeout(function () {
+                    player.classList.add('is-idle');
+                }, IDLE_DELAY);
+            };
+
+            var wakeControls = function () {
+                player.classList.remove('is-idle');
+                scheduleIdle();
+            };
+
+            video.addEventListener('play', scheduleIdle);
+            video.addEventListener('pause', wakeControls);
+            video.addEventListener('seeked', wakeControls);
+
+            ['pointermove', 'pointerdown'].forEach(function (name) {
+                player.addEventListener(name, wakeControls);
+            });
+
+            /* 缓冲指示：等待数据时显示 */
+            var setSpinner = function (visible) {
+                if (spinner) {
+                    spinner.hidden = !visible;
+                }
+            };
+
+            video.addEventListener('waiting', function () { setSpinner(true); });
+            video.addEventListener('stalled', function () { setSpinner(true); });
+            video.addEventListener('playing', function () { setSpinner(false); });
+            video.addEventListener('canplay', function () { setSpinner(false); });
+            video.addEventListener('pause', function () { setSpinner(false); });
+            video.addEventListener('error', function () { setSpinner(false); });
+
+            /* 初始化完成：移除原生控件，启用自绘控件条（失败时保留原生控件兜底） */
+            video.removeAttribute('controls');
+
+            syncPlayState();
+            syncMuteState();
+            syncFullscreenState();
+            renderDuration();
+
+            player.classList.add('is-custom');
+        }
 
         /* ---------------- 键盘快捷键（鼠标悬停播放器或视频获得焦点时生效） ---------------- */
         var playerActive = false;

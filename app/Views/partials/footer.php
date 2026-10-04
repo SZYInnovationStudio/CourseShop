@@ -13,8 +13,15 @@ use App\Support\Setting;
 
 $siteName   = Setting::string('site_name', 'CourseShop');
 $siteDesc   = Setting::string('site_description', '');
-// 页脚署名为站点固定标识，不允许后台修改
-$signature  = t('由%s开发（©%s %s，保留所有权利。）', ['SZY创新工作室', date('Y'), 'SZY创新工作室']);
+
+// 页脚署名为站点固定标识，不允许后台修改；工作室名称固定链接到工作室官网
+$studio     = 'SZY创新工作室';
+$studioLink = '<a class="footer-bottom__studio" href="https://www.szystudio.cn"'
+    . ' target="_blank" rel="noopener noreferrer">' . e($studio) . '</a>';
+// 先转义译文与参数、再把链接标签插回占位符，避免以未转义 HTML 输出整段署名
+$creditLine = static function (string $template, array $args) use ($studioLink): string {
+    return str_replace('@studio@', $studioLink, e(t($template, $args)));
+};
 $beian      = Setting::string('site_beian', '');
 $gongan     = Setting::string('site_gongan', '');
 $gonganUrl  = Setting::string('site_gongan_url', '');
@@ -61,7 +68,11 @@ $sourceUrl  = Setting::string('footer_open_source_url', '');
         </div>
 
         <div class="footer-bottom">
-            <p class="mb-0"><?= e($signature) ?></p>
+            <?php // 署名分两段固定文案：移动端分行展示、桌面端合成一行，避免窄屏出现孤字换行 ?>
+            <p class="footer-bottom__signature mb-0">
+                <span><?= $creditLine('由%s开发', ['@studio@']) ?></span>
+                <span><?= $creditLine('©%s %s，保留所有权利。', [date('Y'), '@studio@']) ?></span>
+            </p>
             <div class="footer-bottom__links">
                 <?php if ($beian !== ''): ?>
                     <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer"><?= e($beian) ?></a>

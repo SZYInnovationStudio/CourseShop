@@ -438,11 +438,17 @@ pre {
     visibility: visible;
     transform: translateY(0);
     pointer-events: auto;
+    /* 菜单项较多（含语言区块）时限制高度并允许内部滚动，避免超出视口后无法触达 */
+    max-height: calc(100dvh - 64px);
     transition:
         grid-template-rows 420ms var(--ease-out),
         transform 420ms var(--ease-out),
         opacity 260ms ease,
         visibility 0s;
+}
+
+.site-drawer.is-open .site-drawer__panel {
+    overflow-y: auto;
 }
 
 .site-drawer__link {
@@ -1355,18 +1361,66 @@ a.course-card { color: inherit; }
     text-align: center;
 }
 
+/* 允许子项收缩：长备案号不会把弹性布局顶出容器 */
+.footer-bottom > * { min-width: 0; }
+
+/* 署名分两段：移动端分行展示（开发信息 / 版权信息），不再出现孤字换行 */
+.footer-bottom__signature {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 .footer-bottom__links {
     display: flex;
-    gap: var(--space-4);
+    gap: var(--space-2) var(--space-4);
     justify-content: center;
     flex-wrap: wrap;
+}
+
+/* 备案号 / 公网安备号可能很长（含长串数字无空格）：
+   允许必要时在任意位置断行，移动端不会横向溢出、也不会被裁切 */
+.footer-bottom__links a,
+.footer-bottom p {
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .footer-bottom__links a { color: var(--color-text-faint); }
 .footer-bottom__links a:hover { color: var(--color-primary); }
 
+/* 署名中的工作室名称：跟随页脚淡色文字，下划线提示可点击 */
+.footer-bottom__studio {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.footer-bottom__studio:hover { color: var(--color-primary); }
+
 @media (min-width: 768px) {
-    .footer-bottom { flex-direction: row; justify-content: space-between; text-align: left; }
+    .footer-bottom {
+        flex-direction: row;
+        justify-content: space-between;
+        /* 链接换行成多行时不拉伸行距，署名与链接都从顶部对齐 */
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .footer-bottom__links { justify-content: flex-end; }
+
+    /* 桌面端署名合成一行，两段之间加分隔点 */
+    .footer-bottom__signature {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: var(--space-1) var(--space-3);
+    }
+
+    .footer-bottom__signature > span + span::before {
+        content: "·";
+        margin-right: var(--space-1);
+        color: var(--color-border-strong);
+    }
 }
 
 /* ---------------- 认证页 ---------------- */
@@ -1866,6 +1920,10 @@ a.chapter-item__title:hover { color: var(--color-primary-strong); }
     background: #0E1210;
     border: 1px solid var(--color-border);
     overflow: hidden;
+    /* 播放器常驻深色底，进度条强调色固定为亮一档的品牌绿，不随明暗主题变化 */
+    --player-accent: #7BA37E;
+    /* 禁用双击缩放，避免移动端连点出现浏览器缩放 */
+    touch-action: manipulation;
     /* 移动端全屏刘海 / 手势条安全区 */
     padding-left: env(safe-area-inset-left, 0);
     padding-right: env(safe-area-inset-right, 0);
@@ -1876,6 +1934,313 @@ a.chapter-item__title:hover { color: var(--color-primary-strong); }
     width: 100%;
     max-height: 70vh;
     background: #0E1210;
+    /* 竖屏视频被 max-height 限制时保持比例，不做拉伸变形 */
+    object-fit: contain;
+}
+
+.player__video:focus-visible {
+    outline: 2px solid var(--player-accent);
+    outline-offset: -2px;
+}
+
+/* ---- 自定义控件：脚本初始化成功后由 .is-custom 接管，无 JS 时保留原生控件 ---- */
+.player__controls {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    display: none;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-4) var(--space-2) var(--space-2);
+    background: linear-gradient(to top, rgba(6, 9, 7, 0.78), rgba(6, 9, 7, 0));
+    color: #E7EAE7;
+    transition: opacity 220ms ease;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.player.is-custom .player__controls { display: flex; }
+
+/* 播放中无操作时隐藏控件条与光标；暂停时保持可见 */
+.player.is-custom.is-idle .player__controls {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.player.is-custom.is-idle { cursor: none; }
+
+.player__ctrl {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: #E7EAE7;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background var(--transition);
+}
+
+.player__ctrl:hover { background: rgba(255, 255, 255, 0.14); }
+.player__ctrl:focus-visible { outline: 2px solid var(--player-accent); outline-offset: 1px; }
+
+.player__icon {
+    width: 22px;
+    height: 22px;
+    display: none;
+    pointer-events: none;
+}
+
+.player.is-paused .player__icon--play { display: block; }
+.player:not(.is-paused) .player__icon--pause { display: block; }
+.player:not(.is-muted) .player__icon--volume { display: block; }
+.player.is-muted .player__icon--muted { display: block; }
+.player:not(.is-fullscreen) .player__icon--expand { display: block; }
+.player.is-fullscreen .player__icon--collapse { display: block; }
+
+.player__time {
+    flex: none;
+    min-width: 42px;
+    font-size: var(--text-xs);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    color: rgba(231, 234, 231, 0.88);
+}
+
+/* range 自绘：输入框整体加高（热区大），轨道用居中渐变绘制成 4px 细条 */
+.player__range {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 24px;
+    margin: 0 var(--space-1);
+    padding: 0;
+    border: 0;
+    background: linear-gradient(to right, var(--player-accent) var(--player-fill, 0%),
+        rgba(255, 255, 255, 0.3) var(--player-fill, 0%)) center / 100% 4px no-repeat;
+    border-radius: var(--radius-full);
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    /* 拖动进度时不让页面跟着滚动 */
+    touch-action: none;
+}
+
+.player__range:focus-visible { outline: 2px solid var(--player-accent); outline-offset: 2px; }
+
+.player__range::-webkit-slider-thumb {
+    width: 14px;
+    height: 14px;
+    border: 0;
+    border-radius: 50%;
+    background: #FFFFFF;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.player__range::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: 0;
+    border-radius: 50%;
+    background: #FFFFFF;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.player__range::-moz-range-track {
+    height: 4px;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.player__range::-moz-range-progress {
+    height: 4px;
+    border-radius: var(--radius-full);
+    background: var(--player-accent);
+}
+
+/* 倍速：按钮显示当前倍率，点击在控件条上方展开候选倍率。
+   菜单定位基准是控件条（.player__controls 为绝对定位，故意不在按钮上设 relative：
+   否则收窄的按钮容器会把菜单压成竖排一列，向上超出播放器被裁切） */
+.player__speed {
+    flex: none;
+    display: inline-flex;
+}
+
+.player__ctrl--speed {
+    width: auto;
+    min-width: 36px;
+    padding: 0 var(--space-2);
+}
+
+.player__speed-value {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+}
+
+.player__speed-menu {
+    position: absolute;
+    right: var(--space-2);
+    bottom: calc(100% + var(--space-2));
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-1);
+    /* max-content 保证 6 个倍率优先排成一行（高度约 50px，不会超出播放器顶部）；
+       上限同时按控件条宽度收敛，播放器比视口窄时也不会向左溢出被裁 */
+    width: max-content;
+    max-width: min(320px, calc(100% - 16px));
+    padding: var(--space-2);
+    border-radius: var(--radius);
+    background: rgba(14, 18, 16, 0.92);
+    box-shadow: var(--shadow-lg);
+}
+
+.player__speed-menu[hidden] { display: none; }
+
+.player__speed-item {
+    flex: none;
+    min-width: 46px;
+    height: 34px;
+    padding: 0 var(--space-2);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: #E7EAE7;
+    font-size: var(--text-xs);
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background var(--transition);
+}
+
+.player__speed-item:hover { background: rgba(255, 255, 255, 0.14); }
+
+.player__speed-item:focus-visible { outline: 2px solid var(--player-accent); outline-offset: 1px; }
+
+.player__speed-item.is-active {
+    background: var(--player-accent);
+    color: #10140F;
+    font-weight: 600;
+}
+
+/* 中央播放按钮：暂停时出现，作为通栏点击目标的视觉提示 */
+.player__bigplay {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    margin: -32px 0 0 -32px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(6, 9, 7, 0.55);
+    color: #FFFFFF;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease, transform 200ms ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.player__bigplay svg { width: 30px; height: 30px; margin-left: 3px; }
+
+.player.is-custom.is-paused .player__bigplay {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.player.is-custom.is-paused .player__bigplay:hover { transform: scale(1.06); }
+
+/* 自动下一节 / 自动播放提示出现时，避免中央按钮与浮层按钮重叠 */
+.player.is-custom.has-overlay .player__bigplay {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* 缓冲指示：等待数据时显示 */
+.player__spinner {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    width: 34px;
+    height: 34px;
+    margin: auto;
+    border: 3px solid rgba(255, 255, 255, 0.28);
+    border-top-color: rgba(255, 255, 255, 0.92);
+    border-radius: 50%;
+    animation: player-spin 900ms linear infinite;
+    pointer-events: none;
+}
+
+.player__spinner[hidden] { display: none; }
+
+@keyframes player-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ---- 全屏：容器全屏（自定义控件在横屏下同样可用），iPhone 回退原生视频全屏 ---- */
+/* 注意：:-webkit-full-screen 与 :fullscreen 必须分开写，混在同一条选择器列表里
+   会因 Firefox 不认识前缀而整条规则失效 */
+.player:fullscreen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    background: #000000;
+}
+
+.player:-webkit-full-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    background: #000000;
+}
+
+.player:fullscreen .player__video {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.player:-webkit-full-screen .player__video {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.player:fullscreen .player__controls {
+    padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
+}
+
+.player:-webkit-full-screen .player__controls {
+    padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
 }
 
 .player__empty {
@@ -1890,11 +2255,12 @@ a.chapter-item__title:hover { color: var(--color-primary-strong); }
 
 .player__empty p { margin: 0; }
 
+/* 进度提示改为右上角：底部让位给自定义控件条 */
 .player__status {
     position: absolute;
     right: var(--space-3);
-    bottom: var(--space-3);
-    z-index: 4;
+    top: var(--space-3);
+    z-index: 6;
     margin: 0;
     padding: 4px 10px;
     border-radius: var(--radius-full);
@@ -1912,12 +2278,9 @@ a.chapter-item__title:hover { color: var(--color-primary-strong); }
 .player__autonext {
     position: absolute;
     inset: 0;
-    z-index: 2;
+    z-index: 8;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-2);
     padding: var(--space-4);
     background: rgba(14, 18, 16, 0.84);
     color: #E7EAE7;
@@ -1926,11 +2289,18 @@ a.chapter-item__title:hover { color: var(--color-primary-strong); }
     pointer-events: none;
 }
 
-/* 内容可能高于播放器（窄屏 + 长译文）：用 auto 外边距代替纯居中，
-   保证顶部不被裁掉，且内容过高时可滚动查看 */
-.player__autonext > * { flex: 0 0 auto; }
-.player__autonext > :first-child { margin-top: auto; }
-.player__autonext > :last-child { margin-bottom: auto; }
+/* 内容整体居中：单个内层容器用 margin: auto（可用空间上下均分）；
+   内容高于播放器（窄屏 + 长译文）时 auto 外边距归零、顶部不被裁掉且可滚动。
+   此前用 :first-child/:last-child 的 auto 外边距，移动端隐藏 Esc 提示后
+   最后一个可见子元素拿不到 margin-bottom，导致内容整体偏下 */
+.player__autonext-inner {
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+}
 
 .player__autonext[hidden] { display: none; }
 
@@ -1977,20 +2347,29 @@ a.chapter-item__title:hover { color: var(--color-primary-strong); }
 @media (max-width: 767px) {
     .player__autonext {
         padding: var(--space-3);
-        gap: var(--space-1);
     }
+
+    .player__autonext-inner { gap: var(--space-1); }
 
     .player__autonext-title { font-size: var(--text-sm); }
 
     /* 移动端没有 Esc 键，隐藏该提示为按钮留出空间 */
     .player__autonext-hint { display: none; }
+
+    /* 移动端控件条收紧，把宽度留给进度条 */
+    .player__controls {
+        gap: 0;
+        padding: var(--space-3) var(--space-1) var(--space-1);
+    }
+
+    .player__time { min-width: 36px; font-size: 11px; }
 }
 
 /* 浏览器拦截自动播放时的「点击继续播放」入口 */
 .player__playhint {
     position: absolute;
     inset: 0;
-    z-index: 3;
+    z-index: 9;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2000,10 +2379,10 @@ a.chapter-item__title:hover { color: var(--color-primary-strong); }
 
 .player__playhint[hidden] { display: none; }
 
-/* 仅按钮可点，其余区域点击穿透到原生控制条，便于直接播放或拖动 */
+/* 仅按钮可点，其余区域点击穿透到播放器（点任意处即播放） */
 .player__playhint .btn { pointer-events: auto; }
 
-/* 移动端：播放器通栏占满，忽略容器内边距 */
+/* 移动端：播放器通栏占满，忽略容器内边距；音量交给系统按键，隐藏音量按钮 */
 @media (max-width: 559px) {
     .player {
         margin-left: calc(var(--space-4) * -1);
@@ -2012,6 +2391,8 @@ a.chapter-item__title:hover { color: var(--color-primary-strong); }
         border-left: 0;
         border-right: 0;
     }
+
+    .player__ctrl--volume { display: none; }
 }
 
 /* ---------------- 学习页章节列表 ---------------- */
@@ -2628,8 +3009,9 @@ input[type="file"].input::file-selector-button:hover {
 
     .admin-sidebar.is-open ~ .admin-scrim { opacity: 1; visibility: visible; }
 
-    /* 抽屉展开时锁定背景滚动 */
-    body.admin-menu-open { overflow: hidden; }
+    /* 侧边抽屉**不**锁定背景滚动：body 一旦 overflow:hidden 会成为滚动容器，
+       破坏 sticky 顶栏并截断当前滚动位置（与前台抽屉同因）。侧边栏为 fixed 定位，
+       遮罩层已接管点击关闭，无需锁滚动。 */
 
     .admin-topbar { padding: 0 var(--space-4); }
     .admin-topbar__toggle { display: inline-flex; }
@@ -2797,8 +3179,10 @@ input[type="file"].input::file-selector-button:hover {
    ============================================================ */
 
 /* ---------------- 全局：横向溢出防护 + 刘海屏安全区 ---------------- */
-/* 根元素 overflow 会传递到视口，不影响内部 position: sticky */
-html { overflow-x: hidden; }
+/* 用 clip 而不是 hidden：hidden 会让根元素成为滚动容器，导致页头 position: sticky 失效
+   （表现为移动端点汉堡后抽屉菜单跑到页面顶端、要滚回顶部才看得到）。
+   clip 同样能裁剪横向溢出，但不会创建滚动容器，sticky 页头保持吸顶。 */
+html { overflow-x: clip; }
 
 /* 内容区左右留出安全区（横屏刘海 / 圆角屏），桌面下 env() 为 0 不受影响 */
 .container {
@@ -3122,13 +3506,24 @@ html { overflow-x: hidden; }
         cursor: pointer;
     }
 
-    .filter-bar__chips { flex: none; }
+    /* 标签容器必须可收缩：flex: none 会按「全部标签排成一行」的最大宽度撑开容器，
+       超出卡片宽度后标签被裁切、卡片出现横向滚动条（即便容器自身允许换行也轮不到换行）。
+       改为可伸缩 + min-width: 0，标签在卡片内自动换行、完整可见 */
+    .filter-bar__chips {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
     .filter-bar .select { width: 100%; min-width: 0; }
     .filter-bar__apply { display: block; }
 
-    /* 抽屉打开时锁定背景滚动 */
-    body.sheet-open { overflow: hidden; }
-    body.menu-open { overflow: hidden; }
+    /* 抽屉只纵向滚动，避免任何残留横向溢出产生第二条滚动条 */
+    .filter-bar { overflow-x: hidden; }
+
+    /* 顶部抽屉、底部弹层均**不**锁定背景滚动：body 一旦 overflow:hidden 就会成为滚动容器，
+       使 sticky 页头/顶栏失效，锚定在页头下方的抽屉会跑到页面顶端、必须滚回顶部才看得到，
+       同时正文高度被裁剪会导致当前滚动位置被截断跳动。弹层各自带遮罩层并已接管指针事件，
+       点击空白处/关闭按钮/Esc 均可关闭，不需要额外锁滚动。 */
 
     /* ---- 账户设置：分组列表（竖排 + 右箭头） ---- */
     .settings-layout { grid-template-columns: minmax(0, 1fr); }

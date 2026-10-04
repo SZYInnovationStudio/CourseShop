@@ -87,13 +87,73 @@ $nextUrlAuto   = $nextUrl === '' ? '' : $nextUrl . '?autoplay=1';
                  data-next-url="<?= e($nextUrl) ?>"
                  data-autoplay="<?= $autoPlayNext ? '1' : '0' ?>">
                 <?php if ($hasVideo): ?>
+                    <?php /* controls 为无 JS 兜底：脚本初始化成功后会移除原生控件，改为自绘控件条 */ ?>
                     <video class="player__video"
                            controls
                            preload="metadata"
                            playsinline
+                           webkit-playsinline
+                           x5-playsinline="true"
+                           x5-video-player-type="h5"
+                           tabindex="0"
                            controlslist="nodownload"
                            <?php if ($cover !== ''): ?>poster="<?= e($cover) ?>"<?php endif; ?>
                            <?php if ($initialSrc !== ''): ?>src="<?= e($initialSrc) ?>"<?php endif; ?>></video>
+
+                    <div class="player__spinner" data-player-spinner hidden aria-hidden="true"></div>
+
+                    <button type="button" class="player__bigplay" data-player-bigplay
+                            aria-hidden="true" tabindex="-1">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8.5 5.2v13.6L19.4 12z" fill="currentColor"></path></svg>
+                    </button>
+
+                    <div class="player__controls" data-player-controls>
+                        <button type="button" class="player__ctrl" data-player-play
+                                aria-label="<?= e(t('播放')) ?>"
+                                data-label-play="<?= e(t('播放')) ?>"
+                                data-label-pause="<?= e(t('暂停')) ?>">
+                            <svg class="player__icon player__icon--play" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8.5 5.2v13.6L19.4 12z" fill="currentColor"></path></svg>
+                            <svg class="player__icon player__icon--pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 5h3.4v14H7zM13.6 5H17v14h-3.4z" fill="currentColor"></path></svg>
+                        </button>
+
+                        <span class="player__time" data-player-current>0:00</span>
+
+                        <input class="player__range" type="range" min="0" max="1000" step="1" value="0"
+                               data-player-seek aria-label="<?= e(t('播放进度')) ?>">
+
+                        <span class="player__time" data-player-duration>0:00</span>
+
+                        <div class="player__speed" data-player-speed-wrap>
+                            <button type="button" class="player__ctrl player__ctrl--speed" data-player-speed
+                                    aria-label="<?= e(t('倍速')) ?>" aria-haspopup="true" aria-expanded="false">
+                                <span class="player__speed-value" data-player-speed-label>1x</span>
+                            </button>
+                            <div class="player__speed-menu" data-player-speed-menu hidden>
+                                <button type="button" class="player__speed-item" data-rate="0.5">0.5x</button>
+                                <button type="button" class="player__speed-item" data-rate="0.75">0.75x</button>
+                                <button type="button" class="player__speed-item is-active" data-rate="1">1x</button>
+                                <button type="button" class="player__speed-item" data-rate="1.25">1.25x</button>
+                                <button type="button" class="player__speed-item" data-rate="1.5">1.5x</button>
+                                <button type="button" class="player__speed-item" data-rate="2">2x</button>
+                            </div>
+                        </div>
+
+                        <button type="button" class="player__ctrl player__ctrl--volume" data-player-mute
+                                aria-label="<?= e(t('静音')) ?>"
+                                data-label-mute="<?= e(t('静音')) ?>"
+                                data-label-unmute="<?= e(t('取消静音')) ?>">
+                            <svg class="player__icon player__icon--volume" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9.5v5h3.6L12 18V6L7.6 9.5z" fill="currentColor"></path><path d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.6a7.6 7.6 0 0 1 0 10.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                            <svg class="player__icon player__icon--muted" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9.5v5h3.6L12 18V6L7.6 9.5z" fill="currentColor"></path><path d="m15.5 9.6 5 4.8m0-4.8-5 4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                        </button>
+
+                        <button type="button" class="player__ctrl" data-player-fullscreen
+                                aria-label="<?= e(t('全屏')) ?>"
+                                data-label-enter="<?= e(t('全屏')) ?>"
+                                data-label-exit="<?= e(t('退出全屏')) ?>">
+                            <svg class="player__icon player__icon--expand" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                            <svg class="player__icon player__icon--collapse" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        </button>
+                    </div>
 
                     <p class="player__status" data-video-status hidden
                        data-label-finished="<?= e(t('本章已学完')) ?>"><?= e(t('进度已记录')) ?></p>
@@ -105,13 +165,15 @@ $nextUrlAuto   = $nextUrl === '' ? '' : $nextUrl . '?autoplay=1';
                     <?php if ($nextUrl !== ''): ?>
                         <div class="player__autonext" data-autonext hidden
                              data-countdown-template="<?= e(t('%d 秒后自动播放')) ?>">
-                            <p class="player__autonext-title"><?= e(t('接下来：%s', [$nextTitle])) ?></p>
-                            <p class="player__autonext-countdown" data-autonext-countdown></p>
-                            <div class="player__autonext-actions">
-                                <a class="btn btn--sm" href="<?= e($nextUrlAuto) ?>" data-autonext-play><?= e(t('立即播放')) ?></a>
-                                <button type="button" class="btn btn--outline btn--sm" data-autonext-cancel><?= e(t('取消')) ?></button>
+                            <div class="player__autonext-inner">
+                                <p class="player__autonext-title"><?= e(t('接下来：%s', [$nextTitle])) ?></p>
+                                <p class="player__autonext-countdown" data-autonext-countdown></p>
+                                <div class="player__autonext-actions">
+                                    <a class="btn btn--sm" href="<?= e($nextUrlAuto) ?>" data-autonext-play><?= e(t('立即播放')) ?></a>
+                                    <button type="button" class="btn btn--outline btn--sm" data-autonext-cancel><?= e(t('取消')) ?></button>
+                                </div>
+                                <p class="player__autonext-hint"><?= e(t('按 Esc 可取消自动播放')) ?></p>
                             </div>
-                            <p class="player__autonext-hint"><?= e(t('按 Esc 可取消自动播放')) ?></p>
                         </div>
                     <?php endif; ?>
                 <?php else: ?>
