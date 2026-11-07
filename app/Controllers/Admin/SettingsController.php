@@ -12,6 +12,7 @@ use App\Support\ImageStorage;
 use App\Support\Request;
 use App\Support\SecurityHeaders;
 use App\Support\Setting;
+use App\Support\Theme;
 use RuntimeException;
 
 /**
@@ -229,7 +230,7 @@ final class SettingsController extends AdminController
             if ($type === 'email') {
                 $validator->email($key, $label);
             }
-            if ($type === 'select' && isset($field['options'])) {
+            if (in_array($type, ['select', 'palette'], true) && isset($field['options'])) {
                 $validator->in($key, array_keys($field['options']), $label);
 
                 // 默认语言必须落在本次已启用的语言集合内
@@ -400,10 +401,10 @@ final class SettingsController extends AdminController
             ],
             'theme' => [
                 'label' => '主题外观',
-                'desc'  => '站点默认配色与主题切换策略。',
+                'desc'  => '站点整体配色方案与主题切换策略。每套配色均包含浅色与深色版本。',
                 'fields' => [
                     ['key' => 'theme_default_mode', 'label' => '默认主题', 'type' => 'select', 'default' => 'system', 'options' => ['system' => '跟随系统', 'light' => '浅色', 'dark' => '深色']],
-                    ['key' => 'theme_primary_color', 'label' => '主强调色', 'type' => 'color', 'default' => '#4F6F52'],
+                    ['key' => 'theme_palette', 'label' => '配色方案', 'type' => 'palette', 'default' => Theme::DEFAULT_PALETTE, 'options' => Theme::options(), 'palettes' => Theme::palettes(), 'hint' => '预览色块依次为背景、前景、主题色、强调色、文字色。'],
                     ['key' => 'theme_allow_user_switch', 'label' => '允许用户自行切换主题', 'type' => 'bool', 'default' => true],
                 ],
             ],

@@ -101,6 +101,43 @@ $activeGroup = $groups[$active] ?? null;
                                         <p class="form-hint"><?= e($fieldHint) ?></p>
                                     <?php endif; ?>
                                 </div>
+                            <?php elseif ($fieldType === 'palette'): ?>
+                                <?php $paletteList = (array) ($field['palettes'] ?? []); ?>
+                                <div class="form-group">
+                                    <span class="form-label">
+                                        <?= e($fieldLabel) ?><?= $required ? '<span class="required">*</span>' : '' ?>
+                                    </span>
+                                    <div class="palette-picker">
+                                        <?php foreach ($paletteList as $paletteKey => $paletteItem): ?>
+                                            <?php
+                                            $paletteLight = (array) ($paletteItem['light'] ?? []);
+                                            $paletteChips = [
+                                                $paletteLight['bg'] ?? '#F6F7F5',
+                                                $paletteLight['surface'] ?? '#FFFFFF',
+                                                $paletteLight['primary'] ?? '#4F6F52',
+                                                $paletteLight['accent'] ?? '#8A6434',
+                                                $paletteLight['text'] ?? '#22282A',
+                                            ];
+                                            ?>
+                                            <label class="palette-option">
+                                                <input type="radio" name="<?= e($fieldKey) ?>"
+                                                       value="<?= e((string) $paletteKey) ?>"<?= $fieldValue === (string) $paletteKey ? ' checked' : '' ?>>
+                                                <span class="palette-option__preview" aria-hidden="true">
+                                                    <?php foreach ($paletteChips as $chipColor): ?>
+                                                        <span style="background: <?= e($chipColor) ?>"></span>
+                                                    <?php endforeach; ?>
+                                                </span>
+                                                <span class="palette-option__text">
+                                                    <span class="palette-option__name"><?= e((string) ($paletteItem['label'] ?? $paletteKey)) ?></span>
+                                                    <span class="palette-option__desc"><?= e((string) ($paletteItem['desc'] ?? '')) ?></span>
+                                                </span>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </div>
+                                    <?php if ($fieldHint !== ''): ?>
+                                        <p class="form-hint"><?= e($fieldHint) ?></p>
+                                    <?php endif; ?>
+                                </div>
                             <?php else: ?>
                                 <div class="form-group">
                                     <label class="form-label" for="<?= e($fieldId) ?>">

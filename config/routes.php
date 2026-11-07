@@ -43,6 +43,7 @@ use App\Controllers\VideoController;
 use App\Support\Router;
 use App\Support\I18n;
 use App\Support\Setting;
+use App\Support\Theme;
 
 return static function (Router $router): void {
     // ---------------- 前台：首页 ----------------
@@ -55,7 +56,7 @@ return static function (Router $router): void {
     // 动态输出 Web App Manifest，使应用名称、主题色与后台配置保持一致
     $router->get('/manifest.webmanifest', static function (): void {
         $name    = Setting::string('site_name', 'CourseShop');
-        $primary = Setting::string('theme_primary_color', '#4F6F52');
+        $primary = Theme::primary();
 
         $manifest = [
             'name'             => $name,
@@ -65,7 +66,7 @@ return static function (Router $router): void {
             'start_url'        => './',
             'scope'            => './',
             'display'          => 'standalone',
-            'background_color' => '#ffffff',
+            'background_color' => Theme::surface(),
             'theme_color'      => $primary,
             'icons'            => [
                 ['src' => 'assets/icons/icon-192.png', 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],

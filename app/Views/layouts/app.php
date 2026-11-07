@@ -13,6 +13,7 @@ use App\Support\Auth;
 use App\Support\Csrf;
 use App\Support\I18n;
 use App\Support\Setting;
+use App\Support\Theme;
 
 $siteName  = Setting::string('site_name', 'CourseShop');
 $pageTitle = $pageTitle ?? null;
@@ -22,19 +23,7 @@ $bodyClass = trim((string) ($bodyClass ?? ''));
 $htmlTitle   = ($pageTitle !== null && $pageTitle !== '') ? $pageTitle . ' - ' . $siteName : $siteName;
 $description = Setting::string('site_description', '');
 $keywords    = Setting::string('site_keywords', '');
-$primary     = Setting::string('theme_primary_color', '#4F6F52');
-
-// 暗色模式下的品牌色：向白色混合 32%，避免深色背景上对比度过低
-$primaryDark = $primary;
-if (preg_match('/^#([0-9a-f]{6})$/i', $primary, $matched) === 1) {
-    $lighten = static fn (int $channel): int => (int) round($channel + (255 - $channel) * 0.32);
-    $primaryDark = sprintf(
-        '#%02X%02X%02X',
-        $lighten((int) hexdec(substr($matched[1], 0, 2))),
-        $lighten((int) hexdec(substr($matched[1], 2, 2))),
-        $lighten((int) hexdec(substr($matched[1], 4, 2)))
-    );
-}
+$primary     = Theme::primary();
 
 // 主题默认值：登录用户优先使用账号保存的偏好，其次站点默认
 $defaultMode = Setting::string('theme_default_mode', 'system');
@@ -82,10 +71,7 @@ $userModeJson = json_encode($userMode, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | J
     </script>
     <link rel="icon" href="<?= e(favicon_url()) ?>">
     <link rel="stylesheet" href="<?= asset('assets/css/app.css') ?>">
-    <style>
-        :root { --color-primary: <?= e($primary) ?>; }
-        html[data-theme="dark"] { --color-primary: <?= e($primaryDark) ?>; }
-    </style>
+    <style><?= Theme::css() ?></style>
 </head>
 <body<?= $bodyClass !== '' ? ' class="' . e($bodyClass) . '"' : '' ?>>
 <a class="skip-link" href="#main"><?= e(t('跳到主要内容')) ?></a>

@@ -66,7 +66,7 @@ INSERT IGNORE INTO `settings` (`key`, `value`, `group_name`, `description`) VALU
 ('ffmpeg_path',            '',                                               'video',    'ffmpeg 可执行文件路径（留空则自动查找）'),
 -- 主题
 ('theme_default_mode',     'system',                                         'theme',    '默认主题：light/dark/system'),
-('theme_primary_color',    '#4F6F52',                                        'theme',    '主强调色'),
+('theme_palette',          'morandi',                                        'theme',    '配色方案'),
 ('theme_allow_user_switch','1',                                              'theme',    '是否允许用户自行切换主题'),
 -- 日志
 ('log_retention_days',     '365',                                            'log',      '日志保留天数');

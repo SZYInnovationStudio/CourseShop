@@ -11,23 +11,12 @@ declare(strict_types=1);
 
 use App\Support\Csrf;
 use App\Support\Setting;
+use App\Support\Theme;
 
 $siteName  = Setting::string('site_name', 'CourseShop');
 $pageTitle = $pageTitle ?? null;
 
 $htmlTitle   = ($pageTitle !== null && $pageTitle !== '') ? $pageTitle . ' - ' . $siteName : '后台管理 - ' . $siteName;
-$primary     = Setting::string('theme_primary_color', '#4F6F52');
-
-$primaryDark = $primary;
-if (preg_match('/^#([0-9a-f]{6})$/i', $primary, $matched) === 1) {
-    $lighten = static fn (int $channel): int => (int) round($channel + (255 - $channel) * 0.32);
-    $primaryDark = sprintf(
-        '#%02X%02X%02X',
-        $lighten((int) hexdec(substr($matched[1], 0, 2))),
-        $lighten((int) hexdec(substr($matched[1], 2, 2))),
-        $lighten((int) hexdec(substr($matched[1], 4, 2)))
-    );
-}
 
 $defaultMode = Setting::string('theme_default_mode', 'system');
 $modeJson    = json_encode($defaultMode, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
@@ -55,10 +44,7 @@ $modeJson    = json_encode($defaultMode, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG |
     </script>
     <link rel="icon" href="<?= e(favicon_url()) ?>">
     <link rel="stylesheet" href="<?= asset('assets/css/app.css') ?>">
-    <style>
-        :root { --color-primary: <?= e($primary) ?>; }
-        html[data-theme="dark"] { --color-primary: <?= e($primaryDark) ?>; }
-    </style>
+    <style><?= Theme::css() ?></style>
 </head>
 <body class="admin-body">
 
