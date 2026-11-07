@@ -19,32 +19,30 @@ use App\Support\Validator;
 
 require dirname(__DIR__) . '/app/bootstrap.php';
 
-$installed = Installer::isInstalled();
-$step      = (int) ($_GET['step'] ?? 1);
-$errors    = [];
-$old       = [];
-
 // 兜底防护：安装锁文件缺失时，只要 .env 已存在（说明站点曾部署过）或库中已有管理员，
 // 同样视为「已安装」，阻止重新执行安装（schema.sql 以 DROP TABLE 开头，会清空线上数据）。
 //
-// 这里刻意**不做**「未完成安装」放行：曾为解开「站点跳安装页、安装页又拒绝安装」的死锁
-// 而放行「.env 已写但无管理员」，但那会让任何匿名访客抢注管理员（并获得 super_admin）。
-// 恢复为严格拦截；未完成安装请按页面提示删除 .env 后重新安装。
-$adminExists   = Installer::hasExistingAdmin();
-$blockedByData = !$installed && (Installer::envExists() || $adminExists);
-$installLocked = $installed || $blockedByData;
+// 例外：第 2 步刚写入 .env、数据表已导入但尚未创建管理员时，属于「安装进行中」。
+// 该状态由 Installer::isPendingInstall() 严格判定（要求 users 表为空），此时必须
+// 允许继续到第 3 步，否则会死锁：站点跳安装页、安装页又拒绝继续安装。
+$installed      = Installer::isInstalled();
+$adminExists    = Installer::hasExistingAdmin();
+$pendingInstall = !$installed && Installer::isPendingInstall();
+$blockedByData  = !$installed && !$pendingInstall && (Installer::envExists() || $adminExists);
+$installLocked  = $installed || $blockedByData;
 
 // 锁文件缺失但库中已有管理员（安装确实完成）时自动补写安装锁，
 // 避免每次访问安装页都停留在「已阻止重装」的提示页。
-$lockRepaired = false;
+$lockRepaired     = false;
 $lockRepairFailed = false;
 
-if ($blockedByData) {
-    $lockRepaired = Installer::ensureLock();
+if (!$installed && $adminExists) {
+    $lockRepaired     = Installer::ensureLock();
     $lockRepairFailed = !$lockRepaired;
 
     if ($lockRepaired) {
         $installed     = true;
+        $installLocked = true;
         $blockedByData = false;
     }
 }
@@ -52,6 +50,10 @@ if ($blockedByData) {
 // ----------------------------------------------------------------------
 // 处理表单提交
 // ----------------------------------------------------------------------
+$step   = (int) ($_GET['step'] ?? 1);
+$errors = [];
+$old    = [];
+
 if (!$installLocked) {
     try {
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
@@ -60,6 +62,9 @@ if (!$installLocked) {
 
             if (!Csrf::verify($_POST['_token'] ?? null)) {
                 $errors[] = '安全校验失败，请刷新页面后重新提交。';
+            } elseif ($action === 'install_database' && Installer::envExists()) {
+                // .env 已存在时禁止重新写库配置，避免把站点指向攻击者可控的数据库
+                $errors[] = '数据库配置已保存，无需重复执行，请直接创建管理员账号。';
             } elseif ($action === 'install_database') {
                 $db = [
                     'host'     => trim((string) ($_POST['db_host'] ?? '')),
@@ -160,6 +165,11 @@ if (!$installLocked) {
     if ($step >= 2 && !$requirementsOk) {
         $step = 1;
     }
+
+    // 安装进行中（.env 已写、数据表已导入、尚未创建管理员）：固定停留在创建管理员步骤
+    if ($pendingInstall) {
+        $step = 3;
+    }
 }
 
 $success = $installed && $step === 4;
@@ -237,11 +247,13 @@ $stepLabels = [1 => '环境检查', 2 => '数据库配置', 3 => '创建管理�
                 <?php if ($lockRepaired): ?>
                     <p class="text-muted">本次已自动补写此前缺失的安装锁（通常由安装时目录写入失败引起），无需再处理。</p>
                 <?php endif; ?>
-            <?php else: ?>
-                <p class="text-muted">未检测到安装锁，但站点配置或数据库显示系统已安装，为安全起见已阻止重新安装，避免误清空数据。</p>
+            <?php elseif ($adminExists): ?>
+                <p class="text-muted">未检测到安装锁，但数据库中已存在管理员账号，为安全起见已阻止重新安装，避免误清空数据。</p>
                 <?php if ($lockRepairFailed): ?>
                     <p class="text-muted">自动补写安装锁失败，请确认 <code>storage/installed.lock</code> 所在目录可写（Web 进程用户需有写权限），或手动创建该空文件。</p>
                 <?php endif; ?>
+            <?php else: ?>
+                <p class="text-muted">未检测到安装锁，但站点配置（<code>.env</code>）与数据库显示站点已部署，为安全起见已阻止重新安装，避免误清空数据或允许匿名创建管理员。</p>
             <?php endif; ?>
             <p class="text-muted">如需重新安装：请先备份并清空数据库；若安装仅进行到「写入 .env」而未创建管理员，删除 <code>.env</code> 后重新访问本页面即可继续安装。</p>
             <div class="install-actions">

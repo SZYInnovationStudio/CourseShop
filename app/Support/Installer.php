@@ -101,6 +101,44 @@ final class Installer
     }
 
     /**
+     * 是否处于「安装进行中」的未完成状态
+     *
+     * 典型场景：第 2 步已写入 .env 并导入数据表，但尚未创建管理员。
+     * 判定必须足够严格，避免把「有 .env 但无管理员」的已运行站点放行给匿名访客：
+     * - 无安装锁
+     * - .env 存在（说明数据库配置已写入）
+     * - 数据表齐全
+     * - users 表没有任何记录（全新库）
+     * - 库中不存在管理员
+     *
+     * 满足时允许安装向导从第 2 步继续到第 3 步（创建管理员），既解开
+     * 「站点跳安装页、安装页又拒绝安装」的死锁，又不会在已有用户数据的
+     * 站点上暴露匿名创建管理员的入口。
+     */
+    public static function isPendingInstall(): bool
+    {
+        if (self::isInstalled() || !self::envExists()) {
+            return false;
+        }
+
+        try {
+            [$ready] = self::databaseReady();
+
+            if (!$ready) {
+                return false;
+            }
+
+            if ((int) Database::scalar('SELECT COUNT(*) FROM `users`') > 0) {
+                return false;
+            }
+
+            return !self::hasExistingAdmin();
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
+    /**
      * 写入安装锁（记录安装时间与站点信息）
      */
     public static function lock(string $adminUsername): void
