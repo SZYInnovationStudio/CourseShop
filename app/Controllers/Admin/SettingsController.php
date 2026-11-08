@@ -494,7 +494,7 @@ final class SettingsController extends AdminController
                 'fields' => [
                     ['key' => 'about_enabled', 'label' => '启用关于页', 'type' => 'bool', 'default' => true],
                     ['key' => 'about_hero_image', 'label' => '关于页头图', 'type' => 'image', 'subdir' => 'landing', 'max' => 255, 'default' => '/assets/images/landing/about.svg', 'hint' => '显示在关于页顶部，标题居中叠加在图上；建议 1920×1080 以上的横图。恢复默认占位图请填回 /assets/images/landing/about.svg。'],
-                    ['key' => 'about_content', 'label' => '关于页内容', 'type' => 'textarea', 'max' => 5000, 'default' => "CourseShop 是一个专注实用技能的在线课程平台。我们与一线实践者一起，把真实项目中的经验整理成可以按步骤完成的课程。\n\n## 我们相信\n\n信息从来不缺，缺的是一条走得通的路。好的课程应该回答三个问题：要学什么、为什么这样学、学完能做什么。\n\n## 我们如何做\n\n从选题、结构、示例到练习，每门课都经过多轮试学与修订，宁可慢一点，也不把半成品交到你手里。\n\n学习不需要一口气走完，挑一条你感兴趣的路径，从第一节课开始就好。", 'hint' => '支持 Markdown：## 标题、**加粗**、- 列表，以及独占一行的 ![说明](/图片地址) 通栏图。', 'translatable' => true],
+                    ['key' => 'about_content', 'label' => '关于页内容', 'type' => 'textarea', 'max' => 8000, 'default' => "CourseShop 是一个专注实用技能的在线课程平台。我们与一线实践者一起，把真实项目中的经验整理成可以按步骤完成的课程。\n\n![课程现场](/assets/images/about/about-1.svg)\n\n## 我们相信\n\n信息从来不缺，缺的是一条走得通的路。好的课程应该回答三个问题：要学什么、为什么这样学、学完能做什么。\n\n![一起打磨课程](/assets/images/about/about-2.svg)\n\n## 我们如何做\n\n从选题、结构、示例到练习，每门课都经过多轮试学与修订，宁可慢一点，也不把半成品交到你手里。\n\n![学习者的日常](/assets/images/about/about-3.svg)\n\n学习不需要一口气走完，挑一条你感兴趣的路径，从第一节课开始就好。", 'hint' => '支持 Markdown：## 标题、**加粗**、- 列表，以及独占一行的 ![说明](/图片地址)。图片会与紧随其后的文字组成左右交替的图文栏目（首段自动作为居中导语）。', 'translatable' => true],
                 ],
             ],
             'i18n' => [

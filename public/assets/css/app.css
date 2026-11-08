@@ -4152,7 +4152,7 @@ body.page-landing .bottom-nav { display: none !important; }
 }
 
 .about-body {
-    padding: clamp(56px, 9vw, 120px) var(--space-4) clamp(64px, 10vw, 140px);
+    padding: clamp(64px, 10vw, 150px) var(--space-4) clamp(72px, 11vw, 160px);
 }
 
 .about-prose {
@@ -4229,6 +4229,43 @@ body.page-landing .bottom-nav { display: none !important; }
     object-fit: cover;
 }
 
+/* 导语：居中窄栏 */
+.about-lead { margin: 0 auto clamp(56px, 8vw, 110px); }
+
+/* 图文交替栏目：文字与图片各占一半，逐行左右换边 */
+.about-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(40px, 7vw, 112px);
+    align-items: center;
+    max-width: 1120px;
+    margin: 0 auto clamp(64px, 9vw, 130px);
+}
+
+.about-row:last-child { margin-bottom: 0; }
+
+.about-row__media { order: 2; }
+
+.about-row__text {
+    order: 1;
+    max-width: 430px;
+    margin: 0 auto;
+}
+
+.about-row--reverse .about-row__media { order: 1; }
+.about-row--reverse .about-row__text { order: 2; }
+
+.about-row__media .md-figure { margin: 0; }
+
+.about-row__media img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+}
+
+.about-row__text h2:first-child { margin-top: 0; }
+
 /* 滚动显现 */
 html.js [data-reveal] {
     opacity: 0;
@@ -4284,10 +4321,33 @@ html.js [data-reveal].is-revealed {
     .landing-principle { padding: var(--space-5) 0 var(--space-6); }
     .landing-principle:first-child { border-top: 1px solid var(--color-border); }
     .landing-principle__index { margin-bottom: var(--space-3); }
-    .about-hero { min-height: clamp(240px, 36vh, 380px); }
-    .about-hero__title { font-size: clamp(1.7rem, 8vw, 2.4rem); letter-spacing: 0.1em; text-indent: 0.1em; }
-    .about-body { padding: clamp(44px, 11vw, 72px) var(--space-4); }
+    /* 关于页：移动端改为「标题 → 通栏图 → 居中文字」的堆叠叙事 */
+    .about-hero {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        justify-content: flex-start;
+        min-height: 0;
+        padding: 0 var(--space-4);
+        background: none;
+        overflow: visible;
+    }
+    .about-hero__bg { position: static; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+    .about-hero__shade { display: none; }
+    .about-hero__inner { padding: clamp(24px, 6vw, 36px) 0 var(--space-5); text-align: left; }
+    .about-hero__title {
+        color: var(--color-text);
+        font-size: clamp(1.5rem, 6.4vw, 2.1rem);
+        letter-spacing: 0.06em;
+        text-indent: 0.06em;
+    }
+    .about-body { padding: clamp(40px, 10vw, 64px) var(--space-4); }
     .about-prose { line-height: 2; }
+    .about-row { grid-template-columns: minmax(0, 1fr); gap: var(--space-5); margin-bottom: clamp(48px, 12vw, 76px); }
+    .about-row__media,
+    .about-row--reverse .about-row__media { order: 1; }
+    .about-row__text,
+    .about-row--reverse .about-row__text { order: 2; max-width: none; }
+    .about-row__media img { aspect-ratio: 4 / 3; }
 }
 
 @media (prefers-reduced-motion: reduce) {

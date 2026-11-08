@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="同心圆与拱门插画">
+  <rect width="1200" height="900" fill="#F3F0E8"/>
+
+  <!-- 左下拱门 -->
+  <path d="M80 900 L80 470 A210 210 0 0 1 500 470 L500 900 Z" fill="#5F7261" opacity="0.9"/>
+  <path d="M130 900 L130 480 A160 160 0 0 1 450 480 L450 900"
+        fill="none" stroke="#F3F0E8" stroke-width="4" opacity="0.45"/>
+
+  <!-- 右上同心圆 -->
+  <g fill="none" stroke="#102956" stroke-width="2.5" opacity="0.35">
+    <circle cx="900" cy="330" r="210"/>
+    <circle cx="900" cy="330" r="150"/>
+    <circle cx="900" cy="330" r="90"/>
+  </g>
+  <circle cx="900" cy="330" r="38" fill="#C4704F"/>
+
+  <!-- 地面线 -->
+  <path d="M0 760 h1200" stroke="#102956" stroke-width="3" opacity="0.3"/>
+
+  <!-- 折叠的纸／桌面意象 -->
+  <path d="M620 760 L820 640 L1020 760 Z" fill="#D9A441" opacity="0.9"/>
+
+  <!-- 小点与短线 -->
+  <circle cx="620" cy="330" r="9" fill="#C4704F"/>
+  <path d="M560 420 h120" stroke="#102956" stroke-width="4" opacity="0.4"/>
+</svg>

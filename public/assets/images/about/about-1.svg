@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="书页与光影插画">
+  <rect width="1200" height="900" fill="#F2EEE6"/>
+
+  <!-- 桌面色块 -->
+  <rect x="0" y="700" width="1200" height="200" fill="#E7DFD1"/>
+
+  <!-- 两页纸（错位叠放） -->
+  <rect x="250" y="210" width="420" height="520" rx="6" fill="#FBF8F1" stroke="#102956" stroke-width="2" opacity="0.9"/>
+  <rect x="470" y="180" width="420" height="520" rx="6" fill="#FFFFFF" stroke="#102956" stroke-width="2"/>
+
+  <!-- 纸上的细线（文字排版意象） -->
+  <g stroke="#102956" stroke-width="3" opacity="0.28">
+    <path d="M300 300 h320 M300 350 h320 M300 400 h250"/>
+  </g>
+  <g stroke="#C4704F" stroke-width="4" opacity="0.8">
+    <path d="M520 280 h320 M520 330 h280"/>
+  </g>
+
+  <!-- 赭黄日轮 -->
+  <circle cx="900" cy="300" r="96" fill="#D9A441"/>
+  <circle cx="900" cy="300" r="140" fill="none" stroke="#102956" stroke-width="2.5" opacity="0.3"/>
+
+  <!-- 鼠尾草枝叶 -->
+  <g>
+    <path d="M180 640 q90 -70 178 -34" fill="none" stroke="#5F7261" stroke-width="6" stroke-linecap="round"/>
+    <ellipse cx="250" cy="570" rx="36" ry="15" fill="#8A9B85" transform="rotate(-24 250 570)"/>
+    <ellipse cx="330" cy="592" rx="28" ry="12" fill="#C4704F" transform="rotate(10 330 592)"/>
+  </g>
+
+  <!-- 小块深蓝 -->
+  <rect x="820" y="700" width="150" height="12" fill="#102956" opacity="0.5"/>
+</svg>

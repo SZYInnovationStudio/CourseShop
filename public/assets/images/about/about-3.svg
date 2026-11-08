@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="阶梯与日出插画">
+  <rect width="1200" height="900" fill="#F4EFE4"/>
+
+  <!-- 远处日轮 -->
+  <circle cx="860" cy="250" r="120" fill="#C4704F"/>
+  <circle cx="860" cy="250" r="170" fill="none" stroke="#102956" stroke-width="2.5" opacity="0.3"/>
+
+  <!-- 山丘 -->
+  <path d="M0 720 Q240 600 520 700 T1200 660 L1200 900 L0 900 Z" fill="#8A9B85"/>
+  <path d="M0 790 Q300 700 640 780 T1200 740 L1200 900 L0 900 Z" fill="#5F7261"/>
+
+  <!-- 阶梯（深蓝） -->
+  <g fill="none" stroke="#102956" stroke-width="6" stroke-linecap="round">
+    <path d="M120 720 L120 620 L250 620 L250 520 L380 520 L380 420 L510 420"/>
+  </g>
+  <circle cx="510" cy="420" r="13" fill="#D9A441"/>
+
+  <!-- 地平细线 -->
+  <path d="M0 720 Q240 600 520 700 T1200 660" fill="none" stroke="#102956" stroke-width="2.5" opacity="0.35"/>
+
+  <!-- 修饰短线 -->
+  <g stroke="#F4EFE4" stroke-width="5" stroke-linecap="round" opacity="0.7">
+    <path d="M980 560 h120 M1060 610 h80"/>
+  </g>
+</svg>
