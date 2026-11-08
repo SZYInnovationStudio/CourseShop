@@ -118,13 +118,14 @@ final class TicketController extends AdminController
         $ticket   = $this->requireActiveTicket($ticketId);
 
         $content = trim((string) Request::input('content', ''));
+        $backUrl = url('/admin/tickets/' . $ticketId);
 
         if ($content === '') {
-            $this->fail(url('/admin/tickets/' . $ticketId), '回复内容不能为空。');
+            $this->fail($backUrl, '回复内容不能为空。', ['content' => $content]);
         }
 
         if (mb_strlen($content) > self::MAX_REPLY_LENGTH) {
-            $this->fail(url('/admin/tickets/' . $ticketId), '回复内容不能超过 ' . self::MAX_REPLY_LENGTH . ' 个字符。');
+            $this->fail($backUrl, '回复内容不能超过 ' . self::MAX_REPLY_LENGTH . ' 个字符。', ['content' => $content]);
         }
 
         $replyId = TicketReply::create($ticketId, (int) (Auth::id() ?? 0), true, $content);

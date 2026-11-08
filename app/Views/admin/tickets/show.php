@@ -212,7 +212,7 @@ $userName        = (string) ($ticket['user_name'] ?? '');
 
                     <div class="form-group">
                         <textarea class="textarea" name="content" rows="5" maxlength="5000"
-                                  placeholder="输入给用户的回复内容" required></textarea>
+                                  placeholder="输入给用户的回复内容" required><?= e(old('content', '')) ?></textarea>
                     </div>
 
                     <div class="form-group">
