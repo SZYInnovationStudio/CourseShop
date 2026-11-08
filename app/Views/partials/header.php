@@ -52,7 +52,7 @@ $activeClass = static function (string $path) use ($current): string {
     return str_starts_with($current, $path) ? ' is-active' : '';
 };
 ?>
-<header class="site-header">
+<header class="site-header<?= $minimalHeader ? ' site-header--floating' : '' ?>">
     <div class="container site-header__inner">
         <?php if (!$isRootPage): ?>
             <button type="button" class="nav-back" data-history-back<?= $backUrl !== '' ? ' data-back-url="' . e($backUrl) . '"' : '' ?>
@@ -64,6 +64,7 @@ $activeClass = static function (string $path) use ($current): string {
             </button>
         <?php endif; ?>
 
+        <?php if (!$minimalHeader): ?>
         <a class="brand" href="<?= url('/') ?>">
             <?php if ($siteLogo !== ''): ?>
                 <img class="brand__logo" src="<?= e(url($siteLogo)) ?>" alt="<?= e($siteName) ?>">
@@ -72,6 +73,7 @@ $activeClass = static function (string $path) use ($current): string {
                 <span><?= e($siteName) ?></span>
             <?php endif; ?>
         </a>
+        <?php endif; ?>
 
         <?php if (!$minimalHeader): ?>
         <nav class="site-nav" aria-label="<?= e(t('主导航')) ?>">

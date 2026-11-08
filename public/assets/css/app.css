@@ -4068,6 +4068,70 @@ html[data-theme="dark"] .landing-hero__bg { opacity: 0.92; }
 
 .landing-course__actions { margin-top: var(--space-7); }
 
+/* 首页极简首屏：顶栏透明悬浮于头图之上，只保留登录/注册 */
+.site-header--floating {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: transparent;
+    border-bottom-color: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+/* 头图上登录/注册白化：登录为纯文字，注册为白色描边胶囊 */
+.site-header--floating .header-actions .btn--ghost {
+    color: #FFFFFF;
+}
+
+.site-header--floating .header-actions .btn--ghost:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #FFFFFF;
+}
+
+.site-header--floating .header-actions .btn:not(.btn--ghost):not(.btn--outline) {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    color: #FFFFFF;
+}
+
+.site-header--floating .header-actions .btn:not(.btn--ghost):not(.btn--outline):hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.9);
+    color: #FFFFFF;
+}
+
+/* 已登录：用户菜单触发器与头像回退字白化 */
+.site-header--floating .user-menu__trigger {
+    color: #FFFFFF;
+}
+
+.site-header--floating .user-menu__trigger .avatar__fallback {
+    background: rgba(255, 255, 255, 0.2);
+    color: #FFFFFF;
+}
+
+/* 极简首屏：移动端底部导航已隐藏，登录/注册不能再收进抽屉，强制常显 */
+.site-header--floating .hide-sm {
+    display: flex !important;
+}
+
+/* 无头图的首屏：白色元素回退为中性色保证可读 */
+.landing-hero:not(.landing-hero--image) .site-header--floating .header-actions .btn--ghost,
+.landing-hero:not(.landing-hero--image) .site-header--floating .user-menu__trigger {
+    color: var(--color-text);
+}
+
+.landing-hero:not(.landing-hero--image) .site-header--floating .header-actions .btn:not(.btn--ghost):not(.btn--outline) {
+    border-color: var(--color-border-strong);
+    color: var(--color-text);
+}
+
+/* 首页极简首屏：隐藏移动端底部导航，保持沉浸式 */
+body:has(.landing-minimal-on) .bottom-nav {
+    display: none !important;
+}
+
 /* 首页极简顶栏：悬浮在头图右上角的菜单入口 */
 .landing-menu-btn {
     position: absolute;
@@ -4093,6 +4157,12 @@ html[data-theme="dark"] .landing-hero__bg { opacity: 0.92; }
 .landing-menu-btn:hover {
     background: rgba(255, 255, 255, 0.26);
     color: #FFFFFF;
+}
+
+/* 极简首屏：登录/注册已占据头图右上角，菜单入口移至右下角 */
+.landing-menu-btn--corner {
+    top: auto;
+    bottom: clamp(24px, 4.5vw, 48px);
 }
 
 /* 头图关闭时的米色首屏：改用中性色保证可读 */
