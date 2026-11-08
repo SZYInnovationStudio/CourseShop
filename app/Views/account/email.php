@@ -50,9 +50,15 @@ $ttlMinutes = max(1, (int) ceil(max(60, Setting::int('mail_code_ttl', 600)) / 60
                                autocomplete="one-time-code" inputmode="numeric"
                                maxlength="6" placeholder="<?= e(t('6 位数字验证码')) ?>" required>
                         <button class="btn btn--outline" type="submit"
-                                formaction="<?= url('/account/email/send') ?>" formnovalidate><?= e(t('获取验证码')) ?></button>
+                                formaction="<?= url('/account/email/send') ?>"
+                                data-send-code
+                                data-label-sending="<?= e(t('发送中…')) ?>"
+                                data-label-wait="<?= e(t('%d 秒后可重新发送')) ?>"
+                                data-error-text="<?= e(t('网络异常，请稍后重试。')) ?>"
+                                formnovalidate><?= e(t('获取验证码')) ?></button>
                     </div>
                     <p class="form-hint"><?= e(t('先点击「获取验证码」，再填写收到的验证码完成绑定，验证码 %d 分钟内有效。', [$ttlMinutes])) ?></p>
+                    <p class="form-hint code-status" data-code-status role="status" hidden></p>
                 </div>
 
                 <button class="btn btn--block" type="submit"><?= e(t('完成绑定')) ?></button>

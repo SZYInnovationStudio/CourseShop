@@ -37,7 +37,8 @@ declare(strict_types=1);
                 <label class="form-label" for="username"><?= e(t('用户名')) ?><span class="required">*</span></label>
                 <input class="input" type="text" id="username" name="username"
                        value="<?= e(old('username')) ?>" autocomplete="username"
-                       minlength="3" maxlength="20" required autofocus>
+                       minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}"
+                       title="<?= e(t('3-20 位字母、数字或下划线。')) ?>" required autofocus>
                 <p class="form-hint"><?= e(t('3-20 位字母、数字或下划线。')) ?></p>
             </div>
 
@@ -62,7 +63,9 @@ declare(strict_types=1);
             <div class="form-group">
                 <label class="form-label" for="password_confirm"><?= e(t('确认密码')) ?><span class="required">*</span></label>
                 <input class="input" type="password" id="password_confirm" name="password_confirm"
-                       autocomplete="new-password" minlength="8" maxlength="64" required>
+                       autocomplete="new-password" minlength="8" maxlength="64" required
+                       data-confirm-for="#password"
+                       data-confirm-error="<?= e(t('两次输入的密码不一致。')) ?>">
             </div>
 
             <?php if ($emailVerifyRequired): ?>
@@ -73,15 +76,21 @@ declare(strict_types=1);
                                value="<?= e(old('email')) ?>" autocomplete="email" maxlength="190" required>
                         <button type="submit" class="input-group__suffix"
                                 formaction="<?= url('/register/email-code') ?>"
+                                data-send-code
+                                data-label-sending="<?= e(t('发送中…')) ?>"
+                                data-label-wait="<?= e(t('%d 秒后可重新发送')) ?>"
+                                data-error-text="<?= e(t('网络异常，请稍后重试。')) ?>"
                                 formnovalidate><?= e(t('获取验证码')) ?></button>
                     </div>
                     <p class="form-hint"><?= e(t('验证码 %d 分钟内有效。', [$codeTtlMinutes])) ?></p>
+                    <p class="form-hint code-status" data-code-status role="status" hidden></p>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="email_code"><?= e(t('邮箱验证码')) ?><span class="required">*</span></label>
                     <input class="input" type="text" id="email_code" name="email_code"
-                           inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+                           inputmode="numeric" autocomplete="one-time-code" maxlength="6"
+                           pattern="[0-9]{6}" required>
                 </div>
             <?php endif; ?>
 

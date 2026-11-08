@@ -55,6 +55,37 @@ abstract class Controller
     }
 
     /**
+     * 校验失败：AJAX 请求返回 JSON 提示，普通请求回填并跳回来源页
+     *
+     * 用于「发送验证码」这类不应打断输入的操作，避免整页刷新导致密码等已填内容丢失。
+     *
+     * @param array<string, mixed> $input
+     */
+    protected function failUnlessAjax(string $url, string $message, array $input = []): never
+    {
+        if (Request::isAjax()) {
+            Response::json(['code' => 1, 'message' => $message]);
+        }
+
+        $this->fail($url, $message, $input);
+    }
+
+    /**
+     * 操作成功：AJAX 请求返回 JSON，普通请求跳转并提示
+     *
+     * @param array<string, mixed> $input
+     * @param array<string, mixed> $extra 额外的 JSON 字段
+     */
+    protected function successUnlessAjax(string $url, string $message, array $input = [], array $extra = []): never
+    {
+        if (Request::isAjax()) {
+            Response::json(array_merge(['code' => 0, 'message' => $message], $extra));
+        }
+
+        $this->success($url, $message, $input);
+    }
+
+    /**
      * 当前登录用户（未登录返回 null）
      *
      * @return array<string, mixed>|null

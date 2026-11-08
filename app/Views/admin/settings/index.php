@@ -55,7 +55,14 @@ foreach ((array) ($activeGroup['fields'] ?? []) as $field) {
                 <div class="empty-state"><p class="mb-0">设置分组不存在。</p></div>
             </div>
         <?php else: ?>
-            <form method="post" action="<?= url('/admin/settings/' . $active) ?>" enctype="multipart/form-data">
+            <form method="post" action="<?= url('/admin/settings/' . $active) ?>" enctype="multipart/form-data"
+                  data-validate-upload
+                  data-max-files="1"
+                  data-max-mb="5"
+                  data-allowed="jpg,jpeg,png,gif,webp"
+                  data-msg-files="<?= e(t('最多上传 %d 个附件。')) ?>"
+                  data-msg-size="<?= e(t('单个附件不能超过 %d MB。')) ?>"
+                  data-msg-type="<?= e(t('不支持的文件类型：%s')) ?>">
                 <?= csrf_field() ?>
 
                 <div class="card">
@@ -245,6 +252,8 @@ foreach ((array) ($activeGroup['fields'] ?? []) as $field) {
                         <?php endforeach; ?>
                     </div>
                 </div>
+
+                <p class="form-hint upload-status" data-upload-status role="alert" hidden></p>
 
                 <div class="btn-group">
                     <button class="btn" type="submit">保存设置</button>

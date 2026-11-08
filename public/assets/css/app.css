@@ -690,7 +690,7 @@ body.menu-open::before {
 
 .alert__close:hover { opacity: 1; }
 
-.alert--success { background: var(--color-success-soft); border-color: transparent; color: var(--color-success); }
+.alert--success { background: var(--color-primary-soft); border-color: transparent; color: var(--color-primary-strong); }
 .alert--error   { background: var(--color-danger-soft);  border-color: transparent; color: var(--color-danger); }
 .alert--warning { background: var(--color-warning-soft); border-color: transparent; color: var(--color-warning); }
 .alert--info    { background: var(--color-info-soft);    border-color: transparent; color: var(--color-info); }
@@ -719,6 +719,16 @@ body.menu-open::before {
     font-size: var(--text-xs);
     color: var(--color-danger);
 }
+
+/* 验证码 / 附件校验的行内提示（随主题色变化） */
+.code-status,
+.upload-status { font-weight: 500; }
+
+.code-status.is-success,
+.upload-status.is-success { color: var(--color-primary-strong); }
+
+.code-status.is-error,
+.upload-status.is-error { color: var(--color-danger); }
 
 .input,
 .select,
@@ -1828,6 +1838,11 @@ button.site-drawer__link {
 .list-plain > li { padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border); }
 .list-plain > li:first-child { padding-top: 0; }
 .list-plain > li:last-child { padding-bottom: 0; border-bottom: 0; }
+
+/* 登录设备等长文本行：允许收缩换行，长 IP / 时间不撑破卡片 */
+.list-plain > li.flex-between { align-items: flex-start; flex-wrap: wrap; }
+.list-plain > li.flex-between > span { flex: 1 1 12rem; min-width: 0; overflow-wrap: anywhere; }
+.list-plain > li.flex-between form { flex: none; }
 
 .announcement__date { color: var(--color-text-faint); font-size: var(--text-xs); }
 

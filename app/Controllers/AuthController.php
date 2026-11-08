@@ -315,8 +315,10 @@ final class AuthController extends Controller
     {
         Csrf::check();
 
+        $registerUrl = url('/register');
+
         if (!Setting::bool('register_enabled', true)) {
-            $this->fail(url('/register'), t('当前未开放注册。'));
+            $this->failUnlessAjax($registerUrl, t('当前未开放注册。'));
         }
 
         $email = strtolower(Request::string('email'));
@@ -327,30 +329,35 @@ final class AuthController extends Controller
             ->email('email', '邮箱');
 
         if ($validator->fails()) {
-            $this->fail(url('/register'), (string) $validator->firstError(), $old);
+            $this->failUnlessAjax($registerUrl, (string) $validator->firstError(), $old);
         }
 
         if (Captcha::enabled() && !Captcha::verify('register', Request::string('captcha'))) {
-            $this->fail(url('/register'), t('图形验证码不正确或已过期。'), $old);
+            $this->failUnlessAjax($registerUrl, t('图形验证码不正确或已过期。'), $old);
         }
 
         if (User::emailExists($email)) {
-            $this->fail(url('/register'), t('该邮箱已被其他账号绑定。'), $old);
+            $this->failUnlessAjax($registerUrl, t('该邮箱已被其他账号绑定。'), $old);
         }
 
         if (EmailVerification::recentCount($email, EmailVerification::PURPOSE_REGISTER, self::REGISTER_RESEND_INTERVAL) > 0) {
-            $this->fail(url('/register'), t('验证码发送过于频繁，请稍后再试。'), $old);
+            $this->failUnlessAjax($registerUrl, t('验证码发送过于频繁，请稍后再试。'), $old);
         }
 
         if (EmailVerification::recentCountByIp(Request::ip(), EmailVerification::PURPOSE_REGISTER, 3600) >= self::REGISTER_IP_HOURLY_LIMIT) {
-            $this->fail(url('/register'), t('当前网络获取验证码过于频繁，请稍后再试。'), $old);
+            $this->failUnlessAjax($registerUrl, t('当前网络获取验证码过于频繁，请稍后再试。'), $old);
         }
 
         $issued = EmailVerification::issue(null, $email, EmailVerification::PURPOSE_REGISTER);
         $ttl    = max(1, (int) ceil($issued['ttl'] / 60));
 
         if (Mailer::sendCode($email, $issued['code'], 'register')) {
-            $this->success(url('/register'), t('验证码已发送至 %s，%d 分钟内有效。', [mask_email($email), $ttl]), $old);
+            $this->successUnlessAjax(
+                $registerUrl,
+                t('验证码已发送至 %s，%d 分钟内有效。', [mask_email($email), $ttl]),
+                $old,
+                ['resend_after' => self::REGISTER_RESEND_INTERVAL]
+            );
         }
 
         // 发送失败：调试模式下仅写入受控日志，不在页面回显验证码
@@ -361,7 +368,7 @@ final class AuthController extends Controller
             ]);
         }
 
-        $this->fail(url('/register'), t('验证码发送失败，请稍后重试或联系管理员。'), $old);
+        $this->failUnlessAjax($registerUrl, t('验证码发送失败，请稍后重试或联系管理员。'), $old);
     }
 
     /**

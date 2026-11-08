@@ -19,7 +19,14 @@ declare(strict_types=1);
 <div class="container">
     <div class="card">
         <div class="card__body">
-            <form method="post" action="<?= url('/ticket') ?>" enctype="multipart/form-data">
+            <form method="post" action="<?= url('/ticket') ?>" enctype="multipart/form-data"
+                  data-validate-upload
+                  data-max-files="<?= (int) $maxFiles ?>"
+                  data-max-mb="<?= (int) $maxMb ?>"
+                  data-allowed="<?= e(implode(',', $allowedTypes)) ?>"
+                  data-msg-files="<?= e(t('最多上传 %d 个附件。')) ?>"
+                  data-msg-size="<?= e(t('单个附件不能超过 %d MB。')) ?>"
+                  data-msg-type="<?= e(t('不支持的文件类型：%s')) ?>">
                 <?= csrf_field() ?>
 
                 <div class="form-group">
@@ -36,12 +43,14 @@ declare(strict_types=1);
                 <div class="form-group">
                     <label class="form-label" for="title"><?= e(t('标题')) ?><span class="required">*</span></label>
                     <input class="input" type="text" id="title" name="title" maxlength="150"
+                           minlength="4" required
                            value="<?= e(old('title', '')) ?>" placeholder="<?= e(t('一句话概括你的问题')) ?>">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="content"><?= e(t('问题描述')) ?><span class="required">*</span></label>
                     <textarea class="textarea" id="content" name="content" rows="8" maxlength="5000"
+                              minlength="5" required
                               placeholder="<?= e(t('请描述问题出现的场景、操作步骤与期望结果')) ?>"><?= e(old('content', '')) ?></textarea>
                     <p class="form-hint"><?= e(t('最多 5000 个字符。')) ?></p>
                 </div>
@@ -53,6 +62,7 @@ declare(strict_types=1);
                         <?= e(t('最多 %d 个文件，单个不超过 %d MB，', [(int) $maxFiles, (int) $maxMb])) ?>
                         <?= e(t('支持：%s。', [implode(t('、'), $allowedTypes)])) ?>
                     </p>
+                    <p class="form-hint upload-status" data-upload-status role="alert" hidden></p>
                 </div>
 
                 <div class="btn-group">

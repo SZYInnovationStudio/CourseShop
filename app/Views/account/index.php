@@ -278,7 +278,14 @@ $tabs = [
 
             <?php else: ?>
 
-                <form method="post" action="<?= url('/account') ?>" enctype="multipart/form-data" novalidate>
+                <form method="post" action="<?= url('/account') ?>" enctype="multipart/form-data" novalidate
+                      data-validate-upload
+                      data-max-files="1"
+                      data-max-mb="2"
+                      data-allowed="jpg,jpeg,png,gif,webp"
+                      data-msg-files="<?= e(t('最多上传 %d 个附件。')) ?>"
+                      data-msg-size="<?= e(t('单个附件不能超过 %d MB。')) ?>"
+                      data-msg-type="<?= e(t('不支持的文件类型：%s')) ?>">
                     <?= csrf_field() ?>
                     <div class="card">
                         <div class="card__header"><?= e(t('个人资料')) ?></div>
@@ -297,6 +304,7 @@ $tabs = [
                                         <input class="input" type="file" id="avatar" name="avatar"
                                                accept="image/jpeg,image/png,image/gif,image/webp">
                                         <p class="form-hint"><?= e(t('支持 jpg、png、gif、webp，大小不超过 2 MB。')) ?></p>
+                                        <p class="form-hint upload-status" data-upload-status role="alert" hidden></p>
                                     </div>
                                     <?php if ($avatar !== ''): ?>
                                         <label class="checkbox">

@@ -34,6 +34,7 @@ declare(strict_types=1);
             <div class="form-group">
                 <label class="form-label" for="content"><?= e(t('申诉说明')) ?><span class="required">*</span></label>
                 <textarea class="textarea" id="content" name="content" rows="6" maxlength="5000"
+                          minlength="10"
                           placeholder="<?= e(t('请说明账号被封禁的情况与申诉理由（不少于 10 个字）')) ?>" required><?= e(old('content', '')) ?></textarea>
             </div>
 

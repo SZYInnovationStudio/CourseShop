@@ -200,7 +200,14 @@ $userName        = (string) ($ticket['user_name'] ?? '');
         <div class="card">
             <div class="card__header">回复工单</div>
             <div class="card__body">
-                <form method="post" action="<?= url('/admin/tickets/' . $ticketId . '/reply') ?>" enctype="multipart/form-data">
+                <form method="post" action="<?= url('/admin/tickets/' . $ticketId . '/reply') ?>" enctype="multipart/form-data"
+                      data-validate-upload
+                      data-max-files="<?= (int) $maxFiles ?>"
+                      data-max-mb="<?= (int) $maxMb ?>"
+                      data-allowed="<?= e(implode(',', $allowedTypes)) ?>"
+                      data-msg-files="<?= e(t('最多上传 %d 个附件。')) ?>"
+                      data-msg-size="<?= e(t('单个附件不能超过 %d MB。')) ?>"
+                      data-msg-type="<?= e(t('不支持的文件类型：%s')) ?>">
                     <?= csrf_field() ?>
 
                     <div class="form-group">
@@ -215,6 +222,7 @@ $userName        = (string) ($ticket['user_name'] ?? '');
                             最多 <?= (int) $maxFiles ?> 个文件，单个不超过 <?= (int) $maxMb ?> MB，
                             支持：<?= e(implode('、', $allowedTypes)) ?>。
                         </p>
+                        <p class="form-hint upload-status" data-upload-status role="alert" hidden></p>
                     </div>
 
                     <button class="btn btn--block" type="submit">发送回复</button>

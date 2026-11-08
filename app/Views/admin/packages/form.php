@@ -57,7 +57,14 @@ $checkedIds = array_flip($checkedIds);
     </div>
 </div>
 
-<form method="post" action="<?= $action ?>" enctype="multipart/form-data">
+<form method="post" action="<?= $action ?>" enctype="multipart/form-data"
+      data-validate-upload
+      data-max-files="1"
+      data-max-mb="5"
+      data-allowed="jpg,jpeg,png,gif,webp"
+      data-msg-files="<?= e(t('最多上传 %d 个附件。')) ?>"
+      data-msg-size="<?= e(t('单个附件不能超过 %d MB。')) ?>"
+      data-msg-type="<?= e(t('不支持的文件类型：%s')) ?>">
     <?= csrf_field() ?>
 
     <div class="card">
@@ -174,6 +181,8 @@ $checkedIds = array_flip($checkedIds);
             <?php endif; ?>
         </div>
     </div>
+
+    <p class="form-hint upload-status" data-upload-status role="alert" hidden></p>
 
     <div class="btn-group">
         <button class="btn" type="submit"><?= $isEdit ? '保存修改' : '创建套餐' ?></button>

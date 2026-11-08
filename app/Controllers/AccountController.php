@@ -272,27 +272,34 @@ final class AccountController extends Controller
             ->required('email', '邮箱')
             ->email('email', '邮箱');
 
+        $emailUrl = url('/account/email');
+
         if ($validator->fails()) {
-            $this->fail(url('/account/email'), (string) $validator->firstError(), $old);
+            $this->failUnlessAjax($emailUrl, (string) $validator->firstError(), $old);
         }
 
         if ($user === null) {
-            $this->fail(url('/login'), t('登录状态已失效，请重新登录。'));
+            $this->failUnlessAjax(url('/login'), t('登录状态已失效，请重新登录。'));
         }
 
         if (User::emailExists($email, (int) $user['id'])) {
-            $this->fail(url('/account/email'), t('该邮箱已被其他账号绑定。'), $old);
+            $this->failUnlessAjax($emailUrl, t('该邮箱已被其他账号绑定。'), $old);
         }
 
         if (EmailVerification::recentCount($email, EmailVerification::PURPOSE_BIND, self::RESEND_INTERVAL) > 0) {
-            $this->fail(url('/account/email'), t('验证码发送过于频繁，请稍后再试。'), $old);
+            $this->failUnlessAjax($emailUrl, t('验证码发送过于频繁，请稍后再试。'), $old);
         }
 
         $issued = EmailVerification::issue((int) $user['id'], $email, EmailVerification::PURPOSE_BIND);
         $ttl    = max(1, (int) ceil($issued['ttl'] / 60));
 
         if (Mailer::sendCode($email, $issued['code'], 'bind')) {
-            $this->success(url('/account/email'), t('验证码已发送至 %s，%d 分钟内有效。', [mask_email($email), $ttl]), $old);
+            $this->successUnlessAjax(
+                $emailUrl,
+                t('验证码已发送至 %s，%d 分钟内有效。', [mask_email($email), $ttl]),
+                $old,
+                ['resend_after' => self::RESEND_INTERVAL]
+            );
         }
 
         // 邮件发送失败：调试模式下仅将验证码写入受控日志，不在接口回显，
@@ -304,7 +311,7 @@ final class AccountController extends Controller
             ]);
         }
 
-        $this->fail(url('/account/email'), t('验证码发送失败，请稍后重试或联系管理员。'), $old);
+        $this->failUnlessAjax($emailUrl, t('验证码发送失败，请稍后重试或联系管理员。'), $old);
     }
 
     /**

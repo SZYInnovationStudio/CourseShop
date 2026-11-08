@@ -199,13 +199,14 @@ final class TicketController extends Controller
         }
 
         $content = trim((string) Request::input('content', ''));
+        $backUrl = url('/ticket/' . $ticket['id']);
 
         if ($content === '') {
-            $this->fail(url('/ticket/' . $ticket['id']), t('回复内容不能为空。'));
+            $this->fail($backUrl, t('回复内容不能为空。'), ['content' => $content]);
         }
 
         if (mb_strlen($content) > self::MAX_REPLY_LENGTH) {
-            $this->fail(url('/ticket/' . $ticket['id']), t('回复内容不能超过 %d 个字符。', [self::MAX_REPLY_LENGTH]));
+            $this->fail($backUrl, t('回复内容不能超过 %d 个字符。', [self::MAX_REPLY_LENGTH]), ['content' => $content]);
         }
 
         $replyId = TicketReply::create((int) $ticket['id'], (int) $user['id'], false, $content);

@@ -3,6 +3,13 @@
 declare(strict_types=1);
 
 return [
+    '发送中…' => 'Sending…',
+    '%d 秒后可重新发送' => 'Resend in %d s',
+    '网络异常，请稍后重试。' => 'Network error, please try again later.',
+    '两次输入的密码不一致。' => 'The passwords do not match.',
+    '最多上传 %d 个附件。' => 'You can upload up to %d attachments.',
+    '单个附件不能超过 %d MB。' => 'Each attachment must not exceed %d MB.',
+    '不支持的文件类型：%s' => 'Unsupported file type: %s',
     '%d 人已购买' => '%d people purchased',
     '%d 次浏览' => '%d views',
     '%d 章' => '%d chapters',

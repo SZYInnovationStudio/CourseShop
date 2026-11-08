@@ -111,12 +111,20 @@ $bodyAttachments = $attachments[0] ?? [];
                 <div class="card">
                     <div class="card__header"><?= e(t('补充回复')) ?></div>
                     <div class="card__body">
-                        <form method="post" action="<?= url('/ticket/' . $ticketId . '/reply') ?>" enctype="multipart/form-data">
+                        <form method="post" action="<?= url('/ticket/' . $ticketId . '/reply') ?>" enctype="multipart/form-data"
+                              data-validate-upload
+                              data-max-files="<?= (int) $maxFiles ?>"
+                              data-max-mb="<?= (int) $maxMb ?>"
+                              data-allowed="<?= e(implode(',', $allowedTypes)) ?>"
+                              data-msg-files="<?= e(t('最多上传 %d 个附件。')) ?>"
+                              data-msg-size="<?= e(t('单个附件不能超过 %d MB。')) ?>"
+                              data-msg-type="<?= e(t('不支持的文件类型：%s')) ?>">
                             <?= csrf_field() ?>
 
                             <div class="form-group">
                                 <textarea class="textarea" name="content" rows="5" maxlength="5000"
-                                          placeholder="<?= e(t('继续补充你的问题或回复客服')) ?>" required></textarea>
+                                          required
+                                          placeholder="<?= e(t('继续补充你的问题或回复客服')) ?>"><?= e(old('content', '')) ?></textarea>
                             </div>
 
                             <div class="form-group">
@@ -125,6 +133,7 @@ $bodyAttachments = $attachments[0] ?? [];
                                 <p class="form-hint">
                                     <?= e(t('最多 %d 个，单个不超过 %d MB。', [(int) $maxFiles, (int) $maxMb])) ?>
                                 </p>
+                                <p class="form-hint upload-status" data-upload-status role="alert" hidden></p>
                             </div>
 
                             <button class="btn" type="submit"><?= e(t('提交回复')) ?></button>

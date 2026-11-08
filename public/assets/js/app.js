@@ -29,6 +29,52 @@
         });
     }, 3000);
 
+    /* ---------------- 表单提交前的原生约束校验 ----------------
+       不少表单标记 novalidate 以使用站点自己的提示样式，但校验失败会整页刷新，
+       导致密码、已选附件等已填内容丢失。提交前先用浏览器约束校验拦截，避免刷新。 */
+    (function () {
+        // 两次密码一致性：写入自定义约束，参与原生校验
+        document.querySelectorAll('[data-confirm-for]').forEach(function (input) {
+            var target = document.querySelector(input.getAttribute('data-confirm-for'));
+
+            if (!target) {
+                return;
+            }
+
+            var message = input.getAttribute('data-confirm-error') || '';
+
+            var check = function () {
+                var mismatch = input.value !== '' && target.value !== '' && input.value !== target.value;
+                input.setCustomValidity(mismatch ? message : '');
+            };
+
+            target.addEventListener('input', check);
+            input.addEventListener('input', check);
+            check();
+        });
+
+        document.querySelectorAll('form[novalidate]').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (event.defaultPrevented) {
+                    return;
+                }
+
+                // formnovalidate 按钮（如「获取验证码」）不参与整表校验
+                if (event.submitter && event.submitter.hasAttribute('formnovalidate')) {
+                    return;
+                }
+
+                if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
+                    event.preventDefault();
+
+                    if (typeof form.reportValidity === 'function') {
+                        form.reportValidity();
+                    }
+                }
+            });
+        });
+    })();
+
     /* ---------------- 主题切换 ---------------- */
     function currentTheme() {
         return root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
@@ -1757,6 +1803,213 @@
             if (event.key === 'Escape' && !modal.hidden) {
                 close();
             }
+        });
+    })();
+
+    /* ---------------- 发送验证码：AJAX 提交，避免整页刷新丢失已填写的表单内容 ---------------- */
+    (function () {
+        var buttons = document.querySelectorAll('[data-send-code]');
+
+        if (!buttons.length || typeof window.fetch !== 'function') {
+            return;
+        }
+
+        function showStatus(form, text, isError) {
+            var el = form ? form.querySelector('[data-code-status]') : null;
+
+            if (!el) {
+                return;
+            }
+
+            el.hidden = false;
+            el.textContent = text;
+            el.classList.toggle('is-error', isError);
+            el.classList.toggle('is-success', !isError);
+        }
+
+        function refreshCaptcha(form) {
+            var image = form ? form.querySelector('[data-captcha-image]') : null;
+
+            if (!image) {
+                return;
+            }
+
+            var base = image.getAttribute('data-base-src') || image.src.split('?')[0];
+            image.setAttribute('data-base-src', base);
+            image.src = base + '?t=' + Date.now();
+        }
+
+        function payload(form) {
+            var data = new FormData();
+
+            ['_token', 'email', 'captcha', 'username'].forEach(function (name) {
+                var field = form.querySelector('[name="' + name + '"]');
+
+                if (field && field.value) {
+                    data.append(name, field.value);
+                }
+            });
+
+            return data;
+        }
+
+        function restore(btn, label) {
+            btn.disabled = false;
+            btn.textContent = label;
+        }
+
+        function countdown(btn, seconds, label) {
+            var left = seconds;
+            var template = btn.getAttribute('data-label-wait') || '%d';
+
+            btn.disabled = true;
+            btn.textContent = template.replace('%d', String(left));
+
+            var timer = window.setInterval(function () {
+                left -= 1;
+
+                if (left <= 0) {
+                    window.clearInterval(timer);
+                    restore(btn, label);
+
+                    return;
+                }
+
+                btn.textContent = template.replace('%d', String(left));
+            }, 1000);
+        }
+
+        buttons.forEach(function (btn) {
+            var form = btn.form;
+
+            if (!form) {
+                return;
+            }
+
+            form.addEventListener('submit', function (event) {
+                if (!event.submitter || event.submitter !== btn) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                if (btn.disabled) {
+                    return;
+                }
+
+                var label = btn.textContent;
+                var url = btn.getAttribute('formaction') || form.getAttribute('action') || '';
+                var errorText = btn.getAttribute('data-error-text') || '';
+
+                btn.disabled = true;
+                btn.textContent = btn.getAttribute('data-label-sending') || label;
+
+                window.fetch(url, {
+                    method: 'POST',
+                    body: payload(form),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                }).then(function (response) {
+                    return response.json();
+                }).then(function (json) {
+                    if (json && json.code === 0) {
+                        showStatus(form, json.message || '', false);
+
+                        var wait = parseInt(json.resend_after, 10);
+
+                        if (wait > 0) {
+                            countdown(btn, wait, label);
+                        } else {
+                            restore(btn, label);
+                        }
+                    } else {
+                        showStatus(form, (json && json.message) || errorText, true);
+                        restore(btn, label);
+                    }
+
+                    // 图形验证码在服务端校验后即失效，无论成败都换一张
+                    refreshCaptcha(form);
+                }).catch(function () {
+                    showStatus(form, errorText, true);
+                    restore(btn, label);
+                    refreshCaptcha(form);
+                });
+            });
+        });
+    })();
+
+    /* ---------------- 上传表单：提交前本地校验，避免服务端校验失败刷新后重选附件 ---------------- */
+    (function () {
+        var forms = document.querySelectorAll('form[data-validate-upload]');
+
+        forms.forEach(function (form) {
+            var inputs = form.querySelectorAll('input[type="file"]');
+
+            if (!inputs.length) {
+                return;
+            }
+
+            var status = form.querySelector('[data-upload-status]');
+            var maxFiles = parseInt(form.getAttribute('data-max-files') || '0', 10);
+            var maxMb = parseFloat(form.getAttribute('data-max-mb') || '0');
+            var allowed = (form.getAttribute('data-allowed') || '')
+                .toLowerCase()
+                .split(',')
+                .map(function (item) {
+                    return item.trim();
+                })
+                .filter(Boolean);
+
+            form.addEventListener('submit', function (event) {
+                var message = '';
+                var invalidInput = null;
+
+                Array.prototype.forEach.call(inputs, function (input) {
+                    if (message !== '') {
+                        return;
+                    }
+
+                    var files = Array.prototype.slice.call(input.files || []);
+
+                    for (var i = 0; i < files.length; i += 1) {
+                        var name = files[i].name || '';
+                        var ext = name.indexOf('.') >= 0 ? name.split('.').pop().toLowerCase() : '';
+
+                        if (maxFiles > 0 && files.length > maxFiles) {
+                            message = (form.getAttribute('data-msg-files') || '%d')
+                                .replace('%d', String(maxFiles));
+                        } else if (maxMb > 0 && files[i].size > maxMb * 1048576) {
+                            message = (form.getAttribute('data-msg-size') || '%d')
+                                .replace('%d', String(maxMb));
+                        } else if (allowed.length && allowed.indexOf(ext) === -1) {
+                            message = (form.getAttribute('data-msg-type') || '%s')
+                                .replace('%s', ext || name);
+                        }
+
+                        if (message !== '') {
+                            invalidInput = input;
+                            break;
+                        }
+                    }
+                });
+
+                if (status) {
+                    status.hidden = message === '';
+                    status.textContent = message;
+                    status.classList.toggle('is-error', message !== '');
+                }
+
+                if (message !== '') {
+                    event.preventDefault();
+
+                    if (invalidInput) {
+                        invalidInput.focus();
+                    }
+                }
+            });
         });
     })();
 })();
