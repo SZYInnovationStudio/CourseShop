@@ -38,6 +38,11 @@ $isRootPage  = in_array($currentPath, $rootPaths, true);
 $backUrl   = trim((string) ($backUrl ?? ''));
 $backLabel = $backUrl !== '' ? t('返回') : t('返回上一页');
 
+// 首页极简顶栏模式：隐藏导航/汉堡/语言/主题切换，右上角只留登录注册，菜单入口移到首屏头图上
+$minimalHeader = $current === '/'
+    && Setting::string('landing_header_mode', 'standard') === 'minimal'
+    && Setting::bool('landing_enabled', true);
+
 /** 导航高亮 */
 $activeClass = static function (string $path) use ($current): string {
     if ($path === '/') {
@@ -68,6 +73,7 @@ $activeClass = static function (string $path) use ($current): string {
             <?php endif; ?>
         </a>
 
+        <?php if (!$minimalHeader): ?>
         <nav class="site-nav" aria-label="<?= e(t('主导航')) ?>">
             <a class="site-nav__link<?= $activeClass('/') ?>" href="<?= url('/') ?>"><?= e(t('首页')) ?></a>
             <a class="site-nav__link<?= $activeClass('/courses') ?>" href="<?= url('/courses') ?>"><?= e(t('全部课程')) ?></a>
@@ -78,6 +84,7 @@ $activeClass = static function (string $path) use ($current): string {
                 <a class="site-nav__link site-nav__link--about<?= $activeClass('/about') ?>" href="<?= url('/about') ?>"><?= e(t('关于我们')) ?></a>
             <?php endif; ?>
         </nav>
+        <?php endif; ?>
 
         <div class="header-actions">
             <div class="flex-center gap-2 hide-sm">
@@ -128,7 +135,7 @@ $activeClass = static function (string $path) use ($current): string {
                 <?php endif; ?>
             </div>
 
-            <?php if ($showLangSwitch): ?>
+            <?php if (!$minimalHeader && $showLangSwitch): ?>
                 <details class="lang-menu" data-lang-menu>
                     <summary class="lang-menu__trigger" aria-label="<?= e(t('切换语言')) ?>" title="<?= e(t('切换语言')) ?>">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -148,7 +155,7 @@ $activeClass = static function (string $path) use ($current): string {
                 </details>
             <?php endif; ?>
 
-            <?php if ($canSwitchTheme): ?>
+            <?php if (!$minimalHeader && $canSwitchTheme): ?>
                 <button type="button" class="theme-toggle" data-theme-toggle aria-label="<?= e(t('切换深浅色主题')) ?>" title="<?= e(t('切换主题')) ?>"
                         <?= $user !== null ? 'data-theme-save="' . e(url('/account/theme')) . '"' : '' ?>>
                     <span class="theme-toggle__icon--sun" aria-hidden="true">
@@ -165,6 +172,7 @@ $activeClass = static function (string $path) use ($current): string {
                 </button>
             <?php endif; ?>
 
+            <?php if (!$minimalHeader): ?>
             <button type="button" class="nav-toggle" data-nav-toggle aria-label="<?= e(t('打开菜单')) ?>" aria-expanded="false" aria-controls="site-drawer"
                     data-label-open="<?= e(t('打开菜单')) ?>" data-label-close="<?= e(t('关闭菜单')) ?>">
                 <span class="nav-toggle__icons" aria-hidden="true">
@@ -176,10 +184,11 @@ $activeClass = static function (string $path) use ($current): string {
                     </svg>
                 </span>
             </button>
+            <?php endif; ?>
         </div>
     </div>
 
-    <div class="site-drawer" id="site-drawer" data-drawer>
+    <div class="site-drawer<?= $minimalHeader ? ' site-drawer--always' : '' ?>" id="site-drawer" data-drawer>
         <div class="site-drawer__panel">
             <div class="container">
                 <a class="site-drawer__link<?= $activeClass('/') ?>" href="<?= url('/') ?>"><?= e(t('首页')) ?></a>

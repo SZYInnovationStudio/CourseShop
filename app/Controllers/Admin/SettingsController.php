@@ -454,6 +454,7 @@ final class SettingsController extends AdminController
                 'desc'  => '独立的品牌主页：连续背景、首屏、图片带、理念与课程入口。关闭「启用新版主页」后，首页恢复为默认课程列表版式。',
                 'fields' => [
                     ['key' => 'landing_enabled', 'label' => '启用新版主页', 'type' => 'bool', 'default' => true, 'hint' => '开启后首页使用下方配置的品牌落地页；关闭则使用默认课程列表首页。'],
+                    ['key' => 'landing_header_mode', 'label' => '首屏顶栏模式', 'type' => 'select', 'options' => ['standard' => '标准（完整导航栏）', 'minimal' => '极简（顶栏仅登录/注册，菜单入口在头图上）'], 'default' => 'standard', 'hint' => '极简模式仅作用于首页：隐藏导航与汉堡按钮，右上角只保留登录/注册；菜单入口移到首屏头图上，点击后展开完整菜单。'],
                     ['key' => 'landing_hero_kicker', 'label' => '首屏小标题', 'type' => 'text', 'max' => 80, 'default' => '在线课程 · 系统学习', 'translatable' => true],
                     ['key' => 'landing_hero_title', 'label' => '首屏大标题', 'type' => 'text', 'max' => 120, 'default' => '系统学习，从入门到实战', 'translatable' => true],
                     ['key' => 'landing_hero_subtitle', 'label' => '首屏副标题', 'type' => 'textarea', 'max' => 255, 'default' => '把复杂的知识拆成清晰的路径，用真实的项目带你一步步走到会用、敢用。', 'translatable' => true],

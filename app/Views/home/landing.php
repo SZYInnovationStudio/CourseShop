@@ -108,11 +108,31 @@ $renderGalleryGroup = static function () use ($galleryImages): void {
 $arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
     . ' stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
     . '<path d="M5 12h14M13 6l6 6-6 6"></path></svg>';
+
+// 极简首屏顶栏：菜单入口悬浮在头图右上角（与 header.php 的极简判断保持一致）
+$minimalHeader = Setting::string('landing_header_mode', 'standard') === 'minimal';
 ?>
 <section class="landing-hero<?= $heroImageUrl !== '' ? ' landing-hero--image' : '' ?>">
     <?php if ($heroImageUrl !== ''): ?>
         <img class="landing-hero__bg" src="<?= e($heroImageUrl) ?>" alt="" aria-hidden="true" loading="eager" decoding="async">
         <div class="landing-hero__shade" aria-hidden="true"></div>
+    <?php endif; ?>
+
+    <?php if ($minimalHeader): ?>
+        <!-- 极简首屏：菜单入口悬浮在头图右上角，点击展开完整菜单 -->
+        <button type="button" class="landing-menu-btn" data-nav-toggle aria-label="<?= e(t('打开菜单')) ?>"
+                aria-expanded="false" aria-controls="site-drawer"
+                data-label-open="<?= e(t('打开菜单')) ?>" data-label-close="<?= e(t('关闭菜单')) ?>">
+            <span class="landing-menu-btn__icons" aria-hidden="true">
+                <svg class="landing-menu-btn__icon landing-menu-btn__icon--menu" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M3 6h18M3 12h18M3 18h18"></path>
+                </svg>
+                <svg class="landing-menu-btn__icon landing-menu-btn__icon--close" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M6 6l12 12M18 6 6 18"></path>
+                </svg>
+            </span>
+            <span class="landing-menu-btn__label"><?= e(t('菜单')) ?></span>
+        </button>
     <?php endif; ?>
 
     <div class="container landing-hero__inner">

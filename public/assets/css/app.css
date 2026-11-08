@@ -504,6 +504,9 @@ body.menu-open::before {
 
 @media (min-width: 768px) {
     .site-drawer { display: none !important; }
+
+    /* 首页极简顶栏：桌面没有 site-nav，菜单入口在头图上，任何宽度都允许抽屉展开 */
+    .site-drawer--always { display: block !important; }
 }
 
 /* ---------------- 按钮 ---------------- */
@@ -4064,6 +4067,73 @@ html[data-theme="dark"] .landing-hero__bg { opacity: 0.92; }
 }
 
 .landing-course__actions { margin-top: var(--space-7); }
+
+/* 首页极简顶栏：悬浮在头图右上角的菜单入口 */
+.landing-menu-btn {
+    position: absolute;
+    top: clamp(14px, 2.2vw, 26px);
+    right: var(--space-4);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 9px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.14);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    color: #FFFFFF;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--transition), border-color var(--transition);
+}
+
+.landing-menu-btn:hover {
+    background: rgba(255, 255, 255, 0.26);
+    color: #FFFFFF;
+}
+
+/* 头图关闭时的米色首屏：改用中性色保证可读 */
+.landing-hero:not(.landing-hero--image) .landing-menu-btn {
+    color: var(--color-text);
+    border-color: var(--color-border-strong);
+    background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+}
+
+.landing-hero:not(.landing-hero--image) .landing-menu-btn:hover {
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.landing-menu-btn__icons {
+    position: relative;
+    display: block;
+    width: 17px;
+    height: 17px;
+}
+
+.landing-menu-btn__icon {
+    position: absolute;
+    inset: 0;
+    transition: opacity 180ms ease, transform 320ms var(--ease-out);
+}
+
+.landing-menu-btn__icon--close {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.6);
+}
+
+.landing-menu-btn[aria-expanded="true"] .landing-menu-btn__icon--menu {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.6);
+}
+
+.landing-menu-btn[aria-expanded="true"] .landing-menu-btn__icon--close {
+    opacity: 1;
+    transform: none;
+}
 
 /* 关于页（单卡片 Markdown） */
 .about-page {

@@ -166,7 +166,7 @@
         }
     }
 
-    bindDrawer('[data-nav-toggle]', '[data-drawer]', { bodyClass: 'menu-open', dismissable: true });
+    bindDrawer('[data-nav-toggle]', '[data-drawer]', { bodyClass: 'menu-open', dismissable: true, ignoreSelector: '.site-header, .landing-menu-btn' });
     bindDrawer('[data-admin-toggle]', '[data-admin-sidebar]', {
         bodyClass: 'admin-menu-open',
         dismissable: true,
