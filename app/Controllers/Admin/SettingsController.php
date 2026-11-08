@@ -454,7 +454,7 @@ final class SettingsController extends AdminController
                 'desc'  => '独立的品牌主页：连续背景、首屏、图片带、理念与课程入口。关闭「启用新版主页」后，首页恢复为默认课程列表版式。',
                 'fields' => [
                     ['key' => 'landing_enabled', 'label' => '启用新版主页', 'type' => 'bool', 'default' => true, 'hint' => '开启后首页使用下方配置的品牌落地页；关闭则使用默认课程列表首页。'],
-                    ['key' => 'landing_header_mode', 'label' => '首屏顶栏模式', 'type' => 'select', 'options' => ['standard' => '标准（完整导航栏）', 'minimal' => '极简（顶栏仅登录/注册，菜单入口在头图上）'], 'default' => 'standard', 'hint' => '极简模式仅作用于首页：隐藏导航与汉堡按钮，右上角只保留登录/注册；菜单入口移到首屏头图上，点击后展开完整菜单。'],
+                    ['key' => 'landing_header_mode', 'label' => '首屏顶栏模式', 'type' => 'select', 'options' => ['minimal' => '极简（推荐：顶栏只留登录/注册，菜单在首屏）', 'standard' => '标准（完整导航栏）'], 'default' => 'minimal', 'hint' => '极简模式仅作用于首页：顶栏隐藏导航、汉堡、语言与主题切换，右上角只保留登录/注册；菜单入口改成首屏中央的一行链接。'],
                     ['key' => 'landing_hero_kicker', 'label' => '首屏小标题', 'type' => 'text', 'max' => 80, 'default' => '在线课程 · 系统学习', 'translatable' => true],
                     ['key' => 'landing_hero_title', 'label' => '首屏大标题', 'type' => 'text', 'max' => 120, 'default' => '系统学习，从入门到实战', 'translatable' => true],
                     ['key' => 'landing_hero_subtitle', 'label' => '首屏副标题', 'type' => 'textarea', 'max' => 255, 'default' => '把复杂的知识拆成清晰的路径，用真实的项目带你一步步走到会用、敢用。', 'translatable' => true],
@@ -493,7 +493,8 @@ final class SettingsController extends AdminController
                 'desc'  => '关于我们页面的内容与开关。关闭后前台不再显示关于页入口，直接访问返回 404。',
                 'fields' => [
                     ['key' => 'about_enabled', 'label' => '启用关于页', 'type' => 'bool', 'default' => true],
-                    ['key' => 'about_content', 'label' => '关于页内容', 'type' => 'textarea', 'max' => 5000, 'default' => "CourseShop 是一个专注实用技能的在线课程平台。我们与一线实践者一起，把真实项目中的经验整理成可以按步骤完成的课程。\n\n## 我们相信\n\n信息从来不缺，缺的是一条走得通的路。好的课程应该回答三个问题：要学什么、为什么这样学、学完能做什么。\n\n## 我们如何做\n\n从选题、结构、示例到练习，每门课都经过多轮试学与修订，宁可慢一点，也不把半成品交到你手里。\n\n学习不需要一口气走完，挑一条你感兴趣的路径，从第一节课开始就好。", 'hint' => '支持 Markdown：## 标题、**加粗**、- 列表等。整页就是这一张卡片，卡片顶部的大标题固定为「关于我们」。', 'translatable' => true],
+                    ['key' => 'about_hero_image', 'label' => '关于页头图', 'type' => 'image', 'subdir' => 'landing', 'max' => 255, 'default' => '/assets/images/landing/about.svg', 'hint' => '显示在关于页顶部，标题居中叠加在图上；建议 1920×1080 以上的横图。恢复默认占位图请填回 /assets/images/landing/about.svg。'],
+                    ['key' => 'about_content', 'label' => '关于页内容', 'type' => 'textarea', 'max' => 5000, 'default' => "CourseShop 是一个专注实用技能的在线课程平台。我们与一线实践者一起，把真实项目中的经验整理成可以按步骤完成的课程。\n\n## 我们相信\n\n信息从来不缺，缺的是一条走得通的路。好的课程应该回答三个问题：要学什么、为什么这样学、学完能做什么。\n\n## 我们如何做\n\n从选题、结构、示例到练习，每门课都经过多轮试学与修订，宁可慢一点，也不把半成品交到你手里。\n\n学习不需要一口气走完，挑一条你感兴趣的路径，从第一节课开始就好。", 'hint' => '支持 Markdown：## 标题、**加粗**、- 列表，以及独占一行的 ![说明](/图片地址) 通栏图。', 'translatable' => true],
                 ],
             ],
             'i18n' => [

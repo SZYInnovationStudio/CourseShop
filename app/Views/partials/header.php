@@ -38,9 +38,9 @@ $isRootPage  = in_array($currentPath, $rootPaths, true);
 $backUrl   = trim((string) ($backUrl ?? ''));
 $backLabel = $backUrl !== '' ? t('返回') : t('返回上一页');
 
-// 首页极简顶栏模式：隐藏导航/汉堡/语言/主题切换，右上角只留登录注册，菜单入口移到首屏头图上
+// 首页极简顶栏模式（默认）：隐藏导航/汉堡/语言/主题切换，右上角只留登录注册，菜单入口移到首屏
 $minimalHeader = $current === '/'
-    && Setting::string('landing_header_mode', 'standard') === 'minimal'
+    && Setting::string('landing_header_mode', 'minimal') === 'minimal'
     && Setting::bool('landing_enabled', true);
 
 /** 导航高亮 */
@@ -52,7 +52,7 @@ $activeClass = static function (string $path) use ($current): string {
     return str_starts_with($current, $path) ? ' is-active' : '';
 };
 ?>
-<header class="site-header<?= $minimalHeader ? ' site-header--floating' : '' ?>">
+<header class="site-header">
     <div class="container site-header__inner">
         <?php if (!$isRootPage): ?>
             <button type="button" class="nav-back" data-history-back<?= $backUrl !== '' ? ' data-back-url="' . e($backUrl) . '"' : '' ?>
@@ -64,7 +64,6 @@ $activeClass = static function (string $path) use ($current): string {
             </button>
         <?php endif; ?>
 
-        <?php if (!$minimalHeader): ?>
         <a class="brand" href="<?= url('/') ?>">
             <?php if ($siteLogo !== ''): ?>
                 <img class="brand__logo" src="<?= e(url($siteLogo)) ?>" alt="<?= e($siteName) ?>">
@@ -73,7 +72,6 @@ $activeClass = static function (string $path) use ($current): string {
                 <span><?= e($siteName) ?></span>
             <?php endif; ?>
         </a>
-        <?php endif; ?>
 
         <?php if (!$minimalHeader): ?>
         <nav class="site-nav" aria-label="<?= e(t('主导航')) ?>">
@@ -89,7 +87,7 @@ $activeClass = static function (string $path) use ($current): string {
         <?php endif; ?>
 
         <div class="header-actions">
-            <div class="flex-center gap-2 hide-sm">
+            <div class="flex-center gap-2<?= $minimalHeader ? '' : ' hide-sm' ?>">
                 <?php if ($user === null): ?>
                     <a class="btn btn--ghost btn--sm" href="<?= url('/login') ?>"><?= e(t('登录')) ?></a>
                     <?php if ($canRegister): ?>
@@ -190,7 +188,7 @@ $activeClass = static function (string $path) use ($current): string {
         </div>
     </div>
 
-    <div class="site-drawer<?= $minimalHeader ? ' site-drawer--always' : '' ?>" id="site-drawer" data-drawer>
+    <div class="site-drawer" id="site-drawer" data-drawer>
         <div class="site-drawer__panel">
             <div class="container">
                 <a class="site-drawer__link<?= $activeClass('/') ?>" href="<?= url('/') ?>"><?= e(t('首页')) ?></a>

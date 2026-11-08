@@ -12,7 +12,7 @@ namespace App\Support;
  * 因此原始 HTML 标签不会被执行（等价于转义输出），可放心用 <?= markdown($text) ?> 直接输出。
  *
  * 支持语法：标题、段落、无序/有序列表、引用、围栏代码块、行内代码、
- * 粗体、斜体、链接、水平线。
+ * 粗体、斜体、链接、水平线、独占一行的整幅图片。
  */
 final class Markdown
 {
@@ -73,6 +73,18 @@ final class Markdown
                 $html[] = '<hr>';
                 $i++;
                 continue;
+            }
+
+            // 独占一行的整幅图片 ![替代文字](地址)
+            if (preg_match('/^!\[([^\]]*)\]\(([^)\s]+)\)$/', $trimmed, $matched) === 1) {
+                $src = self::safeUrl($matched[2]);
+
+                if ($src !== null) {
+                    $html[] = '<figure class="md-figure"><img src="' . self::escape($src)
+                        . '" alt="' . self::escape($matched[1]) . '" loading="lazy" decoding="async"></figure>';
+                    $i++;
+                    continue;
+                }
             }
 
             // 引用块 > ...
@@ -142,9 +154,29 @@ final class Markdown
         return str_starts_with($line, '```')
             || preg_match('/^(#{1,6})\s+/', $line) === 1
             || preg_match('/^([-*_])\s*(\1\s*){2,}$/', $line) === 1
+            || preg_match('/^!\[[^\]]*\]\([^)\s]+\)$/', $line) === 1
             || str_starts_with($line, '>')
             || preg_match('/^[-*+]\s+/', $line) === 1
             || preg_match('/^\d+\.\s+/', $line) === 1;
+    }
+
+    /**
+     * 校验图片地址：仅允许 http(s) 与站内相对路径，拒绝 javascript:/data: 等协议
+     */
+    private static function safeUrl(string $url): ?string
+    {
+        $url = trim($url);
+
+        if ($url === '' || str_contains($url, ':')) {
+            return preg_match('#^https?://#i', $url) === 1 ? $url : null;
+        }
+
+        // 站内路径：单个斜杠开头（禁止 // 协议相对地址），或以字母数字开头的相对路径
+        if ($url[0] === '/') {
+            return str_starts_with($url, '//') ? null : $url;
+        }
+
+        return preg_match('#^[a-z0-9][a-z0-9._\-/]*$#i', $url) === 1 ? $url : null;
     }
 
     /**

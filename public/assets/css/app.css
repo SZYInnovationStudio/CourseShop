@@ -504,9 +504,6 @@ body.menu-open::before {
 
 @media (min-width: 768px) {
     .site-drawer { display: none !important; }
-
-    /* 首页极简顶栏：桌面没有 site-nav，菜单入口在头图上，任何宽度都允许抽屉展开 */
-    .site-drawer--always { display: block !important; }
 }
 
 /* ---------------- 按钮 ---------------- */
@@ -3791,15 +3788,18 @@ html { overflow-x: clip; }
     line-height: 1.7;
 }
 
-/* 首屏 */
+/* 首屏：占满整屏、内容居中（编辑式品牌页） */
 .landing-hero {
     position: relative;
     display: flex;
     align-items: center;
-    min-height: clamp(520px, 74vh, 820px);
-    padding: clamp(72px, 10vw, 140px) 0 clamp(64px, 8vw, 110px);
+    justify-content: center;
+    min-height: calc(100vh - 64px);
+    min-height: calc(100svh - 64px);
+    padding: clamp(56px, 9vh, 120px) 0 clamp(72px, 10vh, 132px);
     overflow: hidden;
     background: var(--color-bg);
+    text-align: center;
 }
 
 .landing-hero__bg {
@@ -3815,41 +3815,73 @@ html { overflow-x: clip; }
 .landing-hero__shade {
     position: absolute;
     inset: 0;
-    /* 暖深棕遮罩：与米色系插画协调，避免冷灰罩在暖图上发脏 */
-    background: linear-gradient(100deg, rgba(30, 25, 18, 0.8) 0%, rgba(30, 25, 18, 0.52) 48%, rgba(30, 25, 18, 0.2) 100%);
+    /* 居中构图：上下略深、中间留出画面细节，保证白色标题始终可读 */
+    background: linear-gradient(180deg, rgba(30, 25, 18, 0.52) 0%, rgba(30, 25, 18, 0.36) 45%, rgba(30, 25, 18, 0.62) 100%);
 }
 
 .landing-hero__inner {
     position: relative;
     z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
-    max-width: 980px;
+    max-width: 1040px;
 }
 
 .landing-hero__title {
+    max-width: 20ch;
     margin: 0 0 var(--space-5);
     font-family: var(--font-display);
-    font-size: clamp(2.4rem, 6vw, 4.9rem);
+    font-size: clamp(2.5rem, 6.2vw, 5.2rem);
     font-weight: 400;
-    line-height: 1.1;
-    letter-spacing: 0.015em;
+    line-height: 1.08;
+    letter-spacing: 0.02em;
     color: var(--color-text);
     text-wrap: balance;
 }
 
 .landing-hero__subtitle {
     max-width: 620px;
-    margin: 0 0 var(--space-6);
+    margin: 0 0 clamp(28px, 4.4vh, 46px);
     color: var(--color-text-muted);
-    font-size: clamp(0.98rem, 1.25vw, 1.12rem);
+    font-size: clamp(0.98rem, 1.2vw, 1.1rem);
     line-height: 1.9;
 }
 
 .landing-hero__actions {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: var(--space-5);
     flex-wrap: wrap;
+}
+
+/* 首屏菜单：居中的一行文字链接 */
+.landing-hero__nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(18px, 3.2vw, 46px);
+}
+
+.landing-hero__navlink {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0 8px;
+    border-bottom: 1px solid transparent;
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    letter-spacing: 0.09em;
+    transition: color var(--transition), border-color var(--transition), gap var(--transition);
+}
+
+.landing-hero__navlink:hover {
+    gap: 13px;
+    border-bottom-color: currentColor;
+    color: var(--color-text);
 }
 
 .landing-hero--image .landing-kicker,
@@ -3857,11 +3889,13 @@ html { overflow-x: clip; }
 
 .landing-hero--image .landing-kicker::before { background: rgba(255, 255, 255, 0.7); }
 
-.landing-hero--image .landing-hero__subtitle { color: rgba(255, 255, 255, 0.82); }
+.landing-hero--image .landing-hero__subtitle { color: rgba(255, 255, 255, 0.84); }
 
-.landing-hero--image .landing-link { color: #FFFFFF; }
+.landing-hero--image .landing-link,
+.landing-hero--image .landing-hero__navlink { color: #FFFFFF; }
 
-.landing-hero--image .landing-link:hover { color: rgba(255, 255, 255, 0.72); }
+.landing-hero--image .landing-link:hover,
+.landing-hero--image .landing-hero__navlink:hover { color: rgba(255, 255, 255, 0.78); }
 
 .landing-hero--image .landing-link--muted { color: rgba(255, 255, 255, 0.76); }
 
@@ -4068,185 +4102,132 @@ html[data-theme="dark"] .landing-hero__bg { opacity: 0.92; }
 
 .landing-course__actions { margin-top: var(--space-7); }
 
-/* 首页极简首屏：顶栏透明悬浮于头图之上，只保留登录/注册 */
-.site-header--floating {
-    position: absolute;
-    left: 0;
-    right: 0;
-    background: transparent;
-    border-bottom-color: transparent;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-}
+/* 品牌落地页：隐藏移动端底部导航，保持满屏首屏的纯净 */
+body.page-landing .bottom-nav { display: none !important; }
 
-/* 头图上登录/注册白化：登录为纯文字，注册为白色描边胶囊 */
-.site-header--floating .header-actions .btn--ghost {
-    color: #FFFFFF;
-}
+/* 关于页（通栏大图 hero + 编辑式正文） */
+.about-page { background: var(--color-surface); }
 
-.site-header--floating .header-actions .btn--ghost:hover {
-    background: rgba(255, 255, 255, 0.14);
-    color: #FFFFFF;
-}
-
-.site-header--floating .header-actions .btn:not(.btn--ghost):not(.btn--outline) {
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.65);
-    color: #FFFFFF;
-}
-
-.site-header--floating .header-actions .btn:not(.btn--ghost):not(.btn--outline):hover {
-    background: rgba(255, 255, 255, 0.14);
-    border-color: rgba(255, 255, 255, 0.9);
-    color: #FFFFFF;
-}
-
-/* 已登录：用户菜单触发器与头像回退字白化 */
-.site-header--floating .user-menu__trigger {
-    color: #FFFFFF;
-}
-
-.site-header--floating .user-menu__trigger .avatar__fallback {
-    background: rgba(255, 255, 255, 0.2);
-    color: #FFFFFF;
-}
-
-/* 极简首屏：移动端底部导航已隐藏，登录/注册不能再收进抽屉，强制常显 */
-.site-header--floating .hide-sm {
-    display: flex !important;
-}
-
-/* 无头图的首屏：白色元素回退为中性色保证可读 */
-.landing-hero:not(.landing-hero--image) .site-header--floating .header-actions .btn--ghost,
-.landing-hero:not(.landing-hero--image) .site-header--floating .user-menu__trigger {
-    color: var(--color-text);
-}
-
-.landing-hero:not(.landing-hero--image) .site-header--floating .header-actions .btn:not(.btn--ghost):not(.btn--outline) {
-    border-color: var(--color-border-strong);
-    color: var(--color-text);
-}
-
-/* 首页极简首屏：隐藏移动端底部导航，保持沉浸式 */
-body:has(.landing-minimal-on) .bottom-nav {
-    display: none !important;
-}
-
-/* 首页极简顶栏：悬浮在头图右上角的菜单入口 */
-.landing-menu-btn {
-    position: absolute;
-    top: clamp(14px, 2.2vw, 26px);
-    right: var(--space-4);
-    z-index: 2;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: 9px 16px;
-    border: 1px solid rgba(255, 255, 255, 0.45);
-    border-radius: var(--radius-full);
-    background: rgba(255, 255, 255, 0.14);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-    color: #FFFFFF;
-    font-size: var(--text-sm);
-    font-weight: 500;
-    cursor: pointer;
-    transition: background var(--transition), border-color var(--transition);
-}
-
-.landing-menu-btn:hover {
-    background: rgba(255, 255, 255, 0.26);
-    color: #FFFFFF;
-}
-
-/* 极简首屏：登录/注册已占据头图右上角，菜单入口移至右下角 */
-.landing-menu-btn--corner {
-    top: auto;
-    bottom: clamp(24px, 4.5vw, 48px);
-}
-
-/* 头图关闭时的米色首屏：改用中性色保证可读 */
-.landing-hero:not(.landing-hero--image) .landing-menu-btn {
-    color: var(--color-text);
-    border-color: var(--color-border-strong);
-    background: color-mix(in srgb, var(--color-surface) 82%, transparent);
-}
-
-.landing-hero:not(.landing-hero--image) .landing-menu-btn:hover {
-    background: var(--color-surface);
-    color: var(--color-text);
-}
-
-.landing-menu-btn__icons {
+.about-hero {
     position: relative;
-    display: block;
-    width: 17px;
-    height: 17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(300px, 46vh, 540px);
+    overflow: hidden;
+    background: var(--color-bg-alt);
 }
 
-.landing-menu-btn__icon {
+.about-hero__bg {
     position: absolute;
     inset: 0;
-    transition: opacity 180ms ease, transform 320ms var(--ease-out);
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-.landing-menu-btn__icon--close {
-    opacity: 0;
-    transform: rotate(-90deg) scale(0.6);
+.about-hero__shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(30, 25, 18, 0.42) 0%, rgba(30, 25, 18, 0.34) 60%, rgba(30, 25, 18, 0.5) 100%);
 }
 
-.landing-menu-btn[aria-expanded="true"] .landing-menu-btn__icon--menu {
-    opacity: 0;
-    transform: rotate(90deg) scale(0.6);
+.about-hero__inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    padding: clamp(48px, 8vh, 96px) var(--space-4);
+    text-align: center;
 }
 
-.landing-menu-btn[aria-expanded="true"] .landing-menu-btn__icon--close {
-    opacity: 1;
-    transform: none;
-}
-
-/* 关于页（单卡片 Markdown） */
-.about-page {
-    padding: clamp(30px, 4.5vw, 56px) 0 clamp(44px, 6vw, 80px);
-    background: var(--color-bg);
-}
-
-.about-card {
-    max-width: 760px;
-    margin: 0 auto;
-    padding: clamp(30px, 4.5vw, 56px) clamp(24px, 4.5vw, 60px) clamp(34px, 4.5vw, 60px);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 16px;
-}
-
-.about-card__title {
-    margin: 0 0 var(--space-4);
-    padding-bottom: var(--space-4);
-    border-bottom: 1px solid var(--color-border);
+.about-hero__title {
+    margin: 0;
+    color: #FFFFFF;
     font-family: var(--font-display);
     font-weight: 400;
-    letter-spacing: 0.02em;
-    font-size: clamp(1.7rem, 3vw, 2.2rem);
-    line-height: 1.3;
+    font-size: clamp(2rem, 5vw, 3.6rem);
+    line-height: 1.2;
+    letter-spacing: 0.14em;
+    text-indent: 0.14em;
 }
 
-.about-prose { font-size: 1.03rem; line-height: 2; }
+.about-body {
+    padding: clamp(56px, 9vw, 120px) var(--space-4) clamp(64px, 10vw, 140px);
+}
+
+.about-prose {
+    max-width: 760px;
+    margin: 0 auto;
+    color: var(--color-text);
+    font-size: clamp(1rem, 1.15vw, 1.08rem);
+    line-height: 2.1;
+    text-align: center;
+}
+
+.about-prose p { margin: 0 0 clamp(22px, 2.6vw, 32px); }
 
 .about-prose h2,
 .about-prose h3 {
     font-family: var(--font-display);
     font-weight: 400;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.06em;
+    text-align: center;
 }
 
 .about-prose h2 {
-    margin-top: clamp(36px, 5vw, 52px);
-    font-size: clamp(1.35rem, 2.2vw, 1.7rem);
+    margin: clamp(48px, 6vw, 76px) 0 clamp(20px, 2.4vw, 28px);
+    font-size: clamp(1.5rem, 2.6vw, 2rem);
     line-height: 1.35;
 }
 
 .about-prose h2:first-child { margin-top: 0; }
+
+.about-prose ul,
+.about-prose ol {
+    margin: 0 0 clamp(22px, 2.6vw, 32px);
+    padding: 0;
+    list-style: none;
+}
+
+.about-prose li { margin: 0 0 clamp(12px, 1.6vw, 18px); }
+
+.about-prose li::before {
+    content: "—";
+    margin-right: 0.5em;
+    opacity: 0.45;
+}
+
+.about-prose blockquote {
+    margin: clamp(28px, 3.5vw, 44px) 0;
+    padding: 0;
+    border: 0;
+    color: var(--color-text-muted);
+    font-family: var(--font-display);
+    font-size: clamp(1.15rem, 1.8vw, 1.35rem);
+    line-height: 1.9;
+}
+
+.about-prose hr {
+    width: 72px;
+    margin: clamp(36px, 5vw, 60px) auto;
+    border-top: 1px solid var(--color-border-strong);
+}
+
+/* Markdown 中的整行图片：通栏大图，与参考站一致 */
+.about-prose .md-figure {
+    width: min(calc(100vw - 2 * var(--space-4)), var(--container));
+    margin: clamp(36px, 5vw, 64px) 0;
+    /* 正文栏居中，图片以视口中线为基准向两侧展开 */
+    margin-left: 50%;
+    transform: translateX(-50%);
+}
+
+.about-prose .md-figure img {
+    display: block;
+    width: 100%;
+    max-height: 70vh;
+    object-fit: cover;
+}
 
 /* 滚动显现 */
 html.js [data-reveal] {
@@ -4276,12 +4257,15 @@ html.js [data-reveal].is-revealed {
 }
 
 @media (max-width: 767px) {
-    .landing-hero { min-height: clamp(440px, 68vh, 600px); padding: var(--space-8) 0 var(--space-7); }
+    /* 移动端同样满屏居中，为浏览器地址栏留出安全余量 */
+    .landing-hero { min-height: calc(100svh - 64px); padding: clamp(40px, 10vh, 88px) 0 clamp(64px, 12vh, 110px); }
     /* 竖屏裁剪时把构图重心右移，保住太阳与山丘主体 */
     .landing-hero__bg { object-position: 66% center; }
-    .landing-hero__title { font-size: clamp(1.9rem, 8vw, 2.6rem); }
+    .landing-hero__title { max-width: none; font-size: clamp(1.8rem, 7.6vw, 2.5rem); }
     .landing-hero__subtitle { margin-bottom: var(--space-5); font-size: 0.95rem; }
     .landing-hero__actions { gap: var(--space-3); }
+    .landing-hero__nav { gap: 16px 22px; }
+    .landing-hero__navlink { padding: 10px 0 8px; font-size: var(--text-sm); }
     /* 触摸目标：移动端加高链接点击区 */
     .landing-hero__actions .landing-link,
     .landing-course__actions .landing-link { padding: 10px 0 6px; }
@@ -4300,6 +4284,10 @@ html.js [data-reveal].is-revealed {
     .landing-principle { padding: var(--space-5) 0 var(--space-6); }
     .landing-principle:first-child { border-top: 1px solid var(--color-border); }
     .landing-principle__index { margin-bottom: var(--space-3); }
+    .about-hero { min-height: clamp(240px, 36vh, 380px); }
+    .about-hero__title { font-size: clamp(1.7rem, 8vw, 2.4rem); letter-spacing: 0.1em; text-indent: 0.1em; }
+    .about-body { padding: clamp(44px, 11vw, 72px) var(--space-4); }
+    .about-prose { line-height: 2; }
 }
 
 @media (prefers-reduced-motion: reduce) {

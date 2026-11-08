@@ -23,7 +23,7 @@ final class HomeController extends Controller
     {
         // 品牌主页完全由设置驱动，不查询课程数据，保持与课程列表页独立
         if (Setting::bool('landing_enabled', true)) {
-            $this->view('home.landing', ['pageTitle' => null]);
+            $this->view('home.landing', ['pageTitle' => null, 'bodyClass' => 'page-landing']);
 
             return;
         }

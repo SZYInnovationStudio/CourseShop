@@ -109,30 +109,23 @@ $arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="cu
     . ' stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
     . '<path d="M5 12h14M13 6l6 6-6 6"></path></svg>';
 
-// 极简首屏顶栏：顶栏透明化只留登录/注册，菜单入口悬浮在头图右下角（与 header.php 的极简判断保持一致）
-$minimalHeader = Setting::string('landing_header_mode', 'standard') === 'minimal';
+// 极简首屏顶栏（默认）：顶栏只留品牌与登录/注册，菜单入口以居中链接行的形式放在首屏上
+$minimalHeader = Setting::string('landing_header_mode', 'minimal') === 'minimal';
+
+$heroNavLinks = [['text' => t('全部课程'), 'url' => '/courses']];
+
+if (Setting::bool('packages_enabled', true)) {
+    $heroNavLinks[] = ['text' => t('优惠套餐'), 'url' => '/packages'];
+}
+
+if (Setting::bool('about_enabled', true)) {
+    $heroNavLinks[] = ['text' => t('关于我们'), 'url' => '/about'];
+}
 ?>
-<section class="landing-hero<?= $heroImageUrl !== '' ? ' landing-hero--image' : '' ?><?= $minimalHeader ? ' landing-minimal-on' : '' ?>">
+<section class="landing-hero<?= $heroImageUrl !== '' ? ' landing-hero--image' : '' ?>">
     <?php if ($heroImageUrl !== ''): ?>
         <img class="landing-hero__bg" src="<?= e($heroImageUrl) ?>" alt="" aria-hidden="true" loading="eager" decoding="async">
         <div class="landing-hero__shade" aria-hidden="true"></div>
-    <?php endif; ?>
-
-    <?php if ($minimalHeader): ?>
-        <!-- 极简首屏：菜单入口悬浮在头图右下角，点击展开完整菜单 -->
-        <button type="button" class="landing-menu-btn<?= $minimalHeader ? ' landing-menu-btn--corner' : '' ?>" data-nav-toggle aria-label="<?= e(t('打开菜单')) ?>"
-                aria-expanded="false" aria-controls="site-drawer"
-                data-label-open="<?= e(t('打开菜单')) ?>" data-label-close="<?= e(t('关闭菜单')) ?>">
-            <span class="landing-menu-btn__icons" aria-hidden="true">
-                <svg class="landing-menu-btn__icon landing-menu-btn__icon--menu" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <path d="M3 6h18M3 12h18M3 18h18"></path>
-                </svg>
-                <svg class="landing-menu-btn__icon landing-menu-btn__icon--close" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <path d="M6 6l12 12M18 6 6 18"></path>
-                </svg>
-            </span>
-            <span class="landing-menu-btn__label"><?= e(t('菜单')) ?></span>
-        </button>
     <?php endif; ?>
 
     <div class="container landing-hero__inner">
@@ -146,7 +139,15 @@ $minimalHeader = Setting::string('landing_header_mode', 'standard') === 'minimal
             <p class="landing-hero__subtitle"><?= nl2br(e($heroSubtitle)) ?></p>
         <?php endif; ?>
 
-        <?php if ($heroCtaText !== '' || $heroCta2Visible): ?>
+        <?php if ($minimalHeader): ?>
+            <nav class="landing-hero__nav" aria-label="<?= e(t('主导航')) ?>">
+                <?php foreach ($heroNavLinks as $link): ?>
+                    <a class="landing-hero__navlink" href="<?= e(url($link['url'])) ?>">
+                        <?= e($link['text']) ?><span class="landing-link__arrow"><?= $arrow ?></span>
+                    </a>
+                <?php endforeach; ?>
+            </nav>
+        <?php elseif ($heroCtaText !== '' || $heroCta2Visible): ?>
             <div class="landing-hero__actions">
                 <?php if ($heroCtaText !== ''): ?>
                     <a class="landing-link landing-link--lg" href="<?= e(url($heroCtaUrl)) ?>">

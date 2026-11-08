@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 /**
- * 关于我们 —— 单卡片 Markdown 内容
+ * 关于我们 —— 通栏大图 + 编辑式正文
  *
- * 整页只有一张卡片：标题、正文、结尾全部由「关于页设置」的
- * about_content（Markdown，支持多语言）驱动。
+ * 顶部为通栏大图与居中的页面标题；正文全部由「关于页设置」的
+ * about_content（Markdown，支持多语言）驱动，可插入整行图片做叙事排版。
  *
  * @var string|null $pageTitle 页面标题
  */
@@ -14,12 +14,23 @@ declare(strict_types=1);
 use App\Support\Setting;
 
 $content = (string) Setting::localized('about_content', "CourseShop 是一个专注实用技能的在线课程平台。我们与一线实践者一起，把真实项目中的经验整理成可以按步骤完成的课程。\n\n## 我们相信\n\n信息从来不缺，缺的是一条走得通的路。好的课程应该回答三个问题：要学什么、为什么这样学、学完能做什么。\n\n## 我们如何做\n\n从选题、结构、示例到练习，每门课都经过多轮试学与修订，宁可慢一点，也不把半成品交到你手里。\n\n学习不需要一口气走完，挑一条你感兴趣的路径，从第一节课开始就好。");
+
+$heroImage    = trim(Setting::string('about_hero_image', '/assets/images/landing/about.svg'));
+$heroImageUrl = $heroImage !== '' ? url($heroImage) : '';
 ?>
 <section class="about-page">
-    <div class="container about-page__inner">
-        <article class="about-card" data-reveal>
-            <h1 class="about-card__title"><?= e($pageTitle ?? t('关于我们')) ?></h1>
-            <div class="prose about-prose"><?= markdown($content) ?></div>
-        </article>
+    <div class="about-hero">
+        <?php if ($heroImageUrl !== ''): ?>
+            <img class="about-hero__bg" src="<?= e($heroImageUrl) ?>" alt="" aria-hidden="true" loading="eager" decoding="async">
+            <div class="about-hero__shade" aria-hidden="true"></div>
+        <?php endif; ?>
+
+        <div class="about-hero__inner">
+            <h1 class="about-hero__title"><?= e($pageTitle ?? t('关于我们')) ?></h1>
+        </div>
+    </div>
+
+    <div class="about-body">
+        <div class="prose about-prose"><?= markdown($content) ?></div>
     </div>
 </section>
