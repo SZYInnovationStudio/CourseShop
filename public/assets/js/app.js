@@ -471,6 +471,14 @@
         var glue = base.indexOf('?') === -1 ? '?' : '&';
 
         image.setAttribute('src', base + glue + '_t=' + Date.now());
+
+        // 换图后旧验证码立即失效，同步清空输入，避免用户带着旧值提交
+        var form = image.closest('form');
+        var field = form ? form.querySelector('[name="captcha"]') : null;
+
+        if (field) {
+            field.value = '';
+        }
     });
 
     /* ---------------- 颜色选择器预览（系统设置） ---------------- */
@@ -1942,13 +1950,18 @@
                         } else {
                             restore(btn, label);
                         }
-                    } else {
-                        showStatus(form, (json && json.message) || errorText, true);
-                        restore(btn, label);
+
+                        // 成功时服务端保留图形验证码，这里既不换图也不清空输入
+                        return;
                     }
 
-                    // 图形验证码在服务端校验后即失效，无论成败都换一张
-                    refreshCaptcha(form);
+                    showStatus(form, (json && json.message) || errorText, true);
+                    restore(btn, label);
+
+                    // 只有图形验证码本身失效才换图并清空，其余业务错误保留用户输入
+                    if (json && json.captcha_invalid) {
+                        refreshCaptcha(form);
+                    }
                 }).catch(function () {
                     showStatus(form, errorText, true);
                     restore(btn, label);

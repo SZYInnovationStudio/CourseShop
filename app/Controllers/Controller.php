@@ -60,11 +60,12 @@ abstract class Controller
      * 用于「发送验证码」这类不应打断输入的操作，避免整页刷新导致密码等已填内容丢失。
      *
      * @param array<string, mixed> $input
+     * @param array<string, mixed> $extra 额外的 JSON 字段
      */
-    protected function failUnlessAjax(string $url, string $message, array $input = []): never
+    protected function failUnlessAjax(string $url, string $message, array $input = [], array $extra = []): never
     {
         if (Request::isAjax()) {
-            Response::json(['code' => 1, 'message' => $message]);
+            Response::json(array_merge(['code' => 1, 'message' => $message], $extra));
         }
 
         $this->fail($url, $message, $input);

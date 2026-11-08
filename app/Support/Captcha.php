@@ -69,13 +69,14 @@ final class Captcha
 
     /**
      * 校验并消费验证码
+     *
+     * $consume 为 false 时，校验通过后保留验证码继续有效（用于「发送邮箱验证码」
+     * 这类后续还要提交同一表单的场景，避免用户重复输入）；校验失败仍然一次性作废。
      */
-    public static function verify(string $scene, string $input): bool
+    public static function verify(string $scene, string $input, bool $consume = true): bool
     {
         $scene = self::normalizeScene($scene);
         $item  = $_SESSION[self::SESSION_KEY][$scene] ?? null;
-
-        unset($_SESSION[self::SESSION_KEY][$scene]);
 
         $ok = false;
 
@@ -89,6 +90,11 @@ final class Captcha
                     ? hash_equals($expected, $input)
                     : hash_equals(strtoupper($expected), strtoupper($input));
             }
+        }
+
+        // 校验通过且允许保留时继续有效，其余情况（失败、一次性使用）都要销毁
+        if ($consume || !$ok) {
+            unset($_SESSION[self::SESSION_KEY][$scene]);
         }
 
         // 记录验证码校验结果（P2 验证码日志）

@@ -335,8 +335,10 @@ final class AuthController extends Controller
             $this->failUnlessAjax($registerUrl, (string) $validator->firstError(), $old);
         }
 
-        if (Captcha::enabled() && !Captcha::verify('register', Request::string('captcha'))) {
-            $this->failUnlessAjax($registerUrl, t('图形验证码不正确或已过期。'), $old);
+        // 校验通过后保留验证码：用户随后提交注册时仍使用同一个图形验证码，
+        // 不必因为发了一封邮件就要重新输入
+        if (Captcha::enabled() && !Captcha::verify('register', Request::string('captcha'), false)) {
+            $this->failUnlessAjax($registerUrl, t('图形验证码不正确或已过期。'), $old, ['captcha_invalid' => true]);
         }
 
         if (User::emailExists($email)) {
