@@ -15,14 +15,14 @@ use App\Support\I18n;
 use App\Support\Setting;
 use App\Support\Theme;
 
-$siteName  = Setting::string('site_name', 'CourseShop');
+$siteName  = Setting::localized('site_name', 'CourseShop');
 $pageTitle = $pageTitle ?? null;
 // 页面级 body 类名（如课程详情隐藏底部导航、预留购买栏空间）
 $bodyClass = trim((string) ($bodyClass ?? ''));
 
 $htmlTitle   = ($pageTitle !== null && $pageTitle !== '') ? $pageTitle . ' - ' . $siteName : $siteName;
-$description = Setting::string('site_description', '');
-$keywords    = Setting::string('site_keywords', '');
+$description = Setting::localized('site_description', '');
+$keywords    = Setting::localized('site_keywords', '');
 $primary     = Theme::primary();
 
 // 主题默认值：登录用户优先使用账号保存的偏好，其次站点默认
@@ -56,6 +56,7 @@ $userModeJson = json_encode($userMode, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | J
     <script nonce="<?= e(csp_nonce()) ?>">
         // 尽早应用主题，避免首屏闪烁（FOUC）
         (function () {
+            document.documentElement.classList.add('js');
             try {
                 // 登录用户以账号偏好为准，其次本地记忆，最后站点默认
                 var userMode = <?= $userModeJson ?>;

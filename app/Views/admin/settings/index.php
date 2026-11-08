@@ -8,9 +8,20 @@ declare(strict_types=1);
  * @var array<string, array<string, mixed>> $groups 设置分组定义
  * @var string $active 当前分组键
  * @var array<string, mixed> $values 当前分组各字段的值
+ * @var array<string, array<string, string>> $translations 可翻译字段的语言译文（字段键 => 语言码 => 译文）
  */
 
+use App\Support\I18n;
+
 $activeGroup = $groups[$active] ?? null;
+
+// 当前分组内的可翻译文本字段（弹窗面板按此渲染）
+$translatableFields = [];
+foreach ((array) ($activeGroup['fields'] ?? []) as $field) {
+    if (!empty($field['translatable']) && in_array((string) ($field['type'] ?? 'text'), ['text', 'textarea'], true)) {
+        $translatableFields[] = $field;
+    }
+}
 ?>
 <div class="admin-page-head">
     <div>
@@ -63,6 +74,7 @@ $activeGroup = $groups[$active] ?? null;
                             $fieldId    = 'set-' . $fieldKey;
                             $fieldValue = (string) old($fieldKey, (string) ($values[$fieldKey] ?? ''));
                             $required   = !empty($field['required']);
+                            $isTranslatable = !empty($field['translatable']) && in_array($fieldType, ['text', 'textarea'], true);
                             ?>
                             <?php if ($fieldType === 'bool'): ?>
                                 <div class="form-group">
@@ -140,9 +152,23 @@ $activeGroup = $groups[$active] ?? null;
                                 </div>
                             <?php else: ?>
                                 <div class="form-group">
-                                    <label class="form-label" for="<?= e($fieldId) ?>">
-                                        <?= e($fieldLabel) ?><?= $required ? '<span class="required">*</span>' : '' ?>
-                                    </label>
+                                    <?php if ($isTranslatable): ?>
+                                        <div class="form-label-row">
+                                            <label class="form-label" for="<?= e($fieldId) ?>">
+                                                <?= e($fieldLabel) ?><?= $required ? '<span class="required">*</span>' : '' ?>
+                                            </label>
+                                            <button type="button" class="btn btn--outline btn--sm i18n-trigger"
+                                                    data-i18n-field="<?= e($fieldKey) ?>"
+                                                    data-i18n-label="<?= e($fieldLabel) ?>"
+                                                    aria-haspopup="dialog">
+                                                多语言
+                                            </button>
+                                        </div>
+                                    <?php else: ?>
+                                        <label class="form-label" for="<?= e($fieldId) ?>">
+                                            <?= e($fieldLabel) ?><?= $required ? '<span class="required">*</span>' : '' ?>
+                                        </label>
+                                    <?php endif; ?>
 
                                     <?php if ($fieldType === 'textarea'): ?>
                                         <textarea class="textarea" id="<?= e($fieldId) ?>" name="<?= e($fieldKey) ?>"
@@ -223,6 +249,67 @@ $activeGroup = $groups[$active] ?? null;
                 <div class="btn-group">
                     <button class="btn" type="submit">保存设置</button>
                 </div>
+
+                <?php if ($translatableFields !== []): ?>
+                    <div class="i18n-modal" data-i18n-modal hidden>
+                        <div class="i18n-modal__backdrop" data-i18n-close></div>
+                        <div class="i18n-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="i18n-modal-title">
+                            <div class="i18n-modal__head">
+                                <h3 class="i18n-modal__title" id="i18n-modal-title" data-i18n-title>多语言内容</h3>
+                                <button type="button" class="i18n-modal__close" data-i18n-close aria-label="关闭">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                                        <path d="M6 6l12 12M18 6L6 18"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="i18n-modal__body" data-i18n-body>
+                                <?php foreach ($translatableFields as $field): ?>
+                                    <?php
+                                    $panelKey    = (string) $field['key'];
+                                    $panelType   = (string) ($field['type'] ?? 'text');
+                                    $panelMax    = isset($field['max']) ? (int) $field['max'] : null;
+                                    $panelSource = (string) old($panelKey, (string) ($values[$panelKey] ?? ''));
+                                    ?>
+                                    <div class="i18n-panel" id="i18n-<?= e($panelKey) ?>" data-i18n-panel hidden>
+                                        <p class="i18n-panel__source">
+                                            默认（简体中文）：<?= e(mb_substr($panelSource, 0, 120)) ?><?= mb_strlen($panelSource) > 120 ? '…' : '' ?>
+                                        </p>
+                                        <?php foreach (I18n::codes() as $locale): ?>
+                                            <?php if ($locale === I18n::DEFAULT_LOCALE) {
+                                                continue;
+                                            } ?>
+                                            <?php
+                                            $panelId   = 'i18n-' . $panelKey . '-' . $locale;
+                                            $panelName = $panelKey . '@' . $locale;
+                                            $panelVal  = (string) old($panelName, (string) ($translations[$panelKey][$locale] ?? ''));
+                                            $maxLength = $panelMax !== null ? ' maxlength="' . $panelMax . '"' : '';
+                                            ?>
+                                            <div class="form-group">
+                                                <label class="form-label" for="<?= e($panelId) ?>">
+                                                    <?= e((string) (I18n::supported()[$locale]['label'] ?? $locale)) ?>
+                                                    <span class="form-hint form-hint--inline"><?= e($locale) ?></span>
+                                                </label>
+                                                <?php if ($panelType === 'textarea'): ?>
+                                                    <textarea class="textarea" id="<?= e($panelId) ?>"
+                                                              name="<?= e($panelName) ?>" rows="3"<?= $maxLength ?>><?= e($panelVal) ?></textarea>
+                                                <?php else: ?>
+                                                    <input class="input" type="text" id="<?= e($panelId) ?>"
+                                                           name="<?= e($panelName) ?>" value="<?= e($panelVal) ?>"<?= $maxLength ?>>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endforeach; ?>
+                                        <p class="form-hint">留空表示该语言使用默认语言（简体中文）的内容。</p>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <div class="i18n-modal__foot">
+                                <p class="form-hint form-hint--inline">译文随「保存设置」一起提交，留空则回退默认语言。</p>
+                                <button type="button" class="btn btn--sm" data-i18n-close>完成</button>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </form>
         <?php endif; ?>
     </div>

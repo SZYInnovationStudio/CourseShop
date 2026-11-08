@@ -11,8 +11,8 @@ declare(strict_types=1);
 use App\Support\Auth;
 use App\Support\Setting;
 
-$siteName   = Setting::string('site_name', 'CourseShop');
-$siteDesc   = Setting::string('site_description', '');
+$siteName   = Setting::localized('site_name', 'CourseShop');
+$siteDesc   = Setting::localized('site_description', '');
 
 // 页脚署名为站点固定标识，不允许后台修改；工作室名称固定链接到工作室官网
 $studio     = 'SZY创新工作室';
@@ -25,6 +25,7 @@ $creditLine = static function (string $template, array $args) use ($studioLink):
 $beian      = Setting::string('site_beian', '');
 $gongan     = Setting::string('site_gongan', '');
 $gonganUrl  = Setting::string('site_gongan_url', '');
+$showAbout  = Setting::bool('about_enabled', true);
 // 开源地址为项目固定信息，写死不允许后台修改
 $sourceUrl  = 'https://github.com/SZYInnovationStudio/CourseShop';
 ?>
@@ -42,6 +43,9 @@ $sourceUrl  = 'https://github.com/SZYInnovationStudio/CourseShop';
                 <ul class="footer-list">
                     <li><a href="<?= url('/') ?>"><?= e(t('首页')) ?></a></li>
                     <li><a href="<?= url('/courses') ?>"><?= e(t('全部课程')) ?></a></li>
+                    <?php if ($showAbout): ?>
+                        <li><a href="<?= url('/about') ?>"><?= e(t('关于我们')) ?></a></li>
+                    <?php endif; ?>
                     <li><a href="<?= url('/my/courses') ?>"><?= e(t('我的课程')) ?></a></li>
                 </ul>
             </details>

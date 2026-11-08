@@ -41,6 +41,14 @@ final class Transcoder
 
         self::$probed = true;
 
+        // 宝塔等环境可能通过 disable_functions 禁用 proc_open；
+        // 函数被禁用时直接降级为「ffmpeg 不可用」，避免章节页等入口出现 500。
+        if (!function_exists('proc_open')) {
+            self::$binary = null;
+
+            return null;
+        }
+
         $candidates = [
             trim(Setting::string('ffmpeg_path', '')),
             trim((string) Config::get('video.ffmpeg_path', '')),
@@ -321,6 +329,10 @@ final class Transcoder
      */
     private static function probe(string $binary): bool
     {
+        if (!function_exists('proc_open')) {
+            return false;
+        }
+
         $descriptors = [
             0 => ['pipe', 'r'],
             1 => ['pipe', 'w'],

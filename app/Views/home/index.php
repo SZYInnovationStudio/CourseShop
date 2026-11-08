@@ -14,8 +14,8 @@ declare(strict_types=1);
 
 use App\Support\Setting;
 
-$siteName    = Setting::string('site_name', 'CourseShop');
-$siteDesc    = Setting::string('site_description', t('精选优质课程，助你高效掌握实用技能。'));
+$siteName    = Setting::localized('site_name', 'CourseShop');
+$siteDesc    = Setting::localized('site_description', t('精选优质课程，助你高效掌握实用技能。'));
 $hasCourses  = $courses !== [];
 $showPackages = Setting::bool('packages_enabled', true);
 ?>
@@ -23,7 +23,7 @@ $showPackages = Setting::bool('packages_enabled', true);
     <div class="container hero__inner">
         <div class="hero__content">
             <span class="hero__eyebrow"><?= e($siteName) ?> · <?= e(t('在线课程平台')) ?></span>
-            <h1 class="hero__title"><?= e(Setting::string('site_hero_title', '系统学习，从入门到实战')) ?></h1>
+            <h1 class="hero__title"><?= e(Setting::localized('site_hero_title', '系统学习，从入门到实战')) ?></h1>
             <p class="hero__desc"><?= e($siteDesc) ?></p>
 
             <div class="hero__actions">

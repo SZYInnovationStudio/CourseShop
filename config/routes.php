@@ -36,6 +36,7 @@ use App\Controllers\LocaleController;
 use App\Controllers\MyCourseController;
 use App\Controllers\OrderController;
 use App\Controllers\PackageController;
+use App\Controllers\PageController;
 use App\Controllers\PasswordController;
 use App\Controllers\PaymentController;
 use App\Controllers\TicketController;
@@ -48,6 +49,7 @@ use App\Support\Theme;
 return static function (Router $router): void {
     // ---------------- 前台：首页 ----------------
     $router->get('/', [HomeController::class, 'index']);
+    $router->get('/about', [PageController::class, 'about']);
 
     // ---------------- 前台：语言切换 ----------------
     $router->get('/lang/{locale}', [LocaleController::class, 'switch']);

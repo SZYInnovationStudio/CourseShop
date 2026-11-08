@@ -11,6 +11,7 @@ use App\Models\Package;
 use App\Support\Cache;
 use App\Support\Config;
 use App\Support\Logger;
+use App\Support\Setting;
 use Throwable;
 
 /**
@@ -20,6 +21,13 @@ final class HomeController extends Controller
 {
     public function index(): void
     {
+        // 品牌主页完全由设置驱动，不查询课程数据，保持与课程列表页独立
+        if (Setting::bool('landing_enabled', true)) {
+            $this->view('home.landing', ['pageTitle' => null]);
+
+            return;
+        }
+
         $categories    = [];
         $courses       = [];
         $announcements = [];

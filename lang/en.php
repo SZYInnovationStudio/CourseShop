@@ -94,6 +94,7 @@ return [
     '全部' => 'All',
     '全部状态' => 'All statuses',
     '全部课程' => 'All courses',
+    '关于我们' => 'About us',
     '共 %d 个章节' => '%d chapters in total',
     '共 %d 条工单，提交问题后可在此跟踪处理进度。' => '%d tickets. Submit a question and track its progress here.',
     '共 %d 笔订单，可在此查看支付状态并继续未完成的支付。' => '%d orders. Check payment status here and resume unfinished payments.',

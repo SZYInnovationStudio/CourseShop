@@ -45,6 +45,27 @@ final class Setting
         return is_scalar($value) ? (string) $value : $default;
     }
 
+    /**
+     * 读取多语言设置：当前语言有翻译时用翻译，否则回退默认语言的内容
+     *
+     * 默认语言（简体中文）的值存原键；其它语言存「键名@语言码」（如 site_name@en）。
+     * 用于主页 / 关于页 / 站点信息等后台可配置的展示文案，保证任何语言下页面不出现空白。
+     */
+    public static function localized(string $key, string $default = ''): string
+    {
+        $locale = I18n::current();
+
+        if ($locale !== I18n::DEFAULT_LOCALE && I18n::isSupported($locale)) {
+            $translated = self::string($key . '@' . $locale, '');
+
+            if ($translated !== '') {
+                return $translated;
+            }
+        }
+
+        return self::string($key, $default);
+    }
+
     public static function int(string $key, int $default = 0): int
     {
         $value = self::get($key);

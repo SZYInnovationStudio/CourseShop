@@ -12,7 +12,7 @@ declare(strict_types=1);
 use App\Support\I18n;
 use App\Support\Setting;
 
-$siteName = Setting::string('site_name', 'CourseShop');
+$siteName = Setting::localized('site_name', 'CourseShop');
 ?>
 <!DOCTYPE html>
 <html lang="<?= e(I18n::htmlLang()) ?>">

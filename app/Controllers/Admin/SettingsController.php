@@ -18,7 +18,7 @@ use RuntimeException;
 /**
  * 后台系统设置
  *
- * 按分组维护 settings 表键值：站点信息 / 注册安全 / 图形验证码 / 安全响应头 / 邮件 / 支付 / 视频 / 工单 / 错误监控 / 主题 / 多语言。
+ * 按分组维护 settings 表键值：站点信息 / 注册安全 / 图形验证码 / 安全响应头 / 邮件 / 支付 / 视频 / 工单 / 错误监控 / 主题 / 主页 / 关于页 / 多语言。
  * 每个分组独立保存：GET /admin/settings?tab=xxx 展示，POST /admin/settings/{group} 保存。
  *
  * 字段类型：
@@ -48,10 +48,11 @@ final class SettingsController extends AdminController
         }
 
         $this->view('admin.settings.index', [
-            'pageTitle' => '系统设置',
-            'groups'    => $groups,
-            'active'    => $active,
-            'values'    => $this->currentValues($groups[$active]['fields']),
+            'pageTitle'    => '系统设置',
+            'groups'       => $groups,
+            'active'       => $active,
+            'values'       => $this->currentValues($groups[$active]['fields']),
+            'translations' => $this->currentTranslations($groups[$active]['fields']),
         ]);
     }
 
@@ -120,6 +121,17 @@ final class SettingsController extends AdminController
             }
 
             $values[$key] = $value;
+
+            // 可翻译字段：同时保存各语言的译文（键名@语言码），留空表示该语言回退默认内容
+            if (!empty($field['translatable'])) {
+                foreach (I18n::codes() as $locale) {
+                    if ($locale === I18n::DEFAULT_LOCALE) {
+                        continue;
+                    }
+
+                    $values[$key . '@' . $locale] = Request::string($key . '@' . $locale);
+                }
+            }
         }
 
         Setting::setMany($values);
@@ -177,6 +189,35 @@ final class SettingsController extends AdminController
         }
 
         return $values;
+    }
+
+    /**
+     * 读取当前分组各可翻译字段的语言译文（用于弹窗回显）
+     *
+     * @param array<int, array<string, mixed>> $fields
+     * @return array<string, array<string, string>> 字段键 => 语言码 => 译文
+     */
+    private function currentTranslations(array $fields): array
+    {
+        $map = [];
+
+        foreach ($fields as $field) {
+            if (empty($field['translatable'])) {
+                continue;
+            }
+
+            $key = (string) $field['key'];
+
+            foreach (I18n::codes() as $locale) {
+                if ($locale === I18n::DEFAULT_LOCALE) {
+                    continue;
+                }
+
+                $map[$key][$locale] = Setting::string($key . '@' . $locale, '');
+            }
+        }
+
+        return $map;
     }
 
     /**
@@ -292,10 +333,10 @@ final class SettingsController extends AdminController
                 'label' => '站点信息',
                 'desc'  => '站点名称、SEO 信息与页脚展示内容。',
                 'fields' => [
-                    ['key' => 'site_name', 'label' => '站点名称', 'type' => 'text', 'required' => true, 'max' => 50, 'default' => 'CourseShop'],
-                    ['key' => 'site_hero_title', 'label' => '首页主标题', 'type' => 'text', 'max' => 100, 'default' => '系统学习，从入门到实战', 'hint' => '显示在首页顶部的大标题。'],
-                    ['key' => 'site_description', 'label' => '站点简介', 'type' => 'textarea', 'max' => 255, 'default' => '', 'hint' => '用于首页与搜索结果的站点描述。'],
-                    ['key' => 'site_keywords', 'label' => 'SEO 关键词', 'type' => 'text', 'max' => 255, 'default' => '', 'hint' => '多个关键词用英文逗号分隔。'],
+                    ['key' => 'site_name', 'label' => '站点名称', 'type' => 'text', 'required' => true, 'max' => 50, 'default' => 'CourseShop', 'translatable' => true],
+                    ['key' => 'site_hero_title', 'label' => '首页主标题', 'type' => 'text', 'max' => 100, 'default' => '系统学习，从入门到实战', 'hint' => '仅在「主页设置」中关闭新版主页时生效。', 'translatable' => true],
+                    ['key' => 'site_description', 'label' => '站点简介', 'type' => 'textarea', 'max' => 255, 'default' => '', 'hint' => '用于首页与搜索结果的站点描述。', 'translatable' => true],
+                    ['key' => 'site_keywords', 'label' => 'SEO 关键词', 'type' => 'text', 'max' => 255, 'default' => '', 'hint' => '多个关键词用英文逗号分隔。', 'translatable' => true],
                     ['key' => 'site_logo', 'label' => '站点 Logo', 'type' => 'image', 'subdir' => 'logo', 'max' => 255, 'default' => '', 'hint' => '可直接填写图片地址，或选择本地图片上传；留空则使用文字标识与默认图标。'],
                     ['key' => 'site_beian', 'label' => 'ICP 备案号', 'type' => 'text', 'max' => 50, 'default' => '', 'hint' => '留空则不显示。'],
                     ['key' => 'site_gongan', 'label' => '公网安备号', 'type' => 'text', 'max' => 50, 'default' => '', 'hint' => '留空则不显示。'],
@@ -406,6 +447,66 @@ final class SettingsController extends AdminController
                     ['key' => 'theme_default_mode', 'label' => '默认主题', 'type' => 'select', 'default' => 'system', 'options' => ['system' => '跟随系统', 'light' => '浅色', 'dark' => '深色']],
                     ['key' => 'theme_palette', 'label' => '配色方案', 'type' => 'palette', 'default' => Theme::DEFAULT_PALETTE, 'options' => Theme::options(), 'palettes' => Theme::palettes(), 'hint' => '预览色块依次为背景、前景、主题色、强调色、文字色。'],
                     ['key' => 'theme_allow_user_switch', 'label' => '允许用户自行切换主题', 'type' => 'bool', 'default' => true],
+                ],
+            ],
+            'landing' => [
+                'label' => '主页',
+                'desc'  => '独立的品牌主页：连续背景、首屏、图片带、理念与课程入口。关闭「启用新版主页」后，首页恢复为默认课程列表版式。',
+                'fields' => [
+                    ['key' => 'landing_enabled', 'label' => '启用新版主页', 'type' => 'bool', 'default' => true, 'hint' => '开启后首页使用下方配置的品牌落地页；关闭则使用默认课程列表首页。'],
+                    ['key' => 'landing_hero_kicker', 'label' => '首屏小标题', 'type' => 'text', 'max' => 80, 'default' => '在线课程 · 系统学习', 'translatable' => true],
+                    ['key' => 'landing_hero_title', 'label' => '首屏大标题', 'type' => 'text', 'max' => 120, 'default' => '系统学习，从入门到实战', 'translatable' => true],
+                    ['key' => 'landing_hero_subtitle', 'label' => '首屏副标题', 'type' => 'textarea', 'max' => 255, 'default' => '把复杂的知识拆成清晰的路径，用真实的项目带你一步步走到会用、敢用。', 'translatable' => true],
+                    ['key' => 'landing_hero_image', 'label' => '首屏头图', 'type' => 'image', 'subdir' => 'landing', 'max' => 255, 'default' => '', 'hint' => '建议 1920×1080 以上横图；留空则保持纯色背景，不产生色块分层。'],
+                    ['key' => 'landing_hero_cta_text', 'label' => '首屏主链接文案', 'type' => 'text', 'max' => 30, 'default' => '浏览全部课程', 'translatable' => true],
+                    ['key' => 'landing_hero_cta_url', 'label' => '首屏主链接地址', 'type' => 'text', 'max' => 255, 'default' => '/courses'],
+                    ['key' => 'landing_hero_cta2_text', 'label' => '首屏次链接文案', 'type' => 'text', 'max' => 30, 'default' => '了解我们', 'translatable' => true],
+                    ['key' => 'landing_hero_cta2_url', 'label' => '首屏次链接地址', 'type' => 'text', 'max' => 255, 'default' => '/about'],
+                    ['key' => 'landing_gallery_title', 'label' => '滚动图片标题', 'type' => 'text', 'max' => 80, 'default' => '在课程里，看见成长', 'hint' => '未设置任何滚动图片时，该区块自动隐藏。', 'translatable' => true],
+                    ['key' => 'landing_gallery_image_1', 'label' => '滚动图片 1', 'type' => 'image', 'subdir' => 'landing', 'max' => 255, 'default' => ''],
+                    ['key' => 'landing_gallery_image_2', 'label' => '滚动图片 2', 'type' => 'image', 'subdir' => 'landing', 'max' => 255, 'default' => ''],
+                    ['key' => 'landing_gallery_image_3', 'label' => '滚动图片 3', 'type' => 'image', 'subdir' => 'landing', 'max' => 255, 'default' => ''],
+                    ['key' => 'landing_gallery_image_4', 'label' => '滚动图片 4', 'type' => 'image', 'subdir' => 'landing', 'max' => 255, 'default' => ''],
+                    ['key' => 'landing_gallery_image_5', 'label' => '滚动图片 5', 'type' => 'image', 'subdir' => 'landing', 'max' => 255, 'default' => ''],
+                    ['key' => 'landing_gallery_image_6', 'label' => '滚动图片 6', 'type' => 'image', 'subdir' => 'landing', 'max' => 255, 'default' => ''],
+                    ['key' => 'landing_show_intro', 'label' => '显示介绍区', 'type' => 'bool', 'default' => true],
+                    ['key' => 'landing_intro_kicker', 'label' => '介绍区小标题', 'type' => 'text', 'max' => 80, 'default' => '我们的方式', 'translatable' => true],
+                    ['key' => 'landing_intro_title', 'label' => '介绍区标题', 'type' => 'text', 'max' => 120, 'default' => '把好内容，讲到真正学会为止', 'translatable' => true],
+                    ['key' => 'landing_intro_text', 'label' => '介绍区正文', 'type' => 'textarea', 'max' => 1000, 'default' => "我们相信，真正有效的学习不是把知识点堆在眼前，而是把一条条路径铺到脚下。\n每一门课程都从真实问题出发，拆解成可以一步步完成的章节，再用项目把零散的知识连成完整的能力。\n你不需要先成为专家，才配开始。你只需要愿意迈出第一步。", 'translatable' => true],
+                    ['key' => 'landing_intro_image', 'label' => '介绍区通栏图片', 'type' => 'image', 'subdir' => 'landing', 'max' => 255, 'default' => '', 'hint' => '显示为通栏大图，留空则只有文字。'],
+                    ['key' => 'landing_show_features', 'label' => '显示理念区', 'type' => 'bool', 'default' => true],
+                    ['key' => 'landing_features_title', 'label' => '理念区标题', 'type' => 'text', 'max' => 80, 'default' => '我们如何做课', 'translatable' => true],
+                    ['key' => 'landing_features_subtitle', 'label' => '理念区副标题', 'type' => 'text', 'max' => 120, 'default' => '不追求热闹，只把该做的事做扎实。', 'translatable' => true],
+                    ['key' => 'landing_features', 'label' => '理念条目', 'type' => 'textarea', 'max' => 800, 'default' => "体系化路径|从入门到实战，每个阶段都有清晰的目标和练习。\n项目驱动|不只讲概念，用真实项目把知识变成可交付的成果。\n随时回看|课程内容长期有效，进度自动保存，按自己的节奏学习。\n持续更新|课程与资料随技术变化迭代，只保留真正有用的内容。", 'hint' => '每行一项，格式为「标题|说明」，最多展示 4 项。', 'translatable' => true],
+                    ['key' => 'landing_show_course', 'label' => '显示课程入口区', 'type' => 'bool', 'default' => true],
+                    ['key' => 'landing_course_kicker', 'label' => '课程区小标题', 'type' => 'text', 'max' => 80, 'default' => '开始学习', 'translatable' => true],
+                    ['key' => 'landing_course_title', 'label' => '课程区标题', 'type' => 'text', 'max' => 120, 'default' => '选一条路径，从第一节课开始', 'translatable' => true],
+                    ['key' => 'landing_course_text', 'label' => '课程区说明', 'type' => 'textarea', 'max' => 500, 'default' => "课程目录里有完整的体系、清晰的进度和可以反复回看的章节。\n不需要一次学完，按自己的节奏往前走就好。", 'translatable' => true],
+                    ['key' => 'landing_course_button_text', 'label' => '课程区链接文案', 'type' => 'text', 'max' => 30, 'default' => '浏览全部课程', 'translatable' => true],
+                    ['key' => 'landing_course_button_url', 'label' => '课程区链接地址', 'type' => 'text', 'max' => 255, 'default' => '/courses'],
+                    ['key' => 'landing_course_image', 'label' => '课程区通栏图片', 'type' => 'image', 'subdir' => 'landing', 'max' => 255, 'default' => '', 'hint' => '可选，显示在课程说明上方，留空则只有文字。'],
+                ],
+            ],
+            'about' => [
+                'label' => '关于页',
+                'desc'  => '关于我们页面的内容与开关。关闭后前台不再显示关于页入口，直接访问返回 404。',
+                'fields' => [
+                    ['key' => 'about_enabled', 'label' => '启用关于页', 'type' => 'bool', 'default' => true],
+                    ['key' => 'about_hero_kicker', 'label' => '关于页小标题', 'type' => 'text', 'max' => 80, 'default' => '关于我们', 'translatable' => true],
+                    ['key' => 'about_hero_title', 'label' => '关于页标题', 'type' => 'text', 'max' => 120, 'default' => '让学习回到真实的问题', 'translatable' => true],
+                    ['key' => 'about_hero_subtitle', 'label' => '关于页副标题', 'type' => 'textarea', 'max' => 255, 'default' => '我们做的不只是课程，而是一条从好奇到掌握、从理解到实践的路径。', 'translatable' => true],
+                    ['key' => 'about_hero_image', 'label' => '关于页头图', 'type' => 'image', 'subdir' => 'about', 'max' => 255, 'default' => '', 'hint' => '建议 1920×1000 以上横图；留空则使用主题色渐变背景。'],
+                    ['key' => 'about_show_content', 'label' => '显示关于页正文', 'type' => 'bool', 'default' => true],
+                    ['key' => 'about_content', 'label' => '关于页正文', 'type' => 'textarea', 'max' => 5000, 'default' => "## 我们是谁\n\nCourseShop 是一个专注实用技能的在线课程平台。我们与一线实践者一起，把真实项目中的经验整理成可以按步骤完成的课程。\n\n## 我们为什么做这件事\n\n信息从来不缺，缺的是一条走得通的路。我们希望每门课程都能回答三个问题：要学什么、为什么这样学、学完能做什么。\n\n## 我们如何打磨课程\n\n从选题、结构、示例到练习，每门课都经过多轮试学与修订。宁可慢一点，也不把半成品交到你手里。", 'hint' => '支持 Markdown：## 标题、**加粗**、- 列表等。', 'translatable' => true],
+                    ['key' => 'about_content_image', 'label' => '关于页正文配图', 'type' => 'image', 'subdir' => 'about', 'max' => 255, 'default' => '', 'hint' => '显示在正文开头，可留空。'],
+                    ['key' => 'about_show_values', 'label' => '显示价值观区', 'type' => 'bool', 'default' => true],
+                    ['key' => 'about_values_title', 'label' => '价值观区标题', 'type' => 'text', 'max' => 80, 'default' => '我们坚持的三件事', 'translatable' => true],
+                    ['key' => 'about_values', 'label' => '价值观条目', 'type' => 'textarea', 'max' => 800, 'default' => "真诚|只讲真正有用的内容，不制造焦虑，也不贩卖速成。\n专业|每门课程都经过反复打磨，从结构到表达都经得起推敲。\n长期|学习不是一次交易，我们更在意你学完之后能做什么。", 'hint' => '每行一项，格式为「标题|说明」，最多展示 4 项。', 'translatable' => true],
+                    ['key' => 'about_show_cta', 'label' => '显示关于页底部行动区', 'type' => 'bool', 'default' => true],
+                    ['key' => 'about_cta_title', 'label' => '关于页底部标题', 'type' => 'text', 'max' => 120, 'default' => '和我们一起，把想学的变成会用的', 'translatable' => true],
+                    ['key' => 'about_cta_text', 'label' => '关于页底部说明', 'type' => 'textarea', 'max' => 255, 'default' => '挑一门你最想解决的问题，从第一节课开始。', 'translatable' => true],
+                    ['key' => 'about_cta_button_text', 'label' => '关于页底部按钮文案', 'type' => 'text', 'max' => 30, 'default' => '浏览全部课程', 'translatable' => true],
+                    ['key' => 'about_cta_button_url', 'label' => '关于页底部按钮链接', 'type' => 'text', 'max' => 255, 'default' => '/courses'],
                 ],
             ],
             'i18n' => [

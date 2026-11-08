@@ -18,6 +18,17 @@
     var THEME_KEY = 'courseshop-theme';
     var root = document.documentElement;
 
+    /* ---------------- 显现兜底（先于其它功能注册） ----------------
+       html.js 下 [data-reveal] 区块默认透明；此兜底独立于下方各功能模块，
+       即使任一模块初始化异常，也能保证视口内的内容最终可见 */
+    window.setTimeout(function () {
+        document.querySelectorAll('[data-reveal]:not(.is-revealed)').forEach(function (el) {
+            if (el.getBoundingClientRect().top < window.innerHeight) {
+                el.classList.add('is-revealed');
+            }
+        });
+    }, 3000);
+
     /* ---------------- 主题切换 ---------------- */
     function currentTheme() {
         return root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
@@ -1642,5 +1653,110 @@
                 group.open = false;
             });
         }
+    })();
+
+    /* ---------------- 品牌页滚动显现 ---------------- */
+    (function () {
+        var items = document.querySelectorAll('[data-reveal]');
+        if (items.length === 0) {
+            return;
+        }
+
+        var reveal = function (el) {
+            var delay = parseInt(el.getAttribute('data-reveal-delay') || '0', 10);
+
+            if (delay > 0) {
+                el.style.transitionDelay = delay + 'ms';
+            }
+
+            el.classList.add('is-revealed');
+        };
+
+        if (!('IntersectionObserver' in window)) {
+            items.forEach(reveal);
+            return;
+        }
+
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) {
+                    return;
+                }
+
+                reveal(entry.target);
+                observer.unobserve(entry.target);
+            });
+        }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+
+        items.forEach(function (el) {
+            observer.observe(el);
+        });
+    })();
+
+    /* ---------------- 设置页：多语言内容弹窗 ---------------- */
+    (function () {
+        var modal = document.querySelector('[data-i18n-modal]');
+
+        if (!modal) {
+            return;
+        }
+
+        var body  = modal.querySelector('[data-i18n-body]');
+        var title = modal.querySelector('[data-i18n-title]');
+        var lastTrigger = null;
+
+        function open(fieldKey, label, trigger) {
+            var panel = document.getElementById('i18n-' + fieldKey);
+
+            if (!panel || !body) {
+                return;
+            }
+
+            body.querySelectorAll('[data-i18n-panel]').forEach(function (item) {
+                item.hidden = true;
+            });
+
+            panel.hidden = false;
+
+            if (title) {
+                title.textContent = '「' + (label || '字段') + '」多语言内容';
+            }
+
+            modal.hidden = false;
+            document.body.classList.add('i18n-modal-open');
+            lastTrigger = trigger || null;
+
+            var first = panel.querySelector('input, textarea');
+
+            if (first) {
+                first.focus();
+            }
+        }
+
+        function close() {
+            modal.hidden = true;
+            document.body.classList.remove('i18n-modal-open');
+
+            if (lastTrigger) {
+                lastTrigger.focus();
+                lastTrigger = null;
+            }
+        }
+
+        document.querySelectorAll('[data-i18n-field]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                open(btn.getAttribute('data-i18n-field'), btn.getAttribute('data-i18n-label'), btn);
+            });
+        });
+
+        modal.querySelectorAll('[data-i18n-close]').forEach(function (el) {
+            el.addEventListener('click', close);
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !modal.hidden) {
+                close();
+            }
+        });
     })();
 })();

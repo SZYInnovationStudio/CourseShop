@@ -23,7 +23,7 @@ final class ImageStorage
     private const EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
     /** 允许的存储子目录白名单 */
-    private const SUBDIRS = ['logo', 'covers'];
+    private const SUBDIRS = ['logo', 'covers', 'landing', 'about'];
 
     /**
      * 保存上传图片，返回根相对路径（如 /uploads/covers/xxx.png）

@@ -11,7 +11,7 @@ use App\Support\I18n;
 use App\Support\Request;
 use App\Support\Setting;
 
-$siteName  = Setting::string('site_name', 'CourseShop');
+$siteName  = Setting::localized('site_name', 'CourseShop');
 $siteLogo  = Setting::string('site_logo', '');
 $current   = Request::path();
 $user      = Auth::user();
@@ -19,6 +19,7 @@ $user      = Auth::user();
 $canSwitchTheme = Setting::bool('theme_allow_user_switch', true);
 $canRegister    = Setting::bool('register_enabled', true);
 $showPackages   = Setting::bool('packages_enabled', true);
+$showAbout      = Setting::bool('about_enabled', true);
 
 // 语言切换：仅在启用两种及以上语言时展示
 $locales        = I18n::enabled();
@@ -27,7 +28,7 @@ $currentLocale  = I18n::current();
 
 // 主导航已覆盖的顶级页面：底部导航 / 顶部导航已提供入口，
 // 这些页面不再渲染返回箭头，避免出现「无处可返」的冗余按钮
-$rootPaths   = ['/', '/courses', '/packages', '/my/courses', '/tickets', '/account'];
+$rootPaths   = ['/', '/courses', '/packages', '/about', '/my/courses', '/tickets', '/account'];
 $currentPath = rtrim($current, '/');
 $currentPath = $currentPath === '' ? '/' : $currentPath;
 $isRootPage  = in_array($currentPath, $rootPaths, true);
@@ -72,6 +73,9 @@ $activeClass = static function (string $path) use ($current): string {
             <a class="site-nav__link<?= $activeClass('/courses') ?>" href="<?= url('/courses') ?>"><?= e(t('全部课程')) ?></a>
             <?php if ($showPackages): ?>
                 <a class="site-nav__link<?= $activeClass('/packages') ?>" href="<?= url('/packages') ?>"><?= e(t('优惠套餐')) ?></a>
+            <?php endif; ?>
+            <?php if ($showAbout): ?>
+                <a class="site-nav__link site-nav__link--about<?= $activeClass('/about') ?>" href="<?= url('/about') ?>"><?= e(t('关于我们')) ?></a>
             <?php endif; ?>
         </nav>
 
@@ -182,6 +186,9 @@ $activeClass = static function (string $path) use ($current): string {
                 <a class="site-drawer__link<?= $activeClass('/courses') ?>" href="<?= url('/courses') ?>"><?= e(t('全部课程')) ?></a>
                 <?php if ($showPackages): ?>
                     <a class="site-drawer__link<?= $activeClass('/packages') ?>" href="<?= url('/packages') ?>"><?= e(t('优惠套餐')) ?></a>
+                <?php endif; ?>
+                <?php if ($showAbout): ?>
+                    <a class="site-drawer__link<?= $activeClass('/about') ?>" href="<?= url('/about') ?>"><?= e(t('关于我们')) ?></a>
                 <?php endif; ?>
 
                 <?php if ($user === null): ?>
