@@ -4067,7 +4067,7 @@ html[data-theme="dark"] .landing-hero__bg { opacity: 0.92; }
 
 /* 关于页（单卡片 Markdown） */
 .about-page {
-    padding: clamp(48px, 7vw, 96px) 0 clamp(64px, 9vw, 120px);
+    padding: clamp(30px, 4.5vw, 56px) 0 clamp(44px, 6vw, 80px);
     background: var(--color-bg);
 }
 
@@ -4078,6 +4078,17 @@ html[data-theme="dark"] .landing-hero__bg { opacity: 0.92; }
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 16px;
+}
+
+.about-card__title {
+    margin: 0 0 var(--space-4);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    font-size: clamp(1.7rem, 3vw, 2.2rem);
+    line-height: 1.3;
 }
 
 .about-prose { font-size: 1.03rem; line-height: 2; }
