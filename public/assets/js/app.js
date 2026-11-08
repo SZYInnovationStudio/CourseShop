@@ -1834,9 +1834,26 @@
                 return;
             }
 
-            var base = image.getAttribute('data-base-src') || image.src.split('?')[0];
-            image.setAttribute('data-base-src', base);
-            image.src = base + '?t=' + Date.now();
+            // 必须保留原有查询参数（scene 决定服务端把新验证码写入哪个场景）。
+            // 之前用 split('?')[0] 会丢掉 scene，新码被写进 login 场景，
+            // 而表单校验的是 register 场景，导致页面上的码永远校验不通过。
+            var url;
+
+            try {
+                url = new URL(image.getAttribute('src') || '', window.location.href);
+            } catch (e) {
+                return;
+            }
+
+            url.searchParams.set('_t', String(Date.now()));
+            image.setAttribute('src', url.pathname + url.search);
+
+            // 旧验证码已被服务端消费，输入框里的值同步清空
+            var field = form.querySelector('[name="captcha"]');
+
+            if (field) {
+                field.value = '';
+            }
         }
 
         function payload(form) {

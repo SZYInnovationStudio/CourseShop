@@ -50,7 +50,9 @@ final class AuthController extends Controller
 
         $this->view('admin.auth.login', [
             'pageTitle'       => '管理员登录',
-            'captchaRequired' => LoginThrottle::needsCaptcha(),
+            // 与提交时的判定保持一致（带上用户名维度），避免页面不显示验证码
+            // 而提交要求验证码，导致反复提示「图形验证码不正确或已过期」
+            'captchaRequired' => LoginThrottle::needsCaptcha((string) old('username')),
         ], 'layouts/admin-auth');
     }
 

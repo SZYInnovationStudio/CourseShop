@@ -46,7 +46,10 @@ final class AuthController extends Controller
     {
         $this->view('auth.login', [
             'pageTitle'       => t('登录'),
-            'captchaRequired' => LoginThrottle::needsCaptcha(),
+            // 与提交时的判定保持一致（带上用户名维度）。否则当该账号在其它 IP
+            // 被爆破过时，页面不显示验证码、提交却要求验证码，用户会一直看到
+            //「图形验证码不正确或已过期」且无法输入验证码自救。
+            'captchaRequired' => LoginThrottle::needsCaptcha((string) old('username')),
         ]);
     }
 
