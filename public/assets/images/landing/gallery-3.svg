@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="波浪">
+  <rect width="900" height="600" fill="#F1EFEA"/>
+  <g fill="none" stroke-linecap="round">
+    <path d="M60 190 C 220 120 360 260 520 190 C 660 128 780 200 840 176" stroke="#102956" stroke-width="5"/>
+    <path d="M60 300 C 220 230 360 370 520 300 C 660 238 780 310 840 286" stroke="#C4704F" stroke-width="5"/>
+    <path d="M60 410 C 220 340 360 480 520 410 C 660 348 780 420 840 396" stroke="#8A9B85" stroke-width="5"/>
+  </g>
+  <circle cx="840" cy="176" r="12" fill="#102956"/>
+  <circle cx="840" cy="286" r="12" fill="#C4704F"/>
+  <circle cx="840" cy="396" r="12" fill="#8A9B85"/>
+</svg>

@@ -18,7 +18,7 @@ final class PageController extends Controller
         }
 
         $this->view('pages.about', [
-            'pageTitle' => Setting::localized('about_hero_title', '让学习回到真实的问题'),
+            'pageTitle' => t('关于我们'),
         ]);
     }
 }

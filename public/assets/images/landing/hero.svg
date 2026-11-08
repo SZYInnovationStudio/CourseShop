@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="日出山野插画">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F7F2E7"/>
+      <stop offset="0.62" stop-color="#F1E7D3"/>
+      <stop offset="1" stop-color="#EADDC4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 天空 -->
+  <rect width="1600" height="900" fill="url(#sky)"/>
+
+  <!-- 太阳与光晕 -->
+  <circle cx="1050" cy="330" r="190" fill="#C4704F" opacity="0.16"/>
+  <circle cx="1050" cy="330" r="128" fill="#C4704F"/>
+
+  <!-- 远山（雾蓝） -->
+  <path d="M0 620 L240 470 L430 585 L640 445 L860 600 L1080 480 L1300 590 L1600 500 L1600 900 L0 900 Z"
+        fill="#A8B8C4" opacity="0.45"/>
+
+  <!-- 中景山丘（鼠尾草绿） -->
+  <path d="M0 700 Q300 560 620 668 T1240 690 T1600 640 L1600 900 L0 900 Z"
+        fill="#8A9B85"/>
+
+  <!-- 近景坡地（深绿） -->
+  <path d="M0 810 Q380 700 780 790 T1600 780 L1600 900 L0 900 Z"
+        fill="#5F7261"/>
+
+  <!-- 地平细线（深蓝） -->
+  <path d="M0 700 Q300 560 620 668 T1240 690 T1600 640" fill="none" stroke="#102956" stroke-width="3" opacity="0.5"/>
+  <path d="M0 810 Q380 700 780 790 T1600 780" fill="none" stroke="#102956" stroke-width="2.5" opacity="0.35"/>
+
+  <!-- 飞鸟 -->
+  <g stroke="#102956" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.65">
+    <path d="M420 250 q22 -20 44 0 M464 250 q22 -20 44 0"/>
+    <path d="M560 190 q17 -15 34 0 M594 190 q17 -15 34 0"/>
+  </g>
+
+  <!-- 云带 -->
+  <g stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" opacity="0.55">
+    <path d="M180 330 h180 M300 372 h120"/>
+    <path d="M1240 160 h150 M1330 200 h100"/>
+  </g>
+</svg>

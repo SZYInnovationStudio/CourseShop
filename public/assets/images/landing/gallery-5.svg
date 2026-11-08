@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="枝叶">
+  <rect width="900" height="600" fill="#F3F0E8"/>
+  <path d="M170 560 C 300 440 430 330 700 120" fill="none" stroke="#102956" stroke-width="6" stroke-linecap="round"/>
+  <g fill="#8A9B85">
+    <ellipse cx="560" cy="215" rx="64" ry="26" transform="rotate(-38 560 215)"/>
+    <ellipse cx="430" cy="330" rx="64" ry="26" transform="rotate(-38 430 330)"/>
+    <ellipse cx="300" cy="445" rx="64" ry="26" transform="rotate(-38 300 445)"/>
+  </g>
+  <g fill="#C4704F">
+    <ellipse cx="640" cy="145" rx="52" ry="21" transform="rotate(-38 640 145)"/>
+    <ellipse cx="360" cy="390" rx="52" ry="21" transform="rotate(-38 360 390)"/>
+  </g>
+  <circle cx="200" cy="140" r="44" fill="none" stroke="#D9A441" stroke-width="3" opacity="0.8"/>
+</svg>

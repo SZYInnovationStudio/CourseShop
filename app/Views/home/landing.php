@@ -10,15 +10,16 @@ declare(strict_types=1);
 
 use App\Support\Setting;
 
-$heroKicker   = trim(Setting::localized('landing_hero_kicker', '在线课程 · 系统学习'));
-$heroTitle    = trim(Setting::localized('landing_hero_title', '系统学习，从入门到实战'));
-$heroSubtitle = trim(Setting::localized('landing_hero_subtitle', '把复杂的知识拆成清晰的路径，用真实的项目带你一步步走到会用、敢用。'));
-$heroImage    = trim(Setting::string('landing_hero_image', ''));
+// 默认文案以中文原文同时作为 t() 词典键：后台未配置译文时，各语言也能显示像样的内置文案
+$heroKicker   = trim(Setting::localized('landing_hero_kicker', t('在线课程 · 系统学习')));
+$heroTitle    = trim(Setting::localized('landing_hero_title', t('系统学习，从入门到实战')));
+$heroSubtitle = trim(Setting::localized('landing_hero_subtitle', t('把复杂的知识拆成清晰的路径，用真实的项目带你一步步走到会用、敢用。')));
+$heroImage    = trim(Setting::string('landing_hero_image', '/assets/images/landing/hero.svg'));
 $heroImageUrl = $heroImage !== '' ? url($heroImage) : '';
 
-$heroCtaText  = trim(Setting::localized('landing_hero_cta_text', '浏览全部课程'));
+$heroCtaText  = trim(Setting::localized('landing_hero_cta_text', t('浏览全部课程')));
 $heroCtaUrl   = trim(Setting::string('landing_hero_cta_url', '/courses'));
-$heroCta2Text = trim(Setting::localized('landing_hero_cta2_text', '了解我们'));
+$heroCta2Text = trim(Setting::localized('landing_hero_cta2_text', t('了解我们')));
 $heroCta2Url  = trim(Setting::string('landing_hero_cta2_url', '/about'));
 
 $aboutEnabled = Setting::bool('about_enabled', true);
@@ -27,11 +28,20 @@ $cta2Path      = rtrim(strtolower((string) parse_url($heroCta2Url, PHP_URL_PATH)
 $heroCta2Visible = $heroCta2Text !== ''
     && !(!$aboutEnabled && in_array($cta2Path, ['/about', 'about'], true));
 
-$galleryTitle  = trim(Setting::localized('landing_gallery_title', '在课程里，看见成长'));
+$galleryTitle  = trim(Setting::localized('landing_gallery_title', t('在课程里，看见成长')));
+$galleryDefaults = [
+    1 => '/assets/images/landing/gallery-1.svg',
+    2 => '/assets/images/landing/gallery-2.svg',
+    3 => '/assets/images/landing/gallery-3.svg',
+    4 => '/assets/images/landing/gallery-4.svg',
+    5 => '/assets/images/landing/gallery-5.svg',
+    6 => '/assets/images/landing/gallery-6.svg',
+];
+
 $galleryImages = [];
 
 for ($i = 1; $i <= 6; $i++) {
-    $path = trim(Setting::string('landing_gallery_image_' . $i, ''));
+    $path = trim(Setting::string('landing_gallery_image_' . $i, $galleryDefaults[$i]));
 
     if ($path !== '') {
         $galleryImages[] = $path;
@@ -39,15 +49,15 @@ for ($i = 1; $i <= 6; $i++) {
 }
 
 $showIntro     = Setting::bool('landing_show_intro', true);
-$introKicker   = trim(Setting::localized('landing_intro_kicker', '我们的方式'));
-$introTitle    = trim(Setting::localized('landing_intro_title', '把好内容，讲到真正学会为止'));
-$introText     = trim(Setting::localized('landing_intro_text', "我们相信，真正有效的学习不是把知识点堆在眼前，而是把一条条路径铺到脚下。\n每一门课程都从真实问题出发，拆解成可以一步步完成的章节，再用项目把零散的知识连成完整的能力。\n你不需要先成为专家，才配开始。你只需要愿意迈出第一步。"));
+$introKicker   = trim(Setting::localized('landing_intro_kicker', t('我们的方式')));
+$introTitle    = trim(Setting::localized('landing_intro_title', t('把好内容，讲到真正学会为止')));
+$introText     = trim(Setting::localized('landing_intro_text', t("我们相信，真正有效的学习不是把知识点堆在眼前，而是把一条条路径铺到脚下。\n每一门课程都从真实问题出发，拆解成可以一步步完成的章节，再用项目把零散的知识连成完整的能力。\n你不需要先成为专家，才配开始。你只需要愿意迈出第一步。")));
 $introImage    = trim(Setting::string('landing_intro_image', ''));
 $introImageUrl = $introImage !== '' ? url($introImage) : '';
 
 $showFeatures     = Setting::bool('landing_show_features', true);
-$featuresTitle    = trim(Setting::localized('landing_features_title', '我们如何做课'));
-$featuresSubtitle = trim(Setting::localized('landing_features_subtitle', '不追求热闹，只把该做的事做扎实。'));
+$featuresTitle    = trim(Setting::localized('landing_features_title', t('我们如何做课')));
+$featuresSubtitle = trim(Setting::localized('landing_features_subtitle', t('不追求热闹，只把该做的事做扎实。')));
 
 $parseItems = static function (string $raw, int $limit): array {
     $items = [];
@@ -74,15 +84,15 @@ $parseItems = static function (string $raw, int $limit): array {
     return $items;
 };
 
-$features = $parseItems(trim(Setting::localized('landing_features', "体系化路径|从入门到实战，每个阶段都有清晰的目标和练习。\n项目驱动|不只讲概念，用真实项目把知识变成可交付的成果。\n随时回看|课程内容长期有效，进度自动保存，按自己的节奏学习。\n持续更新|课程与资料随技术变化迭代，只保留真正有用的内容。")), 4);
+$features = $parseItems(trim(Setting::localized('landing_features', t("体系化路径|从入门到实战，每个阶段都有清晰的目标和练习。\n项目驱动|不只讲概念，用真实项目把知识变成可交付的成果。\n随时回看|课程内容长期有效，进度自动保存，按自己的节奏学习。\n持续更新|课程与资料随技术变化迭代，只保留真正有用的内容。"))), 4);
 
 $showCourse       = Setting::bool('landing_show_course', true);
-$courseKicker     = trim(Setting::localized('landing_course_kicker', '开始学习'));
-$courseTitle      = trim(Setting::localized('landing_course_title', '选一条路径，从第一节课开始'));
-$courseText       = trim(Setting::localized('landing_course_text', "课程目录里有完整的体系、清晰的进度和可以反复回看的章节。\n不需要一次学完，按自己的节奏往前走就好。"));
-$courseButton     = trim(Setting::localized('landing_course_button_text', '浏览全部课程'));
+$courseKicker     = trim(Setting::localized('landing_course_kicker', t('开始学习')));
+$courseTitle      = trim(Setting::localized('landing_course_title', t('选一条路径，从第一节课开始')));
+$courseText       = trim(Setting::localized('landing_course_text', t("课程目录里有完整的体系、清晰的进度和可以反复回看的章节。\n不需要一次学完，按自己的节奏往前走就好。")));
+$courseButton     = trim(Setting::localized('landing_course_button_text', t('浏览全部课程')));
 $courseButtonUrl  = trim(Setting::string('landing_course_button_url', '/courses'));
-$courseImage      = trim(Setting::string('landing_course_image', ''));
+$courseImage      = trim(Setting::string('landing_course_image', '/assets/images/landing/course.svg'));
 $courseImageUrl   = $courseImage !== '' ? url($courseImage) : '';
 
 $renderGalleryGroup = static function () use ($galleryImages): void {

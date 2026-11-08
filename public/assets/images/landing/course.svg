@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="几何构成插画">
+  <rect width="900" height="600" fill="#F2EEE6"/>
+
+  <!-- 大拱门（赭石） -->
+  <path d="M150 600 L150 330 A170 170 0 0 1 490 330 L490 600 Z" fill="#C4704F"/>
+
+  <!-- 拱门内衬线 -->
+  <path d="M195 600 L195 335 A125 125 0 0 1 445 335 L445 600"
+        fill="none" stroke="#F2EEE6" stroke-width="4" opacity="0.5"/>
+
+  <!-- 太阳圆（赭黄） -->
+  <circle cx="660" cy="200" r="92" fill="#D9A441"/>
+  <circle cx="660" cy="200" r="128" fill="none" stroke="#102956" stroke-width="2.5" opacity="0.4"/>
+
+  <!-- 台阶（深蓝线） -->
+  <g fill="none" stroke="#102956" stroke-width="5" stroke-linecap="round">
+    <path d="M560 600 L560 520 L650 520 L650 440 L740 440 L740 360 L830 360"/>
+  </g>
+  <circle cx="830" cy="360" r="12" fill="#C4704F"/>
+
+  <!-- 地面线 -->
+  <path d="M40 600 L900 600" stroke="#102956" stroke-width="3" opacity="0.35"/>
+
+  <!-- 左上枝叶点缀 -->
+  <g fill="none" stroke="#5F7261" stroke-width="5" stroke-linecap="round">
+    <path d="M70 150 q60 -40 120 -12"/>
+  </g>
+  <ellipse cx="105" cy="128" rx="26" ry="11" fill="#8A9B85" transform="rotate(-28 105 128)"/>
+  <ellipse cx="168" cy="128" rx="22" ry="10" fill="#D9A441" transform="rotate(14 168 128)"/>
+
+  <!-- 右下小点 -->
+  <circle cx="852" cy="520" r="7" fill="#5F7261"/>
+</svg>

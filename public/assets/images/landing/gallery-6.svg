@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="几何构成">
+  <rect width="900" height="600" fill="#F2EEE6"/>
+  <path d="M170 470 A 150 150 0 0 1 470 470 Z" fill="#102956"/>
+  <circle cx="640" cy="220" r="110" fill="#C4704F"/>
+  <path d="M540 470 L 640 310 L 740 470 Z" fill="#D9A441"/>
+  <line x1="120" y1="150" x2="380" y2="150" stroke="#102956" stroke-width="3" opacity="0.5"/>
+  <line x1="120" y1="185" x2="320" y2="185" stroke="#102956" stroke-width="3" opacity="0.3"/>
+  <circle cx="170" cy="150" r="7" fill="#C4704F"/>
+</svg>

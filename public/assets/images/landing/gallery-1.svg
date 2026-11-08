@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="日出山丘">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F6F2E9"/>
+      <stop offset="1" stop-color="#EFE7D8"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="600" fill="url(#sky)"/>
+  <circle cx="560" cy="215" r="118" fill="#C4704F"/>
+  <path d="M0 470 C 180 380 340 380 520 452 C 690 518 800 508 900 462 L 900 600 L 0 600 Z" fill="#8A9B85"/>
+  <path d="M0 540 C 200 470 420 472 620 528 C 760 566 840 558 900 538 L 900 600 L 0 600 Z" fill="#5F7261"/>
+  <path d="M110 300 C 160 250 240 250 290 300" fill="none" stroke="#102956" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
+</svg>

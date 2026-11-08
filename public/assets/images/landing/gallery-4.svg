@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="地平线">
+  <rect width="900" height="600" fill="#F6F2E9"/>
+  <circle cx="248" cy="168" r="64" fill="#D9A441"/>
+  <rect y="330" width="900" height="90" fill="#7A93B4" opacity="0.82"/>
+  <rect y="420" width="900" height="90" fill="#C4704F" opacity="0.85"/>
+  <rect y="510" width="900" height="90" fill="#5F7261"/>
+  <line x1="560" y1="160" x2="800" y2="160" stroke="#102956" stroke-width="3" opacity="0.5" stroke-linecap="round"/>
+  <line x1="620" y1="205" x2="800" y2="205" stroke="#102956" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+</svg>
