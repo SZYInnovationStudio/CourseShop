@@ -6,14 +6,16 @@ declare(strict_types=1);
  * 一次性提示
  *
  * $flashStyle 为 'toast' 时输出顶部浮层（不占版面、滚动时位置不变），
- * 否则输出页面内的经典提示条。后台布局不传该变量，始终使用经典样式。
+ * 否则输出页面内的经典提示条。未显式传入时按后台「前台提示样式」设置。
  *
  * @var string|null $flashStyle
  */
 
 use App\Support\Session;
+use App\Support\Setting;
 
-$flashStyle = ($flashStyle ?? 'classic') === 'toast' ? 'toast' : 'classic';
+$flashStyle = $flashStyle ?? Setting::string('flash_style', 'toast');
+$flashStyle = $flashStyle === 'toast' ? 'toast' : 'classic';
 $flashKeys  = ['success', 'error', 'warning', 'info'];
 $flashItems = [];
 
