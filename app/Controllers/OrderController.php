@@ -283,12 +283,13 @@ final class OrderController extends Controller
             $this->fail($backUrl, t('优惠码无效。'));
         }
 
-        $user     = $this->user();
-        $userId   = (int) $user['id'];
-        $courseId = (int) $order['course_id'];
-        $base     = (int) $order['amount'];
+        $user      = $this->user();
+        $userId    = (int) $user['id'];
+        $courseId  = (int) $order['course_id'];
+        $base      = (int) $order['amount'];
+        $courseIds = Order::courseIds($order);
 
-        $error = Coupon::usableError($coupon, $userId, $courseId, $base);
+        $error = Coupon::usableError($coupon, $userId, $courseId, $base, $courseIds);
         if ($error !== null) {
             $this->fail($backUrl, $error);
         }
@@ -306,7 +307,7 @@ final class OrderController extends Controller
 
         $newAmount = max(0, $base - $discount);
 
-        if (!Order::applyCoupon((int) $order['id'], (int) $coupon['id'], $userId, $base, $newAmount, $discount)) {
+        if (!Order::applyCoupon((int) $order['id'], (int) $coupon['id'], $userId, $newAmount)) {
             $this->fail($backUrl, t('优惠券应用失败，请刷新后重试。'));
         }
 

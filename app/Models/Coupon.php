@@ -248,9 +248,10 @@ final class Coupon
      * 校验优惠券是否可用于该用户 / 该课程 / 该金额
      *
      * @param  array<string, mixed> $coupon
+     * @param  array<int, int>      $courseIds 订单包含的全部课程（套餐订单使用）
      * @return string|null 可用返回 null，否则返回错误提示
      */
-    public static function usableError(array $coupon, int $userId, int $courseId, int $baseAmount): ?string
+    public static function usableError(array $coupon, int $userId, int $courseId, int $baseAmount, array $courseIds = []): ?string
     {
         if ((int) $coupon['is_active'] !== 1) {
             return t('该优惠券已停用。');
@@ -271,8 +272,14 @@ final class Coupon
         }
 
         $limitCourseId = (int) ($coupon['course_id'] ?? 0);
-        if ($limitCourseId > 0 && $limitCourseId !== $courseId) {
-            return t('该优惠券仅限指定课程使用。');
+
+        if ($limitCourseId > 0) {
+            // 套餐订单 course_id 为空，需用订单包含的课程列表判断
+            $applicable = $courseIds !== [] ? $courseIds : [$courseId];
+
+            if (!in_array($limitCourseId, $applicable, true)) {
+                return t('该优惠券仅限指定课程使用。');
+            }
         }
 
         // 总量校验须计入「未支付订单已占用」的名额，否则多用户可在支付前抢占最后一张券（CS-07）

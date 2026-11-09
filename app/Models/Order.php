@@ -133,6 +133,17 @@ final class Order
     }
 
     /**
+     * 订单包含的课程 ID 列表（套餐订单会有多个），供优惠券适用性判断使用
+     *
+     * @param array<string, mixed> $order
+     * @return array<int, int>
+     */
+    public static function courseIds(array $order): array
+    {
+        return self::courseIdsForOrder($order);
+    }
+
+    /**
      * 订单覆盖的课程 ID（优先取下单时的商品快照）
      *
      * @param array<string, mixed> $order
@@ -459,28 +470,37 @@ final class Order
         int $orderId,
         int $couponId,
         int $userId,
-        int $baseAmount,
-        int $amount,
-        int $discount
+        int $amount
     ): bool {
         return (bool) Database::transaction(static function () use (
             $orderId,
             $couponId,
             $userId,
-            $baseAmount,
-            $amount,
-            $discount
+            $amount
         ): bool {
             // 先原子占用配额；占用失败说明券已发完 / 超出每人限用
             if (!Coupon::reserve($couponId, $userId, $orderId)) {
                 return false;
             }
 
+            $row = Database::first(
+                'SELECT `original_amount` FROM `orders` WHERE `id` = ? FOR UPDATE',
+                [$orderId]
+            );
+
+            if ($row === null) {
+                return false;
+            }
+
+            // 保留 original_amount（下单时的划线价），discount_amount 记录「直降 + 券」的总优惠，
+            // 避免应用优惠券后把原有直降优惠抹掉
+            $totalDiscount = max(0, (int) $row['original_amount'] - $amount);
+
             $affected = Database::execute(
                 'UPDATE `orders`
-                    SET `coupon_id` = ?, `original_amount` = ?, `amount` = ?, `discount_amount` = ?
+                    SET `coupon_id` = ?, `amount` = ?, `discount_amount` = ?
                   WHERE `id` = ? AND `coupon_id` IS NULL AND `status` = ?',
-                [$couponId, $baseAmount, $amount, $discount, $orderId, self::STATUS_PENDING]
+                [$couponId, $amount, $totalDiscount, $orderId, self::STATUS_PENDING]
             );
 
             return $affected === 1;
