@@ -67,6 +67,12 @@ final class PaymentController extends Controller
             Response::text('fail');
         }
 
+        // 商户号与签名类型：防止跨商户通知或降级算法伪造（易支付协议要求校验 pid）
+        if (!$gateway->notifyPidMatches($params) || !$gateway->notifySignTypeAllowed($params)) {
+            PaymentLog::record(null, $orderNo, 'notify', 'fail', '回调商户号或签名类型不合法', Request::ip());
+            Response::text('fail');
+        }
+
         // 仅在签名通过后记录完整原文，避免未验证数据污染日志（CS-11）
         PaymentLog::record(null, $orderNo, 'notify', 'recv', $raw, Request::ip());
 
@@ -77,8 +83,37 @@ final class PaymentController extends Controller
             Response::text('fail');
         }
 
-        // 金额校验：易支付回调的 money 单位为「元」，统一换算成「分」比对
-        $notifiedAmount = (int) round(((float) ($params['money'] ?? 0)) * 100);
+        // 支付方式必须与下单时选择的一致，避免跨渠道伪造/串单
+        $notifiedType = $params['type'] ?? null;
+        $orderPayType = strtolower(trim((string) ($order['pay_type'] ?? '')));
+
+        if (is_scalar($notifiedType) && trim((string) $notifiedType) !== '' && $orderPayType !== ''
+            && strtolower(trim((string) $notifiedType)) !== $orderPayType) {
+            PaymentLog::record(
+                (int) $order['id'],
+                $orderNo,
+                'notify',
+                'fail',
+                '支付方式与订单不一致：' . (string) $notifiedType,
+                Request::ip()
+            );
+            Response::text('fail');
+        }
+
+        // 金额校验：严格按十进制字符串解析为「分」，拒绝数组/科学计数法等非标量输入
+        $money = $params['money'] ?? null;
+
+        if (!is_string($money) && !is_int($money) && !is_float($money)) {
+            PaymentLog::record((int) $order['id'], $orderNo, 'notify', 'fail', '金额参数格式不正确', Request::ip());
+            Response::text('fail');
+        }
+
+        $notifiedAmount = yuan_to_cents((string) $money);
+
+        if ($notifiedAmount === null) {
+            PaymentLog::record((int) $order['id'], $orderNo, 'notify', 'fail', '金额参数格式不正确', Request::ip());
+            Response::text('fail');
+        }
 
         if ($notifiedAmount !== (int) $order['amount']) {
             PaymentLog::record(
@@ -165,12 +200,24 @@ final class PaymentController extends Controller
             Response::redirect(url('/order/' . $orderNo));
         }
 
-        // 与异步通知保持同等强度的校验：订单号绑定 + 金额一致 + 通道启用 + 签名/支付状态
-        $notifiedAmount = (int) round(((float) ($params['money'] ?? 0)) * 100);
+        // 与异步通知保持同等强度的校验：订单号绑定 + 金额一致 + 商户号/签名类型 + 支付方式 + 签名/支付状态
+        $money = $params['money'] ?? null;
+        $notifiedAmount = (is_string($money) || is_int($money) || is_float($money))
+            ? yuan_to_cents((string) $money)
+            : null;
+
+        $notifiedType = $params['type'] ?? null;
+        $orderPayType = strtolower(trim((string) ($order['pay_type'] ?? '')));
+        $typeMatches  = !is_scalar($notifiedType) || trim((string) $notifiedType) === '' || $orderPayType === ''
+            || strtolower(trim((string) $notifiedType)) === $orderPayType;
 
         $valid = (string) ($params['out_trade_no'] ?? '') === $orderNo
+            && $notifiedAmount !== null
             && $notifiedAmount === (int) $order['amount']
             && $gateway->enabled()
+            && $gateway->notifyPidMatches($params)
+            && $gateway->notifySignTypeAllowed($params)
+            && $typeMatches
             && $gateway->isPaidNotify($params);
 
         if (!$valid) {

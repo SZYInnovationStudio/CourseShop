@@ -28,32 +28,58 @@ final class EmailVerification
     public const PURPOSE_RESET = 'reset';
 
     /**
-     * 下发验证码
+     * 预生成验证码（不落库）
      *
-     * @return array{code: string, expires_at: string, ttl: int}
+     * 调用方先发信，确认投递成功后再 commit()：发信失败不会作废旧验证码，
+     * 也不会占用发送频率限制。
+     *
+     * @return array{code: string, token: string, expires_at: string, ttl: int}
      */
-    public static function issue(?int $userId, string $email, string $purpose = self::PURPOSE_BIND): array
+    public static function prepare(string $email, string $purpose = self::PURPOSE_BIND): array
     {
-        $ttl       = max(60, Setting::int('mail_code_ttl', 600));
-        $code      = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        $token     = bin2hex(random_bytes(16));
-        $expiresAt = date('Y-m-d H:i:s', time() + $ttl);
+        $ttl = max(60, Setting::int('mail_code_ttl', 600));
 
-        // 作废该邮箱 + 用途下尚未使用的旧验证码
+        return [
+            'code'       => str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT),
+            'token'      => bin2hex(random_bytes(16)),
+            'expires_at' => date('Y-m-d H:i:s', time() + $ttl),
+            'ttl'        => $ttl,
+        ];
+    }
+
+    /**
+     * 落库：作废该邮箱 + 用途下的旧码，并写入本次验证码
+     *
+     * @param array{code: string, token: string, expires_at: string} $prepared
+     */
+    public static function commit(?int $userId, string $email, string $purpose, array $prepared): int
+    {
         Database::execute(
             'UPDATE `email_verifications` SET `used_at` = NOW()
               WHERE `email` = ? AND `purpose` = ? AND `used_at` IS NULL',
             [$email, $purpose]
         );
 
-        Database::execute(
+        return Database::insert(
             'INSERT INTO `email_verifications`
                 (`user_id`, `email`, `code`, `purpose`, `token`, `attempts`, `ip`, `expires_at`, `created_at`)
              VALUES (?, ?, ?, ?, ?, 0, ?, ?, NOW())',
-            [$userId, $email, $code, $purpose, $token, Request::ip(), $expiresAt]
+            [$userId, $email, $prepared['code'], $purpose, $prepared['token'], Request::ip(), $prepared['expires_at']]
         );
+    }
 
-        return ['code' => $code, 'expires_at' => $expiresAt, 'ttl' => $ttl];
+    /**
+     * 下发验证码
+     *
+     * @return array{code: string, expires_at: string, ttl: int, id: int}
+     */
+    public static function issue(?int $userId, string $email, string $purpose = self::PURPOSE_BIND): array
+    {
+        $prepared = self::prepare($email, $purpose);
+
+        $prepared['id'] = self::commit($userId, $email, $purpose, $prepared);
+
+        return $prepared;
     }
 
     /**
@@ -80,6 +106,52 @@ final class EmailVerification
     public static function markUsed(int $id): void
     {
         Database::execute('UPDATE `email_verifications` SET `used_at` = NOW() WHERE `id` = ?', [$id]);
+    }
+
+    /**
+     * 原子校验并消费验证码
+     *
+     * 成功消费依赖 `UPDATE ... WHERE used_at IS NULL` 的条件更新：
+     * 并发请求中只有一个能命中，其余视为失败，避免同一验证码被重复使用。
+     *
+     * @return string 空串表示成功；否则为失败原因：missing / expired / too_many / mismatch
+     */
+    public static function consume(string $email, string $code, string $purpose = self::PURPOSE_BIND): string
+    {
+        $record = self::latest($email, $purpose);
+
+        if ($record === null) {
+            return 'missing';
+        }
+
+        if ((int) $record['attempts'] >= self::MAX_ATTEMPTS) {
+            return 'too_many';
+        }
+
+        if (strtotime((string) $record['expires_at']) <= time()) {
+            return 'expired';
+        }
+
+        $id = (int) $record['id'];
+
+        if (!hash_equals((string) $record['code'], trim($code))) {
+            // 失败也走条件更新，避免与成功消费交错时把已使用的记录再次计数
+            Database::execute(
+                'UPDATE `email_verifications` SET `attempts` = `attempts` + 1
+                  WHERE `id` = ? AND `used_at` IS NULL',
+                [$id]
+            );
+
+            return 'mismatch';
+        }
+
+        $used = Database::execute(
+            'UPDATE `email_verifications` SET `used_at` = NOW()
+              WHERE `id` = ? AND `used_at` IS NULL AND `attempts` < ?',
+            [$id, self::MAX_ATTEMPTS]
+        );
+
+        return $used > 0 ? '' : 'mismatch';
     }
 
     /**

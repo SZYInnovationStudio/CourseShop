@@ -290,10 +290,13 @@ final class AccountController extends Controller
             $this->failUnlessAjax($emailUrl, t('验证码发送过于频繁，请稍后再试。'), $old);
         }
 
-        $issued = EmailVerification::issue((int) $user['id'], $email, EmailVerification::PURPOSE_BIND);
-        $ttl    = max(1, (int) ceil($issued['ttl'] / 60));
+        $prepared = EmailVerification::prepare($email, EmailVerification::PURPOSE_BIND);
+        $ttl      = max(1, (int) ceil($prepared['ttl'] / 60));
 
-        if (Mailer::sendCode($email, $issued['code'], 'bind')) {
+        if (Mailer::sendCode($email, $prepared['code'], 'bind')) {
+            // 投递成功后才落库：失败时旧验证码仍然有效，且不占用发送冷却
+            EmailVerification::commit((int) $user['id'], $email, EmailVerification::PURPOSE_BIND, $prepared);
+
             $this->successUnlessAjax(
                 $emailUrl,
                 t('验证码已发送至 %s，%d 分钟内有效。', [mask_email($email), $ttl]),
@@ -307,7 +310,7 @@ final class AccountController extends Controller
         if ((bool) Config::get('app.debug', false)) {
             Logger::warning('邮箱绑定验证码发送失败（调试模式已写入日志）', [
                 'email' => $email,
-                'code'  => (string) $issued['code'],
+                'code'  => (string) $prepared['code'],
             ]);
         }
 
@@ -339,26 +342,24 @@ final class AccountController extends Controller
             $this->fail(url('/login'), t('登录状态已失效，请重新登录。'));
         }
 
-        $record = EmailVerification::latest($email, EmailVerification::PURPOSE_BIND);
+        $result = EmailVerification::consume($email, $code, EmailVerification::PURPOSE_BIND);
 
-        if ($record === null) {
+        if ($result === 'missing') {
             $this->fail(url('/account/email'), t('请先获取邮箱验证码。'), $old);
         }
 
-        if ((int) $record['attempts'] >= EmailVerification::MAX_ATTEMPTS) {
+        if ($result === 'too_many') {
             $this->fail(url('/account/email'), t('验证码错误次数过多，请重新获取。'), $old);
         }
 
-        if (strtotime((string) $record['expires_at']) <= time()) {
+        if ($result === 'expired') {
             $this->fail(url('/account/email'), t('验证码已过期，请重新获取。'), $old);
         }
 
-        if (!hash_equals((string) $record['code'], $code)) {
-            EmailVerification::incrementAttempts((int) $record['id']);
+        if ($result !== '') {
             $this->fail(url('/account/email'), t('验证码不正确。'), $old);
         }
 
-        EmailVerification::markUsed((int) $record['id']);
         User::bindEmail((int) $user['id'], $email);
         Auth::refresh();
 

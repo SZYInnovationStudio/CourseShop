@@ -11,6 +11,7 @@ use App\Support\Auth;
 use App\Support\Captcha;
 use App\Support\Config;
 use App\Support\Csrf;
+use App\Support\Database;
 use App\Support\Logger;
 use App\Support\LoginThrottle;
 use App\Support\Mailer;
@@ -262,26 +263,38 @@ final class AuthController extends Controller
         }
 
         // 注册即验证邮箱：邮箱占用与验证码都在建号前校验，避免用任意邮箱批量注册
-        if ($emailVerifyRequired) {
-            if (User::emailExists($email)) {
-                $this->fail(url('/register'), t('该邮箱已被其他账号绑定。'), $old);
-            }
-
-            $codeError = $this->consumeRegisterEmailCode($email, Request::string('email_code'));
-
-            if ($codeError !== '') {
-                $this->fail(url('/register'), $codeError, $old);
-            }
+        if ($emailVerifyRequired && User::emailExists($email)) {
+            $this->fail(url('/register'), t('该邮箱已被其他账号绑定。'), $old);
         }
 
-        $userId = User::create($username, password_hash($password, PASSWORD_DEFAULT));
+        // 消费验证码、创建账号、绑定邮箱放进同一事务：
+        // 避免并发下验证码被重复消费，或建号后绑定邮箱撞唯一键留下半成品账号
+        try {
+            $userId = Database::transaction(function () use ($username, $password, $email, $emailVerifyRequired): int {
+                if ($emailVerifyRequired) {
+                    $codeError = $this->consumeRegisterEmailCode($email, Request::string('email_code'));
 
-        $emailBound = false;
+                    if ($codeError !== '') {
+                        throw new \RuntimeException($codeError);
+                    }
+                }
 
-        if ($emailVerifyRequired) {
-            User::bindEmail($userId, $email);
-            $emailBound = true;
+                $newUserId = User::create($username, password_hash($password, PASSWORD_DEFAULT));
+
+                if ($emailVerifyRequired) {
+                    User::bindEmail($newUserId, $email);
+                }
+
+                return $newUserId;
+            });
+        } catch (\RuntimeException $e) {
+            $this->fail(url('/register'), $e->getMessage(), $old);
+        } catch (\PDOException $e) {
+            // 并发下唯一键冲突：转为友好提示，不暴露数据库细节
+            $this->fail(url('/register'), t('该用户名或邮箱已被注册，请更换后重试。'), $old);
         }
+
+        $emailBound = $emailVerifyRequired;
 
         // 记录注册时同意的协议版本快照
         foreach (['terms', 'privacy'] as $type) {
@@ -353,10 +366,13 @@ final class AuthController extends Controller
             $this->failUnlessAjax($registerUrl, t('当前网络获取验证码过于频繁，请稍后再试。'), $old);
         }
 
-        $issued = EmailVerification::issue(null, $email, EmailVerification::PURPOSE_REGISTER);
-        $ttl    = max(1, (int) ceil($issued['ttl'] / 60));
+        $prepared = EmailVerification::prepare($email, EmailVerification::PURPOSE_REGISTER);
+        $ttl      = max(1, (int) ceil($prepared['ttl'] / 60));
 
-        if (Mailer::sendCode($email, $issued['code'], 'register')) {
+        if (Mailer::sendCode($email, $prepared['code'], 'register')) {
+            // 投递成功后才落库：失败时旧验证码仍然有效，且不占用发送冷却
+            EmailVerification::commit(null, $email, EmailVerification::PURPOSE_REGISTER, $prepared);
+
             $this->successUnlessAjax(
                 $registerUrl,
                 t('验证码已发送至 %s，%d 分钟内有效。', [mask_email($email), $ttl]),
@@ -369,7 +385,7 @@ final class AuthController extends Controller
         if ((bool) Config::get('app.debug', false)) {
             Logger::warning('注册验证码发送失败（调试模式已写入日志）', [
                 'email' => $email,
-                'code'  => (string) $issued['code'],
+                'code'  => (string) $prepared['code'],
             ]);
         }
 
@@ -383,29 +399,21 @@ final class AuthController extends Controller
      */
     private function consumeRegisterEmailCode(string $email, string $code): string
     {
-        $record = EmailVerification::latest($email, EmailVerification::PURPOSE_REGISTER);
+        $result = EmailVerification::consume($email, $code, EmailVerification::PURPOSE_REGISTER);
 
-        if ($record === null) {
-            return t('验证码不正确。');
+        if ($result === '') {
+            return '';
         }
 
-        if ((int) $record['attempts'] >= EmailVerification::MAX_ATTEMPTS) {
-            return t('验证码错误次数过多，请重新获取。');
-        }
-
-        if (strtotime((string) $record['expires_at']) < time()) {
+        if ($result === 'expired') {
             return t('验证码已过期，请重新获取。');
         }
 
-        if (!hash_equals((string) $record['code'], trim($code))) {
-            EmailVerification::incrementAttempts((int) $record['id']);
-
-            return t('验证码不正确。');
+        if ($result === 'too_many') {
+            return t('验证码错误次数过多，请重新获取。');
         }
 
-        EmailVerification::markUsed((int) $record['id']);
-
-        return '';
+        return t('验证码不正确。');
     }
 
     /**

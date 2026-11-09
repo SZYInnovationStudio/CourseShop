@@ -263,6 +263,19 @@ final class Role
     }
 
     /**
+     * 按角色 code 查询 ID；不存在或已删除时返回 0
+     */
+    public static function idByCode(string $code): int
+    {
+        $row = Database::first(
+            'SELECT `id` FROM `roles` WHERE `code` = ? AND `deleted_at` IS NULL LIMIT 1',
+            [$code]
+        );
+
+        return $row === null ? 0 : (int) $row['id'];
+    }
+
+    /**
      * 覆盖式同步用户角色
      *
      * @param array<int, int> $roleIds

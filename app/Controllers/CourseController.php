@@ -32,16 +32,16 @@ final class CourseController extends Controller
             $sort = 'recommended';
         }
 
-        $page = max(1, Request::int('page', 1));
-
         $filters = [
             'keyword'     => $keyword,
             'category_id' => $categoryId,
             'tag_id'      => $tagId,
         ];
-
-        $total   = Course::count($filters);
-        $courses = Course::search($filters, $sort, self::PER_PAGE, ($page - 1) * self::PER_PAGE);
+        $total      = Course::count($filters);
+        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
+        // 先按总数钳制页码，避免超大 page 使 offset 溢出为 float 触发 TypeError
+        $page       = min(max(1, Request::int('page', 1)), $totalPages);
+        $courses    = Course::search($filters, $sort, self::PER_PAGE, ($page - 1) * self::PER_PAGE);
 
         $this->view('courses.index', [
             'pageTitle'     => t('全部课程'),
@@ -51,7 +51,7 @@ final class CourseController extends Controller
             'total'         => $total,
             'page'          => $page,
             'perPage'       => self::PER_PAGE,
-            'totalPages'    => max(1, (int) ceil($total / self::PER_PAGE)),
+            'totalPages'    => $totalPages,
             'keyword'       => $keyword,
             'categoryId'    => $categoryId,
             'tagId'         => $tagId,

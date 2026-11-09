@@ -28,8 +28,10 @@ final class MyCourseController extends Controller
     public function index(): void
     {
         $userId  = (int) Auth::id();
-        $page    = max(1, Request::int('page', 1));
         $total   = Enrollment::countForUser($userId);
+        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
+        // 先按总数钳制页码，避免超大 page 使 offset 溢出为 float 触发 TypeError
+        $page    = min(max(1, Request::int('page', 1)), $totalPages);
         $courses = Enrollment::coursesForUser($userId, self::PER_PAGE, ($page - 1) * self::PER_PAGE);
 
         $this->view('my.index', [
@@ -37,7 +39,7 @@ final class MyCourseController extends Controller
             'courses'    => $courses,
             'total'      => $total,
             'page'       => $page,
-            'totalPages' => max(1, (int) ceil($total / self::PER_PAGE)),
+            'totalPages' => $totalPages,
         ]);
     }
 

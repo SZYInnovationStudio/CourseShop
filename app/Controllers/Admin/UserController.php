@@ -155,6 +155,14 @@ final class UserController extends AdminController
             'status'        => 1,
         ]);
 
+        // 同步写入 RBAC 角色：否则新账号 roles() 为空，会命中「旧管理员兜底」而拿到全部权限
+        $roleCode = $isAdmin === '1' ? 'admin' : 'user';
+        $roleId   = Role::idByCode($roleCode);
+
+        if ($roleId > 0) {
+            Role::syncUserRoles($userId, [$roleId]);
+        }
+
         Log::recordOperation('user.create', 'user', $userId, [
             'username' => $username,
             'is_admin' => $isAdmin,
@@ -499,6 +507,16 @@ final class UserController extends AdminController
         $this->guardLastAdmin($target, !$newIsAdmin, url('/admin/users'));
 
         User::setAdmin($userId, $newIsAdmin);
+
+        // 无任何 RBAC 角色时补一个与操作结果匹配的角色，
+        // 避免新管理员命中「旧管理员兜底」获得全部权限
+        if (Role::userIdsRoleIds($userId) === []) {
+            $roleId = Role::idByCode($newIsAdmin ? 'admin' : 'user');
+
+            if ($roleId > 0) {
+                Role::syncUserRoles($userId, [$roleId]);
+            }
+        }
 
         Log::recordOperation('user.update', 'user', $userId, [
             'username' => (string) $target['username'],

@@ -53,6 +53,20 @@ interface PaymentGateway
     public function isPaidNotify(array $params): bool;
 
     /**
+     * 回调参数中的商户号是否与当前配置一致
+     *
+     * @param array<string, mixed> $params
+     */
+    public function notifyPidMatches(array $params): bool;
+
+    /**
+     * 回调使用的签名类型是否受支持
+     *
+     * @param array<string, mixed> $params
+     */
+    public function notifySignTypeAllowed(array $params): bool;
+
+    /**
      * 异步通知来源 IP 是否在白名单内（未配置白名单时一律放行）
      */
     public function notifyIpAllowed(?string $ip): bool;

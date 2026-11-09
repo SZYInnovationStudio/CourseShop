@@ -230,10 +230,32 @@ final class User
 
     /**
      * 统计指定时间窗口内的登录失败次数
+     *
+     * $scope：any（用户名或 IP，任一命中）/ ip（仅该 IP）/ username（仅该用户名）
      */
-    public static function countLoginFailures(string $username, string $ip, int $seconds): int
+    public static function countLoginFailures(string $username, string $ip, int $seconds, string $scope = 'any'): int
     {
         $since = date('Y-m-d H:i:s', time() - $seconds);
+
+        if ($scope === 'ip') {
+            return (int) Database::scalar(
+                'SELECT COUNT(*) FROM `login_logs`
+                  WHERE `status` = \'fail\'
+                    AND `created_at` >= ?
+                    AND `ip` = ?',
+                [$since, $ip]
+            );
+        }
+
+        if ($scope === 'username') {
+            return (int) Database::scalar(
+                'SELECT COUNT(*) FROM `login_logs`
+                  WHERE `status` = \'fail\'
+                    AND `created_at` >= ?
+                    AND `username` = ?',
+                [$since, $username]
+            );
+        }
 
         return (int) Database::scalar(
             'SELECT COUNT(*) FROM `login_logs`
@@ -246,16 +268,34 @@ final class User
 
     /**
      * 该账号/IP 最近一次失败登录时间戳（用于锁定判断）
+     *
+     * $scope 语义同 countLoginFailures()
      */
-    public static function lastFailureAt(string $username, string $ip): ?int
+    public static function lastFailureAt(string $username, string $ip, string $scope = 'any'): ?int
     {
-        $value = Database::scalar(
-            'SELECT `created_at` FROM `login_logs`
-              WHERE `status` = \'fail\'
-                AND (`username` = ? OR `ip` = ?)
-              ORDER BY `id` DESC LIMIT 1',
-            [$username, $ip]
-        );
+        if ($scope === 'ip') {
+            $value = Database::scalar(
+                'SELECT `created_at` FROM `login_logs`
+                  WHERE `status` = \'fail\' AND `ip` = ?
+                  ORDER BY `id` DESC LIMIT 1',
+                [$ip]
+            );
+        } elseif ($scope === 'username') {
+            $value = Database::scalar(
+                'SELECT `created_at` FROM `login_logs`
+                  WHERE `status` = \'fail\' AND `username` = ?
+                  ORDER BY `id` DESC LIMIT 1',
+                [$username]
+            );
+        } else {
+            $value = Database::scalar(
+                'SELECT `created_at` FROM `login_logs`
+                  WHERE `status` = \'fail\'
+                    AND (`username` = ? OR `ip` = ?)
+                  ORDER BY `id` DESC LIMIT 1',
+                [$username, $ip]
+            );
+        }
 
         return $value === null ? null : (int) strtotime((string) $value);
     }

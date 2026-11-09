@@ -402,9 +402,9 @@ final class Coupon
         }
 
         return (bool) Database::transaction(static function () use ($couponId, $userId, $orderId, $discount): bool {
-            // 锁定优惠券行，串行化同一优惠券的核销
+            // 锁定优惠券行，串行化同一优惠券的核销；已删除的券不得再核销
             $coupon = Database::first(
-                'SELECT * FROM `coupons` WHERE `id` = ? FOR UPDATE',
+                'SELECT * FROM `coupons` WHERE `id` = ? AND `deleted_at` IS NULL FOR UPDATE',
                 [$couponId]
             );
 

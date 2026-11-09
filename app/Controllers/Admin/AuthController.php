@@ -169,6 +169,15 @@ final class AuthController extends Controller
             $this->fail(url('/admin/login'), '账号状态异常，请重新登录。');
         }
 
+        // 挑战窗口内账号可能被禁用/封禁/降权，通过口令前必须重新复核，
+        // 与密码登录的预检保持一致，避免已失效账号仍写入登录态
+        if ((int) $user['status'] !== User::STATUS_ACTIVE || Auth::isBanned($user) || !Permission::isAdminUser($user)) {
+            self::clearTwoFactorChallenge();
+            User::logLogin($userId, (string) $user['username'], 'fail', '后台登录：两步验证期间账号状态或权限变更');
+
+            $this->fail(url('/admin/login'), '账号状态或权限已变更，请重新登录。');
+        }
+
         $step = Totp::verifyStep($secret, $code);
 
         // 一次性防重放：校验通过后原子占用该时间步，同一时间步不可重复使用

@@ -63,7 +63,7 @@ final class Csv
 
         $text = (string) $value;
 
-        if ($text !== '' && in_array($text[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+        if ($text !== '' && in_array($text[0], ['=', '+', '-', '@', "\t", "\r", "\n"], true)) {
             return "'" . $text;
         }
 

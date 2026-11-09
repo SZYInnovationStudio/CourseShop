@@ -128,6 +128,34 @@ final class EpayGateway implements PaymentGateway
     }
 
     /**
+     * 回调参数中的商户号是否与当前配置一致
+     *
+     * @param array<string, mixed> $params
+     */
+    public function notifyPidMatches(array $params): bool
+    {
+        return isset($params['pid'])
+            && is_scalar($params['pid'])
+            && hash_equals($this->pid, (string) $params['pid']);
+    }
+
+    /**
+     * 回调使用的签名类型是否受支持
+     *
+     * 易支付部分实现不传 sign_type，按协议默认 MD5 处理。
+     *
+     * @param array<string, mixed> $params
+     */
+    public function notifySignTypeAllowed(array $params): bool
+    {
+        if (!isset($params['sign_type']) || $params['sign_type'] === '') {
+            return true;
+        }
+
+        return is_string($params['sign_type']) && strtoupper($params['sign_type']) === 'MD5';
+    }
+
+    /**
      * 异步通知来源 IP 校验
      */
     public function notifyIpAllowed(?string $ip): bool

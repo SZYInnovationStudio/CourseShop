@@ -67,22 +67,28 @@ final class PasswordController extends Controller
 
         // 节流：同一邮箱在间隔内重复请求时返回与成功一致的中性提示，
         // 且不因邮箱是否存在而变化，避免被用来枚举账号
+        $ttl     = max(1, (int) ceil(max(60, Setting::int('mail_code_ttl', 600)) / 60));
+        $nextUrl = $this->resetUrl($email);
+
         if (EmailVerification::recentCount($email, EmailVerification::PURPOSE_RESET, self::RESEND_INTERVAL) > 0) {
-            $this->success($back, $this->sentMessage($email));
+            $this->success($nextUrl, $this->sentMessage($email, $ttl));
         }
 
         $user = User::findByEmail($email);
 
-        // 邮箱不存在时不发信，但返回一致的提示，避免泄露账号是否存在
+        // 邮箱不存在时不发信，但跳转目标与文案必须与成功分支完全一致，
+        // 否则观察 Location 或提示文案即可枚举已注册邮箱
         if ($user === null) {
-            $this->success($back, $this->sentMessage($email));
+            $this->success($nextUrl, $this->sentMessage($email, $ttl));
         }
 
-        $issued = EmailVerification::issue((int) $user['id'], $email, EmailVerification::PURPOSE_RESET);
-        $ttl    = max(1, (int) ceil($issued['ttl'] / 60));
+        $prepared = EmailVerification::prepare($email, EmailVerification::PURPOSE_RESET);
 
-        if (Mailer::sendCode($email, $issued['code'], 'reset')) {
-            $this->success($this->resetUrl($email), $this->sentMessage($email, $ttl));
+        if (Mailer::sendCode($email, $prepared['code'], 'reset')) {
+            // 投递成功后才落库：失败时旧验证码仍然有效，且不占用发送冷却
+            EmailVerification::commit((int) $user['id'], $email, EmailVerification::PURPOSE_RESET, $prepared);
+
+            $this->success($nextUrl, $this->sentMessage($email, $ttl));
         }
 
         // 邮件发送失败：调试模式下仅把验证码写入受控日志（不得在公开接口回显，
@@ -90,7 +96,7 @@ final class PasswordController extends Controller
         if ((bool) Config::get('app.debug', false)) {
             Logger::warning('找回密码验证码邮件发送失败（调试模式已写入日志）', [
                 'email' => $email,
-                'code'  => (string) $issued['code'],
+                'code'  => (string) $prepared['code'],
             ]);
         }
 
@@ -138,22 +144,21 @@ final class PasswordController extends Controller
             $this->fail($back, (string) $validator->firstError(), $old);
         }
 
-        $record = EmailVerification::latest($email, EmailVerification::PURPOSE_RESET);
+        $result = EmailVerification::consume($email, $code, EmailVerification::PURPOSE_RESET);
 
-        if ($record === null) {
+        if ($result === 'missing') {
             $this->fail(url('/password/forgot'), t('请先获取邮箱验证码。'), $old);
         }
 
-        if ((int) $record['attempts'] >= EmailVerification::MAX_ATTEMPTS) {
+        if ($result === 'too_many') {
             $this->fail($back, t('验证码错误次数过多，请重新获取。'), $old);
         }
 
-        if (strtotime((string) $record['expires_at']) <= time()) {
+        if ($result === 'expired') {
             $this->fail($back, t('验证码已过期，请重新获取。'), $old);
         }
 
-        if (!hash_equals((string) $record['code'], $code)) {
-            EmailVerification::incrementAttempts((int) $record['id']);
+        if ($result !== '') {
             $this->fail($back, t('验证码不正确。'), $old);
         }
 
@@ -162,7 +167,6 @@ final class PasswordController extends Controller
             $this->fail(url('/password/forgot'), t('该邮箱未注册或账号不可用。'), $old);
         }
 
-        EmailVerification::markUsed((int) $record['id']);
         User::updatePassword((int) $user['id'], password_hash($password, PASSWORD_DEFAULT));
 
         // 密码已变更：撤销该账号全部登录设备，强制各处重新登录
