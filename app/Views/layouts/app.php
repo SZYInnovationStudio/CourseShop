@@ -81,7 +81,11 @@ $userModeJson = json_encode($userMode, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | J
 
 <main id="main">
     <div class="container">
-        <?php require VIEW_PATH . '/partials/flash.php'; ?>
+        <?php
+        // 前台提示样式：toast（默认，顶部浮层）或 classic（页面内提示条）
+        $flashStyle = Setting::string('flash_style', 'toast') === 'classic' ? 'classic' : 'toast';
+        require VIEW_PATH . '/partials/flash.php';
+        ?>
     </div>
 
     <?= $content ?>
