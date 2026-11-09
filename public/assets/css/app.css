@@ -291,6 +291,7 @@ pre {
     top: 0;
     /* 需高于底部导航(55)与购买栏(56)，展开的抽屉浮层才能盖住它们 */
     z-index: 58;
+    background: var(--color-surface);
     background: color-mix(in srgb, var(--color-surface) 92%, transparent);
     -webkit-backdrop-filter: saturate(140%) blur(10px);
     backdrop-filter: saturate(140%) blur(10px);
@@ -1402,6 +1403,23 @@ a.course-card { color: inherit; }
     flex-direction: column;
     flex: 1 0 auto;
     padding-bottom: 0;
+}
+
+/* 不支持 :has() 的旧浏览器：用布局输出的 .page-auth 提供等效居中，避免认证卡片顶到页头 */
+@supports not selector(:has(*)) {
+    .page-auth #main {
+        display: flex;
+        flex-direction: column;
+        flex: 1 0 auto;
+        padding-bottom: 0;
+    }
+
+    .page-auth #main > .container {
+        display: flex;
+        flex-direction: column;
+        flex: 1 0 auto;
+        justify-content: center;
+    }
 }
 
 /* ---------------- 页脚 ---------------- */
@@ -3043,8 +3061,8 @@ input[type="file"].input::file-selector-button:hover {
 
 .settings-panel__desc { margin-top: 0; margin-bottom: var(--space-4); }
 
-/* 复选框内的说明文字换行显示 */
-.form-hint--inline { display: block; margin-top: 2px; }
+/* 复选框/标签旁的说明文字统一换行显示（避免覆盖为 inline 后在窄屏挤在一起） */
+.form-hint--inline { display: block; margin-top: 2px; font-size: var(--text-xs); }
 
 /* 颜色选择器 + 十六进制值 */
 .settings-color { display: flex; align-items: center; gap: var(--space-3); }
@@ -4446,12 +4464,6 @@ html.js [data-reveal].is-revealed {
 
 .form-label-row .form-label {
     margin-bottom: 0;
-}
-
-.form-hint--inline {
-    display: inline;
-    margin: 0 0 0 var(--space-2);
-    font-size: var(--text-xs);
 }
 
 .i18n-trigger {

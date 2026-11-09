@@ -689,10 +689,12 @@ final class Order
 
     /**
      * 更新支付方式与状态为「支付中」
+     *
+     * @return int 受影响行数：1 表示本次成功抢占到待支付订单，0 表示状态已被其它请求改变
      */
-    public static function markPaying(int $orderId, string $payType): void
+    public static function markPaying(int $orderId, string $payType): int
     {
-        Database::execute(
+        return Database::execute(
             'UPDATE `orders` SET `pay_type` = ?, `status` = ?
               WHERE `id` = ? AND `status` = ?',
             [$payType, self::STATUS_PAYING, $orderId, self::STATUS_PENDING]

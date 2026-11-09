@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex">
     <title>网络连接不可用 - CourseShop</title>
+    <script>
+        // 跟随站点深浅色偏好，避免离线页与站内其它页面视觉跳变
+        (function () {
+            try {
+                var mode = localStorage.getItem('courseshop-theme') || 'system';
+                var dark = mode === 'dark'
+                    || (mode !== 'light' && window.matchMedia
+                        && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
     <style>
         :root { --color-primary: #4F6F52; }
         * { box-sizing: border-box; }
@@ -55,6 +69,15 @@
             border-radius: 10px;
         }
         .offline-card__btn:active { opacity: 0.85; }
+
+        /* 深色模式 */
+        html[data-theme="dark"] body { color: #e5e7eb; background: #111827; }
+        html[data-theme="dark"] .offline-card {
+            background: #1f2937;
+            border-color: #374151;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+        }
+        html[data-theme="dark"] p { color: #9ca3af; }
     </style>
 </head>
 <body>
@@ -62,7 +85,7 @@
         <div class="offline-card__icon">!</div>
         <h1>网络连接不可用</h1>
         <p>当前设备似乎已离线，请检查网络后再试。<br>已浏览过的页面可能仍可访问。</p>
-        <a class="offline-card__btn" href="./">重新加载</a>
+        <a class="offline-card__btn" href="/">重新加载</a>
     </div>
 </body>
 </html>

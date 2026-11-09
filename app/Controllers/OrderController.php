@@ -114,11 +114,19 @@ final class OrderController extends Controller
             $orderId = $this->insertOrder($user, $course, 0, 'free');
             $freeOrder = Order::findById($orderId);
 
-            Order::markPaid($orderId, null, null, '免费课程直接开通');
+            // 仅在状态确实流转成功时记录成功日志并发送开通通知
+            if (!Order::markPaid($orderId, null, null, '免费课程直接开通')) {
+                PaymentLog::record($orderId, (string) ($freeOrder['order_no'] ?? ''), 'create', 'fail', '免费课程开通失败', Request::ip());
+
+                $this->fail(url('/orders'), t('课程开通失败，请稍后重试或联系客服。'));
+            }
+
             PaymentLog::record($orderId, (string) ($freeOrder['order_no'] ?? ''), 'create', 'success', '免费课程直接开通', Request::ip());
 
-            if ($freeOrder !== null) {
-                OrderNotifier::notifyPaid($freeOrder);
+            $paidOrder = Order::findById($orderId);
+
+            if ($paidOrder !== null) {
+                OrderNotifier::notifyPaid($paidOrder);
             }
 
             $this->success(url('/my/courses'), t('课程已开通，开始学习吧！'));
@@ -208,7 +216,13 @@ final class OrderController extends Controller
             $this->fail(url('/order/' . $orderNo), t('请选择有效的支付方式。'));
         }
 
-        Order::markPaying((int) $order['id'], $payType);
+        // 抢占订单进入「支付中」：并发/重复提交时只有第一个请求能成功
+        if (Order::markPaying((int) $order['id'], $payType) !== 1) {
+            $this->fail(url('/order/' . $orderNo), t('订单状态已变化，请刷新后重试。'));
+        }
+
+        // 状态切换后重新读取订单，确保收银台使用的是最新金额与支付方式
+        $order = Order::findById((int) $order['id']) ?? $order;
 
         try {
             $payment = $gateway->createPayment(
@@ -440,11 +454,19 @@ final class OrderController extends Controller
             $orderId   = $this->insertOrder($user, $package, 0, 'free', 'package');
             $freeOrder = Order::findById($orderId);
 
-            Order::markPaid($orderId, null, null, '免费套餐直接开通');
+            // 仅在状态确实流转成功时记录成功日志并发送开通通知
+            if (!Order::markPaid($orderId, null, null, '免费套餐直接开通')) {
+                PaymentLog::record($orderId, (string) ($freeOrder['order_no'] ?? ''), 'create', 'fail', '免费套餐开通失败', Request::ip());
+
+                $this->fail(url('/orders'), t('套餐开通失败，请稍后重试或联系客服。'));
+            }
+
             PaymentLog::record($orderId, (string) ($freeOrder['order_no'] ?? ''), 'create', 'success', '免费套餐直接开通', Request::ip());
 
-            if ($freeOrder !== null) {
-                OrderNotifier::notifyPaid($freeOrder);
+            $paidOrder = Order::findById($orderId);
+
+            if ($paidOrder !== null) {
+                OrderNotifier::notifyPaid($paidOrder);
             }
 
             $this->success(url('/my/courses'), t('套餐已开通，开始学习吧！'));

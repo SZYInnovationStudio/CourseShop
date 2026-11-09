@@ -25,8 +25,12 @@ if (!empty($debug) && isset($detail) && $detail instanceof \Throwable) {
 
     <div class="btn-group mt-6">
         <a class="btn" href="<?= url('/') ?>"><?= e(t('返回首页')) ?></a>
-        <?php // 用当前请求地址实现「重新加载」：CSP 禁止 javascript: 协议的内联脚本 ?>
-        <a class="btn btn--outline" href="<?= e((string) ($_SERVER['REQUEST_URI'] ?? '/')) ?>"><?= e(t('重新加载')) ?></a>
+        <?php
+        // 只取路径并强制以单个 / 开头：REQUEST_URI 为 //evil.com/... 时不能生成协议相对外链
+        $retryPath = (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+        $retryPath = '/' . ltrim($retryPath, '/');
+        ?>
+        <a class="btn btn--outline" href="<?= e($retryPath) ?>"><?= e(t('重新加载')) ?></a>
     </div>
 
     <?php if ($detailText !== ''): ?>

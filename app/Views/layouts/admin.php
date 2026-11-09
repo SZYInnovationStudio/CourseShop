@@ -23,6 +23,15 @@ $defaultMode    = Setting::string('theme_default_mode', 'system');
 $modeJson       = json_encode($defaultMode, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 $canSwitchTheme = Setting::bool('theme_allow_user_switch', true);
 $adminUser      = Auth::user();
+
+// 与前台一致：后台也优先使用账号保存的主题偏好，避免前后台深浅色不一致
+$adminThemeMode = null;
+
+if ($adminUser !== null && in_array((string) ($adminUser['dark_mode'] ?? ''), ['light', 'dark', 'system'], true)) {
+    $adminThemeMode = (string) $adminUser['dark_mode'];
+}
+
+$userModeJson = json_encode($adminThemeMode, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 ?>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -36,7 +45,9 @@ $adminUser      = Auth::user();
         // 尽早应用主题，避免首屏闪烁（FOUC）
         (function () {
             try {
-                var mode = localStorage.getItem('courseshop-theme') || <?= $modeJson ?>;
+                var userMode = <?= $userModeJson ?>;
+                var mode = userMode || localStorage.getItem('courseshop-theme') || <?= $modeJson ?>;
+                document.documentElement.setAttribute('data-theme-mode', mode);
                 var dark = mode === 'dark'
                     || (mode !== 'light' && window.matchMedia
                         && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -70,7 +81,8 @@ $adminUser      = Auth::user();
 
             <div class="admin-topbar__actions">
                 <?php if ($canSwitchTheme): ?>
-                    <button type="button" class="admin-icon-btn" data-theme-toggle aria-label="切换深浅色主题" title="切换主题">
+                    <button type="button" class="admin-icon-btn" data-theme-toggle aria-label="切换深浅色主题" title="切换主题"
+                            data-theme-save="<?= e(url('/account/theme')) ?>">
                         <span class="theme-toggle__icon--sun" aria-hidden="true">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                                 <circle cx="12" cy="12" r="4"></circle>

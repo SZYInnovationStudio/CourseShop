@@ -33,6 +33,7 @@ $modeJson    = json_encode($defaultMode, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG |
         (function () {
             try {
                 var mode = localStorage.getItem('courseshop-theme') || <?= $modeJson ?>;
+                document.documentElement.setAttribute('data-theme-mode', mode);
                 var dark = mode === 'dark'
                     || (mode !== 'light' && window.matchMedia
                         && window.matchMedia('(prefers-color-scheme: dark)').matches);

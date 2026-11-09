@@ -12,6 +12,7 @@ declare(strict_types=1);
 use App\Support\Auth;
 use App\Support\Csrf;
 use App\Support\I18n;
+use App\Support\Request;
 use App\Support\Setting;
 use App\Support\Theme;
 
@@ -19,6 +20,13 @@ $siteName  = Setting::localized('site_name', 'CourseShop');
 $pageTitle = $pageTitle ?? null;
 // 页面级 body 类名（如课程详情隐藏底部导航、预留购买栏空间）
 $bodyClass = trim((string) ($bodyClass ?? ''));
+
+// 认证类页面：为不支持 :has() 的浏览器提供等效的居中布局（见 app.css 的 @supports 回退）
+$authPaths = ['/login', '/register', '/password/forgot', '/password/reset', '/ticket/appeal'];
+
+if (in_array(Request::path(), $authPaths, true)) {
+    $bodyClass = trim($bodyClass . ' page-auth');
+}
 
 $htmlTitle   = ($pageTitle !== null && $pageTitle !== '') ? $pageTitle . ' - ' . $siteName : $siteName;
 $description = Setting::localized('site_description', '');
@@ -61,6 +69,7 @@ $userModeJson = json_encode($userMode, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | J
                 // 登录用户以账号偏好为准，其次本地记忆，最后站点默认
                 var userMode = <?= $userModeJson ?>;
                 var mode = userMode || localStorage.getItem('courseshop-theme') || <?= $modeJson ?>;
+                document.documentElement.setAttribute('data-theme-mode', mode);
                 var dark = mode === 'dark'
                     || (mode !== 'light' && window.matchMedia
                         && window.matchMedia('(prefers-color-scheme: dark)').matches);

@@ -8,8 +8,8 @@
  */
 'use strict';
 
-// 修改此版本号即可让旧缓存自动失效
-var CACHE_NAME = 'courseshop-v1';
+// 修改此版本号即可让旧缓存自动失效（每次发布涉及离线页/预缓存资源时递增）
+var CACHE_NAME = 'courseshop-v2';
 
 // 预缓存资源（相对路径以 Service Worker 所在目录为基准，天然兼容子目录部署）
 var PRECACHE_URLS = [
@@ -22,9 +22,15 @@ var PRECACHE_URLS = [
 self.addEventListener('install', function (event) {
     event.waitUntil(
         caches.open(CACHE_NAME).then(function (cache) {
-            // 逐个缓存：单个资源失败不会导致 addAll 整体 reject，避免 Service Worker 安装失败
+            // 逐个缓存：单个资源失败不会导致整体失败；用 cache.put 强制覆盖旧副本
             return Promise.all(PRECACHE_URLS.map(function (url) {
-                return cache.add(url).catch(function () {
+                return fetch(url, { cache: 'reload' }).then(function (response) {
+                    if (!response || response.status !== 200) {
+                        return null;
+                    }
+
+                    return cache.put(url, response);
+                }).catch(function () {
                     return null;
                 });
             }));
@@ -41,6 +47,19 @@ self.addEventListener('activate', function (event) {
             return Promise.all(keys.map(function (key) {
                 return key === CACHE_NAME ? null : caches.delete(key);
             }));
+        }).then(function () {
+            // 清理同名缓存里带 ?v= 的旧静态资源版本，避免版本号变化后条目无限累积
+            return caches.open(CACHE_NAME).then(function (cache) {
+                return cache.keys().then(function (requests) {
+                    return Promise.all(requests.map(function (request) {
+                        if (new URL(request.url).search.indexOf('v=') !== -1) {
+                            return cache.delete(request);
+                        }
+
+                        return null;
+                    }));
+                });
+            });
         }).then(function () {
             return self.clients.claim();
         })

@@ -82,6 +82,8 @@
 
     function applyTheme(theme) {
         root.setAttribute('data-theme', theme);
+        // 用户显式选择后不再跟随系统
+        root.setAttribute('data-theme-mode', theme);
         try {
             localStorage.setItem(THEME_KEY, theme);
         } catch (e) {
@@ -89,6 +91,26 @@
         }
         persistTheme(theme);
     }
+
+    // 跟随系统时，系统深浅色变化后实时同步
+    (function () {
+        if (!window.matchMedia) {
+            return;
+        }
+
+        var query = window.matchMedia('(prefers-color-scheme: dark)');
+        var handler = function (event) {
+            if ((root.getAttribute('data-theme-mode') || 'system') === 'system') {
+                root.setAttribute('data-theme', event.matches ? 'dark' : 'light');
+            }
+        };
+
+        if (typeof query.addEventListener === 'function') {
+            query.addEventListener('change', handler);
+        } else if (typeof query.addListener === 'function') {
+            query.addListener(handler);
+        }
+    })();
 
     // 登录用户切换主题时同步保存到账号，多设备生效
     function persistTheme(theme) {
@@ -502,8 +524,23 @@
     if (watcher) {
         var statusUrl = watcher.getAttribute('data-status-url');
         var POLL_INTERVAL = 3000;
+        // 最长轮询次数：避免订单不存在/会话过期时无限请求
+        var POLL_MAX_ATTEMPTS = 40;
+        var pollAttempts = 0;
 
         var poll = function () {
+            if (pollAttempts >= POLL_MAX_ATTEMPTS) {
+                return;
+            }
+
+            // 后台标签页暂停请求，回到前台后继续
+            if (document.visibilityState === 'hidden') {
+                window.setTimeout(poll, POLL_INTERVAL * 2);
+                return;
+            }
+
+            pollAttempts += 1;
+
             fetch(statusUrl, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 credentials: 'same-origin'
@@ -513,6 +550,8 @@
                 })
                 .then(function (data) {
                     if (!data) {
+                        // 接口异常（会话过期等）时退避重试，仍受最大次数限制
+                        window.setTimeout(poll, POLL_INTERVAL * 2);
                         return;
                     }
 
@@ -525,7 +564,8 @@
                     window.setTimeout(poll, POLL_INTERVAL);
                 })
                 .catch(function () {
-                    window.setTimeout(poll, POLL_INTERVAL);
+                    // 网络失败按轮询次数逐步退避，最长 15 秒一次
+                    window.setTimeout(poll, Math.min(POLL_INTERVAL * pollAttempts, 15000));
                 });
         };
 
@@ -891,6 +931,13 @@
             // 最后一节没有下一节可播，改为提示本章已学完
             if (nextUrl === '' && status && finishedLabel) {
                 status.textContent = finishedLabel;
+                // 进度上报可能失败（离线/会话过期），提示不依赖上报结果
+                status.hidden = false;
+                status.classList.add('is-visible');
+
+                window.setTimeout(function () {
+                    status.classList.remove('is-visible');
+                }, 2400);
             }
 
             // iPhone 原生视频全屏（webkitEnterFullscreen）下页面浮层不可见：
@@ -1530,9 +1577,10 @@
         document.addEventListener('keydown', function (event) {
             var target = event.target;
 
-            // 输入框内不拦截，避免影响站内搜索等操作
+            // 输入框与可交互控件内不拦截，避免影响输入、按钮与链接的原生键盘行为
             if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA'
-                || target.tagName === 'SELECT' || target.isContentEditable)) {
+                || target.tagName === 'SELECT' || target.isContentEditable
+                || (typeof target.closest === 'function' && target.closest('button, a, [role="button"]')))) {
                 return;
             }
 

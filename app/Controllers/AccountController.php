@@ -43,6 +43,11 @@ final class AccountController extends Controller
     /** 待确认的两步验证密钥在会话中的键名 */
     private const TWO_FACTOR_SETUP_KEY = '2fa_setup_secret';
 
+    /** 待确认密钥的生成时间与有效期（秒），避免放弃设置后密钥长期留在会话中 */
+    private const TWO_FACTOR_SETUP_TIME_KEY = '2fa_setup_time';
+
+    private const TWO_FACTOR_SETUP_TTL = 600;
+
     /**
      * 账户总览（按 tab 展示对应面板）
      */
@@ -111,10 +116,11 @@ final class AccountController extends Controller
             $this->fail($backUrl, (string) $validator->firstError(), $old);
         }
 
-        $avatar  = (string) ($user['avatar'] ?? '');
-        $remove  = Request::bool('remove_avatar', false);
-        $file    = Request::file('avatar');
-        $hasFile = is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+        $avatar    = (string) ($user['avatar'] ?? '');
+        $oldAvatar = $avatar;
+        $remove    = Request::bool('remove_avatar', false);
+        $file      = Request::file('avatar');
+        $hasFile   = is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
 
         if ($hasFile) {
             try {
@@ -123,18 +129,19 @@ final class AccountController extends Controller
                 $this->fail($backUrl, $e->getMessage(), $old);
             }
 
-            if ($avatar !== '') {
-                self::deleteAvatar($avatar);
-            }
             $avatar = $newAvatar;
         } elseif ($remove && $avatar !== '') {
-            self::deleteAvatar($avatar);
             $avatar = '';
         }
 
         User::updateNickname($userId, $nickname);
         User::updateAvatar($userId, $avatar !== '' ? $avatar : null);
         Auth::refresh();
+
+        // 写库成功后再删除旧头像文件，避免写库失败时旧图已被删除
+        if ($oldAvatar !== '' && $oldAvatar !== $avatar) {
+            self::deleteAvatar($oldAvatar);
+        }
 
         $this->success($backUrl, t('个人资料已更新。'));
     }
@@ -247,6 +254,7 @@ final class AccountController extends Controller
         $avatar = (string) ($user['avatar'] ?? '');
 
         User::softDelete((int) $user['id']);
+        LoginDevice::revokeAll((int) $user['id']);
 
         if ($avatar !== '') {
             self::deleteAvatar($avatar);
@@ -386,11 +394,13 @@ final class AccountController extends Controller
 
         // 复用会话中已有的待确认密钥，避免校验失败重定向回本页时刷新二维码、
         // 使用户已扫码的密钥失效；仅在用户主动要求重新生成时更换。
-        $secret = (string) Session::get(self::TWO_FACTOR_SETUP_KEY, '');
+        $secret   = (string) Session::get(self::TWO_FACTOR_SETUP_KEY, '');
+        $issuedAt = (int) Session::get(self::TWO_FACTOR_SETUP_TIME_KEY, 0);
 
-        if ($secret === '' || Request::bool('regenerate')) {
+        if ($secret === '' || $issuedAt === 0 || $issuedAt + self::TWO_FACTOR_SETUP_TTL < time() || Request::bool('regenerate')) {
             $secret = Totp::generateSecret();
             Session::set(self::TWO_FACTOR_SETUP_KEY, $secret);
+            Session::set(self::TWO_FACTOR_SETUP_TIME_KEY, time());
         }
 
         // 二维码容量有限（本编码器最高版本 10，约 213 字节），长邮箱与中文站点名经
@@ -424,9 +434,13 @@ final class AccountController extends Controller
             $this->fail(url('/login'), t('登录状态已失效，请重新登录。'));
         }
 
-        $secret = (string) Session::get(self::TWO_FACTOR_SETUP_KEY, '');
+        $secret   = (string) Session::get(self::TWO_FACTOR_SETUP_KEY, '');
+        $issuedAt = (int) Session::get(self::TWO_FACTOR_SETUP_TIME_KEY, 0);
 
-        if ($secret === '') {
+        if ($secret === '' || $issuedAt === 0 || $issuedAt + self::TWO_FACTOR_SETUP_TTL < time()) {
+            Session::forget(self::TWO_FACTOR_SETUP_KEY);
+            Session::forget(self::TWO_FACTOR_SETUP_TIME_KEY);
+
             $this->fail(url('/account/2fa/setup'), t('设置已过期，请重新生成密钥。'));
         }
 
@@ -439,6 +453,7 @@ final class AccountController extends Controller
         // 记录本次通过的时间步，避免同一验证码在有效窗口内被重复使用
         User::enableTwoFactor((int) $user['id'], $secret, $step);
         Session::forget(self::TWO_FACTOR_SETUP_KEY);
+        Session::forget(self::TWO_FACTOR_SETUP_TIME_KEY);
         Auth::refresh();
 
         $this->success(url('/account?tab=security'), t('两步验证已启用，下次登录需输入动态口令。'));
@@ -469,6 +484,7 @@ final class AccountController extends Controller
 
         User::disableTwoFactor((int) $user['id']);
         Session::forget(self::TWO_FACTOR_SETUP_KEY);
+        Session::forget(self::TWO_FACTOR_SETUP_TIME_KEY);
         Auth::refresh();
 
         $this->success($backUrl, t('两步验证已关闭。'));

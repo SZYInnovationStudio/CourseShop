@@ -148,7 +148,8 @@ $showPackages = Setting::bool('packages_enabled', true);
                                 <div class="flex-between">
                                     <strong><?= e($announcement['title']) ?></strong>
                                     <span class="announcement__date">
-                                        <?= e(date('Y-m-d', strtotime((string) $announcement['published_at']))) ?>
+                                        <?php $announcementTs = strtotime((string) $announcement['published_at']); ?>
+                                        <?= $announcementTs !== false ? e(date('Y-m-d', $announcementTs)) : '' ?>
                                     </span>
                                 </div>
                                 <div class="prose prose--muted mt-4"><?= markdown((string) $announcement['content']) ?></div>
