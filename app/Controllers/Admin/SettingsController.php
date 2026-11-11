@@ -447,7 +447,6 @@ final class SettingsController extends AdminController
                     ['key' => 'theme_default_mode', 'label' => '默认主题', 'type' => 'select', 'default' => 'system', 'options' => ['system' => '跟随系统', 'light' => '浅色', 'dark' => '深色']],
                     ['key' => 'theme_palette', 'label' => '配色方案', 'type' => 'palette', 'default' => Theme::DEFAULT_PALETTE, 'options' => Theme::options(), 'palettes' => Theme::palettes(), 'hint' => '预览色块依次为背景、前景、主题色、强调色、文字色。'],
                     ['key' => 'theme_allow_user_switch', 'label' => '允许用户自行切换主题', 'type' => 'bool', 'default' => true],
-                    ['key' => 'flash_style', 'label' => '提示样式', 'type' => 'select', 'options' => ['toast' => 'Toast（顶部浮层，不占版面）', 'classic' => '经典（页面内提示条）'], 'default' => 'toast', 'hint' => '作用于前台与管理后台的全部提示。'],
                 ],
             ],
             'landing' => [

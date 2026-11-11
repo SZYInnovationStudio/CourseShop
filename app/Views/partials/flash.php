@@ -5,17 +5,11 @@ declare(strict_types=1);
 /**
  * 一次性提示
  *
- * $flashStyle 为 'toast' 时输出顶部浮层（不占版面、滚动时位置不变），
- * 否则输出页面内的经典提示条。未显式传入时按后台「前台提示样式」设置。
- *
- * @var string|null $flashStyle
+ * 统一输出顶部浮层 Toast（不占版面、滚动时位置不变）。
  */
 
 use App\Support\Session;
-use App\Support\Setting;
 
-$flashStyle = $flashStyle ?? Setting::string('flash_style', 'toast');
-$flashStyle = $flashStyle === 'toast' ? 'toast' : 'classic';
 $flashKeys  = ['success', 'error', 'warning', 'info'];
 $flashItems = [];
 
@@ -33,20 +27,11 @@ if ($flashItems === []) {
     return;
 }
 ?>
-<?php if ($flashStyle === 'toast'): ?>
-    <div class="toast-stack" data-toast-stack>
-        <?php foreach ($flashItems as $item): ?>
-            <div class="toast toast--<?= e($item['key']) ?>" role="alert" data-flash>
-                <span class="grow"><?= e($item['message']) ?></span>
-                <button type="button" class="toast__close" data-flash-close aria-label="<?= e(t('关闭提示')) ?>">&times;</button>
-            </div>
-        <?php endforeach; ?>
-    </div>
-<?php else: ?>
+<div class="toast-stack" data-toast-stack>
     <?php foreach ($flashItems as $item): ?>
-        <div class="alert alert--<?= e($item['key']) ?>" role="alert" data-flash>
+        <div class="toast toast--<?= e($item['key']) ?>" role="alert" data-flash>
             <span class="grow"><?= e($item['message']) ?></span>
-            <button type="button" class="alert__close" data-flash-close aria-label="<?= e(t('关闭提示')) ?>">&times;</button>
+            <button type="button" class="toast__close" data-flash-close aria-label="<?= e(t('关闭提示')) ?>">&times;</button>
         </div>
     <?php endforeach; ?>
-<?php endif; ?>
+</div>
