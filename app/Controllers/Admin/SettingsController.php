@@ -67,7 +67,7 @@ final class SettingsController extends AdminController
         $backUrl = url('/admin/settings?tab=' . $group);
 
         if (!isset($groups[$group])) {
-            $this->fail(url('/admin/settings'), '设置分组不存在。');
+            $this->failUnlessAjax(url('/admin/settings'), '设置分组不存在。');
         }
 
         $fields = $groups[$group]['fields'];
@@ -102,7 +102,7 @@ final class SettingsController extends AdminController
                         (string) ($field['subdir'] ?? 'covers')
                     );
                 } catch (RuntimeException $e) {
-                    $this->fail($backUrl, $e->getMessage(), Request::all());
+                    $this->failUnlessAjax($backUrl, $e->getMessage(), Request::all());
                 }
 
                 if ($uploaded !== null) {
@@ -147,7 +147,7 @@ final class SettingsController extends AdminController
             'fields' => array_keys($values),
         ]);
 
-        $this->success($backUrl, '「' . (string) $groups[$group]['label'] . '」设置已保存。');
+        $this->successUnlessAjax($backUrl, '「' . (string) $groups[$group]['label'] . '」设置已保存。');
     }
 
     /**
@@ -243,7 +243,7 @@ final class SettingsController extends AdminController
                 $min = (int) ($field['min_selected'] ?? 0);
 
                 if ($min > 0 && count(self::pickedOptions($field)) < $min) {
-                    $this->fail($backUrl, '「' . $label . '」至少需要选择 ' . $min . ' 项。', Request::all());
+                    $this->failUnlessAjax($backUrl, '「' . $label . '」至少需要选择 ' . $min . ' 项。', Request::all());
                 }
 
                 continue;
@@ -280,14 +280,14 @@ final class SettingsController extends AdminController
                     $enabled = array_map('strval', is_array($raw) ? $raw : [$raw]);
 
                     if (!in_array(Request::string($key), $enabled, true)) {
-                        $this->fail($backUrl, '默认语言必须从已启用的语言中选择。', Request::all());
+                        $this->failUnlessAjax($backUrl, '默认语言必须从已启用的语言中选择。', Request::all());
                     }
                 }
             }
         }
 
         if ($validator->fails()) {
-            $this->fail($backUrl, (string) $validator->firstError(), Request::all());
+            $this->failUnlessAjax($backUrl, (string) $validator->firstError(), Request::all());
         }
     }
 

@@ -317,6 +317,46 @@
         }, 200);
     }
 
+    /* 通用 Toast：供 AJAX 操作在页面不刷新的情况下提示结果 */
+    function showToast(message, type) {
+        if (!message) {
+            return;
+        }
+
+        var stack = document.querySelector('[data-toast-stack]');
+
+        if (!stack) {
+            stack = document.createElement('div');
+            stack.className = 'toast-stack';
+            stack.setAttribute('data-toast-stack', '');
+            document.body.appendChild(stack);
+        }
+
+        var toast = document.createElement('div');
+        toast.className = 'toast toast--' + (type || 'success');
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('data-flash', '');
+
+        var text = document.createElement('span');
+        text.className = 'grow';
+        text.textContent = message;
+
+        var close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'toast__close';
+        close.setAttribute('data-flash-close', '');
+        close.setAttribute('aria-label', '关闭提示');
+        close.innerHTML = '&times;';
+
+        toast.appendChild(text);
+        toast.appendChild(close);
+        stack.appendChild(toast);
+
+        window.setTimeout(function () {
+            dismissAlert(toast);
+        }, 3000);
+    }
+
     document.addEventListener('click', function (event) {
         var closeButton = event.target.closest('[data-flash-close]');
         if (!closeButton) {
@@ -333,7 +373,69 @@
         document.querySelectorAll('[data-flash]').forEach(function (alert) {
             dismissAlert(alert);
         });
-    }, 5000);
+    }, 3000);
+
+    /* ---------------- 提交后恢复滚动位置 ----------------
+       传统表单提交会整页跳转，浏览器默认回到顶部；记住提交前的位置，
+       带提示返回时恢复，避免「保存后页面被拉到最顶部」。 */
+    (function () {
+        var KEY = 'courseshop-restore-scroll:' + location.pathname;
+        var lastSubmitAt = 0;
+
+        document.addEventListener('submit', function (event) {
+            var form = event.target;
+
+            if (!form || form.tagName !== 'FORM') {
+                return;
+            }
+
+            var method = (form.getAttribute('method') || 'get').toLowerCase();
+
+            if (method === 'post') {
+                lastSubmitAt = Date.now();
+            }
+        });
+
+        // 页面卸载前记录位置：此时滚动位置仍然有效，不会像 submit 回调那样被导航打断
+        window.addEventListener('pagehide', function () {
+            if (lastSubmitAt === 0 || Date.now() - lastSubmitAt > 10000) {
+                return;
+            }
+
+            try {
+                sessionStorage.setItem(KEY, String(window.scrollY || window.pageYOffset || 0));
+            } catch (e) {
+                /* 隐私模式下 sessionStorage 不可用，忽略 */
+            }
+        });
+
+        var saved = null;
+
+        try {
+            saved = sessionStorage.getItem(KEY);
+            sessionStorage.removeItem(KEY);
+        } catch (e) {
+            return;
+        }
+
+        // 仅在带提示返回的页面恢复，普通导航保持浏览器默认行为
+        if (saved === null || !document.querySelector('[data-flash]')) {
+            return;
+        }
+
+        var y = parseInt(saved, 10);
+
+        if (isNaN(y) || y <= 0) {
+            return;
+        }
+
+        var restore = function () {
+            window.scrollTo(0, y);
+        };
+
+        window.requestAnimationFrame(restore);
+        window.addEventListener('load', restore);
+    })();
 
     /* ---------------- 二次确认 ---------------- */
     document.addEventListener('submit', function (event) {
@@ -2015,6 +2117,68 @@
                     restore(btn, label);
                     refreshCaptcha(form);
                 });
+            });
+        });
+    })();
+
+    /* ---------------- 后台设置：AJAX 保存，不刷新页面、不改变滚动位置 ---------------- */
+    (function () {
+        var form = document.querySelector('form[data-ajax-save]');
+
+        if (!form || typeof window.fetch !== 'function') {
+            return;
+        }
+
+        form.addEventListener('submit', function (event) {
+            // 上传校验等前置拦截已取消提交时不再接管
+            if (event.defaultPrevented) {
+                return;
+            }
+
+            event.preventDefault();
+
+            var button = form.querySelector('button[type="submit"]');
+            var label = button ? button.textContent : '';
+
+            if (button) {
+                button.disabled = true;
+                button.textContent = '保存中…';
+            }
+
+            window.fetch(form.getAttribute('action') || location.href, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            }).then(function (response) {
+                var contentType = response.headers.get('content-type') || '';
+
+                if (contentType.indexOf('application/json') === -1) {
+                    return null;
+                }
+
+                return response.json();
+            }).then(function (json) {
+                if (!json) {
+                    // 服务端未走 AJAX 分支时回退为整页提交，保证功能不丢失
+                    form.submit();
+                    return;
+                }
+
+                showToast(
+                    json.message || (json.code === 0 ? '设置已保存。' : '保存失败，请重试。'),
+                    json.code === 0 ? 'success' : 'error'
+                );
+            }).catch(function () {
+                showToast('网络异常，请稍后重试。', 'error');
+            }).then(function () {
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = label;
+                }
             });
         });
     })();

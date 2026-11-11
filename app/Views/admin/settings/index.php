@@ -56,6 +56,7 @@ foreach ((array) ($activeGroup['fields'] ?? []) as $field) {
             </div>
         <?php else: ?>
             <form method="post" action="<?= url('/admin/settings/' . $active) ?>" enctype="multipart/form-data"
+                  data-ajax-save
                   data-validate-upload
                   data-max-files="1"
                   data-max-mb="5"
@@ -255,7 +256,7 @@ foreach ((array) ($activeGroup['fields'] ?? []) as $field) {
 
                 <p class="form-hint upload-status" data-upload-status role="alert" hidden></p>
 
-                <div class="btn-group">
+                <div class="btn-group mt-4">
                     <button class="btn" type="submit">保存设置</button>
                 </div>
 
