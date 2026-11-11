@@ -754,6 +754,16 @@ body.menu-open::before {
     .toast { animation: none; }
 }
 
+/* 后台：Toast 出现在 60px 顶栏下方，避免压住导航与页面标题 */
+.admin-body .toast-stack {
+    top: calc(60px + env(safe-area-inset-top, 0px) + var(--space-3));
+}
+
+/* 桌面端侧边栏固定占 236px：Toast 在右侧内容区居中，而不是整个视口居中 */
+@media (min-width: 1025px) {
+    .admin-body .toast-stack { left: 236px; }
+}
+
 /* ---------------- 表单 ---------------- */
 .form-group { margin-bottom: var(--space-4); }
 
