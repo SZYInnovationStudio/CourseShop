@@ -35,16 +35,16 @@
 
   <!-- 摊开的书：平放，封面在下、书页在上 -->
   <g>
-    <path d="M620 371C570 368 516 372 470 377V470H770V377C724 372 670 368 620 371Z" fill="#C4704F"/>
-    <path d="M620 376C570 373 516 377 480 382V462H620Z" fill="#FFFDF6"/>
-    <path d="M620 376C670 373 724 377 760 382V462H620Z" fill="#FFFDF6"/>
-    <path d="M620 376V462" stroke="#DCCDAF" stroke-width="2.6"/>
+    <path d="M620 351C570 348 516 352 470 357V470H770V357C724 352 670 348 620 351Z" fill="#C4704F"/>
+    <path d="M620 356C570 353 516 357 480 362V462H620Z" fill="#FFFDF6"/>
+    <path d="M620 356C670 353 724 357 760 362V462H620Z" fill="#FFFDF6"/>
+    <path d="M620 356V462" stroke="#DCCDAF" stroke-width="2.6"/>
     <g stroke="#DFD0B6" stroke-width="3" stroke-linecap="round">
-      <path d="M500 404H602M500 421H586M500 438H564"/>
-      <path d="M638 404H740M654 421H740M676 438H740"/>
+      <path d="M500 402H602M500 420H586M500 438H564"/>
+      <path d="M638 402H740M654 420H740M676 438H740"/>
     </g>
-    <path d="M500 392H556" stroke="#C4704F" stroke-width="5" stroke-linecap="round" opacity="0.75"/>
-    <path d="M684 392H740" stroke="#C4704F" stroke-width="5" stroke-linecap="round" opacity="0.38"/>
+    <path d="M500 382H556" stroke="#C4704F" stroke-width="5" stroke-linecap="round" opacity="0.75"/>
+    <path d="M684 382H740" stroke="#C4704F" stroke-width="5" stroke-linecap="round" opacity="0.38"/>
   </g>
 
   <!-- 咖啡 -->
