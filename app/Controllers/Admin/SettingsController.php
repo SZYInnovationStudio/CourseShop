@@ -482,7 +482,7 @@ final class SettingsController extends AdminController
                     ['key' => 'landing_intro_kicker', 'label' => '介绍区小标题', 'type' => 'text', 'max' => 80, 'default' => '我们的方式', 'translatable' => true],
                     ['key' => 'landing_intro_title', 'label' => '介绍区标题', 'type' => 'text', 'max' => 120, 'default' => '把好内容，讲到真正学会为止', 'translatable' => true],
                     ['key' => 'landing_intro_text', 'label' => '介绍区正文', 'type' => 'textarea', 'max' => 1000, 'default' => "我们相信，真正有效的学习不是把知识点堆在眼前，而是把一条条路径铺到脚下。\n每一门课程都从真实问题出发，拆解成可以一步步完成的章节，再用项目把零散的知识连成完整的能力。\n你不需要先成为专家，才配开始。你只需要愿意迈出第一步。", 'translatable' => true],
-                    ['key' => 'landing_intro_image', 'label' => '介绍区通栏图片', 'type' => 'image', 'subdir' => 'landing', 'max' => 255, 'default' => '', 'hint' => '显示为通栏大图，留空则只有文字。'],
+                    ['key' => 'landing_intro_image', 'label' => '介绍区配图', 'type' => 'image', 'subdir' => 'landing', 'max' => 255, 'default' => '/assets/images/landing/intro.svg', 'hint' => '显示在介绍文字右侧；恢复默认插画请填回 /assets/images/landing/intro.svg。'],
                     ['key' => 'landing_show_features', 'label' => '显示理念区', 'type' => 'bool', 'default' => true],
                     ['key' => 'landing_features_title', 'label' => '理念区标题', 'type' => 'text', 'max' => 80, 'default' => '我们如何做课', 'translatable' => true],
                     ['key' => 'landing_features_subtitle', 'label' => '理念区副标题', 'type' => 'text', 'max' => 120, 'default' => '不追求热闹，只把该做的事做扎实。', 'translatable' => true],
@@ -493,7 +493,7 @@ final class SettingsController extends AdminController
                     ['key' => 'landing_course_text', 'label' => '课程区说明', 'type' => 'textarea', 'max' => 500, 'default' => "课程目录里有完整的体系、清晰的进度和可以反复回看的章节。\n不需要一次学完，按自己的节奏往前走就好。", 'translatable' => true],
                     ['key' => 'landing_course_button_text', 'label' => '课程区链接文案', 'type' => 'text', 'max' => 30, 'default' => '浏览全部课程', 'translatable' => true],
                     ['key' => 'landing_course_button_url', 'label' => '课程区链接地址', 'type' => 'text', 'max' => 255, 'default' => '/courses'],
-                    ['key' => 'landing_course_image', 'label' => '课程区通栏图片', 'type' => 'image', 'subdir' => 'landing', 'max' => 255, 'default' => '/assets/images/landing/course.svg', 'hint' => '显示在课程说明上方；恢复默认占位图请填回 /assets/images/landing/course.svg。'],
+                    ['key' => 'landing_course_image', 'label' => '课程区配图', 'type' => 'image', 'subdir' => 'landing', 'max' => 255, 'default' => '/assets/images/landing/course.svg', 'hint' => '显示在课程说明左侧；恢复默认占位图请填回 /assets/images/landing/course.svg。'],
                 ],
             ],
             'about' => [

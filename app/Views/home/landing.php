@@ -52,7 +52,7 @@ $showIntro     = Setting::bool('landing_show_intro', true);
 $introKicker   = trim(Setting::localized('landing_intro_kicker', t('我们的方式')));
 $introTitle    = trim(Setting::localized('landing_intro_title', t('把好内容，讲到真正学会为止')));
 $introText     = trim(Setting::localized('landing_intro_text', t("我们相信，真正有效的学习不是把知识点堆在眼前，而是把一条条路径铺到脚下。\n每一门课程都从真实问题出发，拆解成可以一步步完成的章节，再用项目把零散的知识连成完整的能力。\n你不需要先成为专家，才配开始。你只需要愿意迈出第一步。")));
-$introImage    = trim(Setting::string('landing_intro_image', ''));
+$introImage    = trim(Setting::string('landing_intro_image', '/assets/images/landing/intro.svg'));
 $introImageUrl = $introImage !== '' ? url($introImage) : '';
 
 $showFeatures     = Setting::bool('landing_show_features', true);
@@ -189,8 +189,8 @@ if ($galleryTitle !== '' && $galleryImages !== []) {
     // 单组至少 12 项（约 6100px），保证 4K 等超宽视口下循环平移到 -50% 时不露空白
     $repeat = max(2, (int) ceil(12 / count($galleryImages)));
     ?>
-    <section class="landing-gallery" id="gallery" data-reveal>
-        <div class="container">
+    <section class="landing-gallery" id="gallery">
+        <div class="container" data-reveal>
             <h2 class="landing-head__title"><?= e($galleryTitle) ?></h2>
         </div>
 
@@ -212,31 +212,33 @@ if ($galleryTitle !== '' && $galleryImages !== []) {
 <?php endif; ?>
 
 <?php if ($showIntro && ($introTitle !== '' || $introText !== '' || $introImageUrl !== '')): ?>
-    <section class="landing-statement" id="story" data-reveal>
-        <div class="container landing-narrow">
-            <?php if ($introKicker !== ''): ?>
-                <p class="landing-kicker"><?= e($introKicker) ?></p>
-            <?php endif; ?>
-            <?php if ($introTitle !== ''): ?>
-                <h2 class="landing-statement__title"><?= e($introTitle) ?></h2>
-            <?php endif; ?>
-            <?php if ($introText !== ''): ?>
-                <div class="landing-copy"><?= nl2br(e($introText)) ?></div>
+    <section class="landing-statement" id="story">
+        <div class="container landing-split<?= $introImageUrl === '' ? ' landing-split--text-only' : '' ?>">
+            <div class="landing-split__text" data-reveal>
+                <?php if ($introKicker !== ''): ?>
+                    <p class="landing-kicker"><?= e($introKicker) ?></p>
+                <?php endif; ?>
+                <?php if ($introTitle !== ''): ?>
+                    <h2 class="landing-statement__title"><?= e($introTitle) ?></h2>
+                <?php endif; ?>
+                <?php if ($introText !== ''): ?>
+                    <div class="landing-copy"><?= nl2br(e($introText)) ?></div>
+                <?php endif; ?>
+            </div>
+
+            <?php if ($introImageUrl !== ''): ?>
+                <figure class="landing-split__media" data-reveal data-reveal-delay="90">
+                    <img src="<?= e($introImageUrl) ?>" alt="" loading="lazy" decoding="async">
+                </figure>
             <?php endif; ?>
         </div>
-
-        <?php if ($introImageUrl !== ''): ?>
-            <div class="landing-media">
-                <img src="<?= e($introImageUrl) ?>" alt="" loading="lazy" decoding="async">
-            </div>
-        <?php endif; ?>
     </section>
 <?php endif; ?>
 
 <?php if ($showFeatures && $features !== []): ?>
-    <section class="landing-principles" id="philosophy" data-reveal>
+    <section class="landing-principles" id="philosophy">
         <div class="container">
-            <div class="landing-head">
+            <div class="landing-head" data-reveal>
                 <?php if ($featuresTitle !== ''): ?>
                     <h2 class="landing-head__title"><?= e($featuresTitle) ?></h2>
                 <?php endif; ?>
@@ -261,30 +263,32 @@ if ($galleryTitle !== '' && $galleryImages !== []) {
 <?php endif; ?>
 
 <?php if ($showCourse && ($courseTitle !== '' || $courseText !== '' || $courseButton !== '')): ?>
-    <section class="landing-course" id="start" data-reveal>
-        <?php if ($courseImageUrl !== ''): ?>
-            <div class="landing-media">
-                <img src="<?= e($courseImageUrl) ?>" alt="" loading="lazy" decoding="async">
-            </div>
-        <?php endif; ?>
+    <section class="landing-course" id="start">
+        <div class="container landing-split<?= $courseImageUrl === '' ? ' landing-split--text-only' : '' ?>">
+            <?php if ($courseImageUrl !== ''): ?>
+                <figure class="landing-split__media" data-reveal>
+                    <img src="<?= e($courseImageUrl) ?>" alt="" loading="lazy" decoding="async">
+                </figure>
+            <?php endif; ?>
 
-        <div class="container landing-narrow landing-course__inner">
-            <?php if ($courseKicker !== ''): ?>
-                <p class="landing-kicker"><?= e($courseKicker) ?></p>
-            <?php endif; ?>
-            <?php if ($courseTitle !== ''): ?>
-                <h2 class="landing-course__title"><?= e($courseTitle) ?></h2>
-            <?php endif; ?>
-            <?php if ($courseText !== ''): ?>
-                <div class="landing-copy"><?= nl2br(e($courseText)) ?></div>
-            <?php endif; ?>
-            <?php if ($courseButton !== ''): ?>
-                <div class="landing-course__actions">
-                    <a class="landing-link landing-link--lg" href="<?= e(url($courseButtonUrl)) ?>">
-                        <?= e($courseButton) ?><span class="landing-link__arrow"><?= $arrow ?></span>
-                    </a>
-                </div>
-            <?php endif; ?>
+            <div class="landing-split__text landing-course__inner" data-reveal data-reveal-delay="90">
+                <?php if ($courseKicker !== ''): ?>
+                    <p class="landing-kicker"><?= e($courseKicker) ?></p>
+                <?php endif; ?>
+                <?php if ($courseTitle !== ''): ?>
+                    <h2 class="landing-course__title"><?= e($courseTitle) ?></h2>
+                <?php endif; ?>
+                <?php if ($courseText !== ''): ?>
+                    <div class="landing-copy"><?= nl2br(e($courseText)) ?></div>
+                <?php endif; ?>
+                <?php if ($courseButton !== ''): ?>
+                    <div class="landing-course__actions">
+                        <a class="landing-link landing-link--lg" href="<?= e(url($courseButtonUrl)) ?>">
+                            <?= e($courseButton) ?><span class="landing-link__arrow"><?= $arrow ?></span>
+                        </a>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </section>
 <?php endif; ?>

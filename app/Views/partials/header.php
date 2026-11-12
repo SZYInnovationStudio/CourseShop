@@ -135,7 +135,7 @@ $activeClass = static function (string $path) use ($current): string {
                 <?php endif; ?>
             </div>
 
-            <?php if (!$minimalHeader && $showLangSwitch): ?>
+            <?php if ($showLangSwitch): ?>
                 <details class="lang-menu" data-lang-menu>
                     <summary class="lang-menu__trigger" aria-label="<?= e(t('切换语言')) ?>" title="<?= e(t('切换语言')) ?>">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -155,7 +155,7 @@ $activeClass = static function (string $path) use ($current): string {
                 </details>
             <?php endif; ?>
 
-            <?php if (!$minimalHeader && $canSwitchTheme): ?>
+            <?php if ($canSwitchTheme): ?>
                 <button type="button" class="theme-toggle" data-theme-toggle aria-label="<?= e(t('切换深浅色主题')) ?>" title="<?= e(t('切换主题')) ?>"
                         <?= $user !== null ? 'data-theme-save="' . e(url('/account/theme')) . '"' : '' ?>>
                     <span class="theme-toggle__icon--sun" aria-hidden="true">

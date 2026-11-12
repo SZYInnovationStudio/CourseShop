@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="晨光书桌与拱窗插画">
+  <defs>
+    <linearGradient id="introBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FAF5EA"/>
+      <stop offset="1" stop-color="#EFE3CE"/>
+    </linearGradient>
+    <linearGradient id="introArch" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9CAB94"/>
+      <stop offset="1" stop-color="#7C9078"/>
+    </linearGradient>
+    <linearGradient id="introPaper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFDF7"/>
+      <stop offset="1" stop-color="#F7F0E2"/>
+    </linearGradient>
+    <radialGradient id="introGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#F0C079" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#F0C079" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="900" height="600" fill="url(#introBg)"/>
+
+  <!-- 拱窗 -->
+  <path d="M470 600 L470 306 A176 176 0 0 1 822 306 L822 600 Z" fill="url(#introArch)"/>
+  <path d="M496 600 L496 312 A150 150 0 0 1 796 312 L796 600"
+        fill="none" stroke="#FAF5EA" stroke-width="4" opacity="0.45"/>
+  <path d="M646 600 L646 158" stroke="#FAF5EA" stroke-width="3" opacity="0.28"/>
+  <path d="M496 452 H796" stroke="#FAF5EA" stroke-width="3" opacity="0.22"/>
+
+  <!-- 窗中晨光 -->
+  <circle cx="648" cy="268" r="150" fill="url(#introGlow)"/>
+  <circle cx="648" cy="268" r="58" fill="#E9BE79"/>
+  <circle cx="648" cy="268" r="78" fill="none" stroke="#FAF5EA" stroke-width="2" opacity="0.4"/>
+
+  <!-- 桌面 -->
+  <rect y="472" width="900" height="128" fill="#E4D3B4"/>
+  <path d="M0 472h900" stroke="#D3BE99" stroke-width="3"/>
+  <ellipse cx="330" cy="512" rx="250" ry="16" fill="#C9B08A" opacity="0.35"/>
+
+  <!-- 摊开的书 -->
+  <g>
+    <path d="M150 470 Q296 424 442 470 L442 372 Q296 326 150 372 Z" fill="url(#introPaper)"
+          stroke="#E0D2BC" stroke-width="3"/>
+    <path d="M296 337 L296 466" stroke="#E3D5BF" stroke-width="3"/>
+    <path d="M296 337 Q296 326 296 330" stroke="#C6B69C" stroke-width="2"/>
+    <g stroke="#C6B69C" stroke-width="3.4" stroke-linecap="round">
+      <path d="M182 392h94M182 412h84M182 432h94"/>
+      <path d="M318 392h94M318 412h78M318 432h90"/>
+    </g>
+    <path d="M182 456h64" stroke="#C4704F" stroke-width="4" stroke-linecap="round" opacity="0.75"/>
+    <path d="M330 456h60" stroke="#C4704F" stroke-width="4" stroke-linecap="round" opacity="0.4"/>
+    <!-- 书签 -->
+    <path d="M402 350v70l13-10 13 10v-70Z" fill="#C4704F" opacity="0.9"/>
+  </g>
+
+  <!-- 书堆 -->
+  <g>
+    <rect x="52" y="440" width="104" height="16" rx="4" fill="#102956"/>
+    <rect x="60" y="422" width="96" height="15" rx="4" fill="#8A9B85"/>
+    <rect x="48" y="405" width="110" height="15" rx="4" fill="#C4704F"/>
+    <rect x="66" y="388" width="88" height="15" rx="4" fill="#D9A441"/>
+    <path d="M88 440v-52" stroke="#FAF5EA" stroke-width="2" opacity="0.35"/>
+  </g>
+
+  <!-- 绿植 -->
+  <g>
+    <path d="M760 598h74l-9-64h-56Z" fill="#8A5B3E"/>
+    <path d="M760 534h74" stroke="#6F4A32" stroke-width="4"/>
+    <path d="M797 534v-52" stroke="#5F7261" stroke-width="4" stroke-linecap="round"/>
+    <g fill="#7C9078">
+      <ellipse cx="770" cy="486" rx="28" ry="11" transform="rotate(-42 770 486)"/>
+      <ellipse cx="826" cy="490" rx="28" ry="11" transform="rotate(40 826 490)"/>
+      <ellipse cx="798" cy="456" rx="24" ry="10" transform="rotate(-6 798 456)"/>
+      <ellipse cx="758" cy="520" rx="22" ry="9" transform="rotate(-24 758 520)"/>
+      <ellipse cx="838" cy="522" rx="22" ry="9" transform="rotate(22 838 522)"/>
+    </g>
+  </g>
+
+  <!-- 咖啡杯 -->
+  <g>
+    <ellipse cx="524" cy="524" rx="52" ry="10" fill="#C9B08A" opacity="0.5"/>
+    <path d="M486 456h74v42a37 37 0 0 1-74 0Z" fill="#FCF9F2" stroke="#C9A274" stroke-width="3"/>
+    <path d="M560 468h11a18 18 0 0 1 0 36h-11" fill="none" stroke="#C9A274" stroke-width="4"/>
+    <ellipse cx="523" cy="456" rx="37" ry="9" fill="#E9D9C0" stroke="#C9A274" stroke-width="3"/>
+    <g stroke="#C9B08A" stroke-width="3" stroke-linecap="round" opacity="0.6">
+      <path d="M512 436c6-10 6-16 0-24M534 438c6-10 6-16 0-24"/>
+    </g>
+  </g>
+
+  <!-- 铅笔 -->
+  <ellipse cx="694" cy="528" rx="82" ry="8" fill="#C9B08A" opacity="0.4"/>
+  <g transform="rotate(-16 700 512)">
+    <rect x="640" y="500" width="140" height="15" rx="4" fill="#C4704F"/>
+    <path d="M640 500l-26 7.5 26 7.5Z" fill="#F7F0E2"/>
+    <path d="M622 507l9-3 9 3-9 3Z" fill="#102956"/>
+    <rect x="770" y="500" width="12" height="15" rx="4" fill="#102956"/>
+  </g>
+
+  <!-- 点缀 -->
+  <circle cx="112" cy="196" r="9" fill="#C4704F" opacity="0.55"/>
+  <circle cx="146" cy="228" r="5" fill="#102956" opacity="0.32"/>
+  <path d="M84 258h92M84 282h58" stroke="#102956" stroke-width="3" stroke-linecap="round" opacity="0.18"/>
+</svg>
