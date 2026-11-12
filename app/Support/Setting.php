@@ -63,7 +63,8 @@ final class Setting
             }
         }
 
-        return self::string($key, $default);
+        // 后台只填写了默认语言时，用内置词典即时翻译原文，让预置译文开箱可用
+        return I18n::translate(self::string($key, $default));
     }
 
     public static function int(string $key, int $default = 0): int

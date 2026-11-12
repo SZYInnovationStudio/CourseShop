@@ -121,6 +121,19 @@ if (Setting::bool('packages_enabled', true)) {
 if (Setting::bool('about_enabled', true)) {
     $heroNavLinks[] = ['text' => t('关于我们'), 'url' => '/about'];
 }
+
+// 首屏下箭头：指向第一个实际渲染的区块，全部关闭时不渲染
+$cueTarget = '';
+
+if ($galleryTitle !== '' && $galleryImages !== []) {
+    $cueTarget = '#gallery';
+} elseif ($showIntro) {
+    $cueTarget = '#story';
+} elseif ($showCourse) {
+    $cueTarget = '#start';
+} elseif ($showFeatures && $features !== []) {
+    $cueTarget = '#philosophy';
+}
 ?>
 <section class="landing-hero<?= $heroImageUrl !== '' ? ' landing-hero--image' : '' ?>">
     <?php if ($heroImageUrl !== ''): ?>
@@ -161,7 +174,14 @@ if (Setting::bool('about_enabled', true)) {
         <?php endif; ?>
     </div>
 
-    <span class="landing-hero__scroll" aria-hidden="true"></span>
+    <?php if ($cueTarget !== ''): ?>
+        <a class="landing-hero__cue" href="<?= e($cueTarget) ?>" aria-label="<?= e(t('向下浏览')) ?>">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 4v15M5.5 12.5 12 19l6.5-6.5"></path>
+            </svg>
+        </a>
+    <?php endif; ?>
 </section>
 
 <?php if ($galleryTitle !== '' && $galleryImages !== []): ?>

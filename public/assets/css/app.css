@@ -3916,8 +3916,10 @@ html { overflow-x: clip; }
 .landing-hero__shade {
     position: absolute;
     inset: 0;
-    /* 居中构图：上下略深、中间留出画面细节，保证白色标题始终可读 */
-    background: linear-gradient(180deg, rgba(30, 25, 18, 0.52) 0%, rgba(30, 25, 18, 0.36) 45%, rgba(30, 25, 18, 0.62) 100%);
+    /* 居中构图：上下略深、中间留出画面细节，四周再加一层柔和暗角，保证白色标题始终可读 */
+    background:
+        radial-gradient(125% 85% at 50% 42%, rgba(22, 32, 25, 0) 38%, rgba(22, 32, 25, 0.28) 100%),
+        linear-gradient(180deg, rgba(22, 32, 25, 0.46) 0%, rgba(22, 32, 25, 0.24) 46%, rgba(22, 32, 25, 0.6) 100%);
 }
 
 .landing-hero__inner {
@@ -3934,21 +3936,30 @@ html { overflow-x: clip; }
     max-width: 20ch;
     margin: 0 0 var(--space-5);
     font-family: var(--font-display);
-    font-size: clamp(2.5rem, 6.2vw, 5.2rem);
+    font-size: clamp(2.6rem, 6.6vw, 5.6rem);
     font-weight: 400;
-    line-height: 1.08;
-    letter-spacing: 0.02em;
+    line-height: 1.06;
+    letter-spacing: 0.012em;
     color: var(--color-text);
     text-wrap: balance;
 }
 
 .landing-hero__subtitle {
-    max-width: 620px;
+    max-width: 640px;
     margin: 0 0 clamp(28px, 4.4vh, 46px);
     color: var(--color-text-muted);
-    font-size: clamp(0.98rem, 1.2vw, 1.1rem);
-    line-height: 1.9;
+    font-size: clamp(1rem, 1.25vw, 1.15rem);
+    line-height: 1.95;
 }
+
+/* 首屏文案依次浮入，避免一次性出现显得生硬 */
+.landing-hero__inner > * {
+    animation: landing-rise 0.9s var(--ease-out) both;
+}
+
+.landing-hero__inner > *:nth-child(2) { animation-delay: 0.08s; }
+.landing-hero__inner > *:nth-child(3) { animation-delay: 0.16s; }
+.landing-hero__inner > *:nth-child(4) { animation-delay: 0.24s; }
 
 .landing-hero__actions {
     display: flex;
@@ -4000,19 +4011,53 @@ html { overflow-x: clip; }
 
 .landing-hero--image .landing-link--muted { color: rgba(255, 255, 255, 0.76); }
 
-.landing-hero__scroll {
-    position: absolute;
-    left: 50%;
-    bottom: var(--space-5);
-    width: 1px;
-    height: 44px;
-    background: linear-gradient(to bottom, transparent, var(--color-text-faint));
-    transform: translateX(-50%);
-    animation: landing-cue 2.6s ease-in-out infinite;
+/* 图片上方的文字加一层柔和投影，兼顾亮部画面下的可读性 */
+.landing-hero--image .landing-kicker,
+.landing-hero--image .landing-hero__title,
+.landing-hero--image .landing-hero__subtitle,
+.landing-hero--image .landing-link,
+.landing-hero--image .landing-hero__navlink {
+    text-shadow: 0 1px 2px rgba(18, 26, 20, 0.35), 0 10px 36px rgba(18, 26, 20, 0.3);
 }
 
-.landing-hero--image .landing-hero__scroll {
-    background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.7));
+/* 首屏下箭头：细描边圆环 + 缓慢下落的箭头，替代原先的竖直细线 */
+.landing-hero__cue {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(18px, 3.2vh, 34px);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
+    border-radius: var(--radius-full);
+    color: var(--color-text-muted);
+    transform: translateX(-50%);
+    transition: color 0.35s ease, border-color 0.35s ease, background-color 0.35s ease;
+}
+
+.landing-hero__cue svg {
+    display: block;
+    animation: landing-cue-arrow 2.4s ease-in-out infinite;
+}
+
+.landing-hero__cue:hover {
+    border-color: color-mix(in srgb, currentColor 58%, transparent);
+    background: color-mix(in srgb, currentColor 7%, transparent);
+    color: var(--color-text);
+}
+
+.landing-hero--image .landing-hero__cue {
+    border-color: rgba(255, 255, 255, 0.42);
+    color: rgba(255, 255, 255, 0.86);
+}
+
+.landing-hero--image .landing-hero__cue:hover {
+    border-color: rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
 }
 
 /* 文字链接（替代按钮，降低界面感） */
@@ -4048,16 +4093,27 @@ html { overflow-x: clip; }
 
 /* 滚动图带 */
 .landing-gallery {
-    padding: clamp(64px, 8vw, 110px) 0 clamp(48px, 6vw, 84px);
+    padding: clamp(72px, 9vw, 120px) 0 clamp(56px, 7vw, 96px);
     background: var(--color-bg);
 }
 
 .landing-gallery .landing-head__title {
-    margin: 0 0 clamp(24px, 4vw, 40px);
+    display: flex;
+    align-items: center;
+    gap: clamp(16px, 2.5vw, 32px);
+    margin: 0 0 clamp(28px, 4vw, 44px);
     font-family: var(--font-display);
     font-size: clamp(1.4rem, 2.4vw, 2rem);
     font-weight: 400;
     letter-spacing: 0.02em;
+}
+
+/* 标题右侧延伸的细线，增加编辑式版面的秩序感 */
+.landing-gallery .landing-head__title::after {
+    content: "";
+    flex: 1 1 auto;
+    height: 1px;
+    background: var(--color-border);
 }
 
 .landing-gallery__viewport {
@@ -4078,18 +4134,25 @@ html { overflow-x: clip; }
 
 .landing-gallery__group {
     display: flex;
-    gap: var(--space-3);
-    padding-right: var(--space-3);
+    align-items: center;
+    gap: clamp(12px, 1.4vw, 20px);
+    padding-right: clamp(12px, 1.4vw, 20px);
 }
 
 .landing-gallery__item {
     display: block;
     flex: 0 0 auto;
     width: clamp(280px, 32vw, 500px);
-    height: clamp(190px, 24vw, 360px);
+    height: var(--gallery-h, clamp(190px, 24vw, 360px));
     overflow: hidden;
+    border-radius: var(--radius-sm);
     background: var(--color-bg-alt);
+    box-shadow: var(--shadow-xs);
 }
+
+/* 高低错落，滚动时更有节奏 */
+.landing-gallery__item:nth-child(3n + 2) { --gallery-h: clamp(210px, 26vw, 400px); }
+.landing-gallery__item:nth-child(3n) { --gallery-h: clamp(172px, 22vw, 330px); }
 
 .landing-gallery__item img {
     display: block;
@@ -4105,9 +4168,10 @@ html { overflow-x: clip; }
 }
 
 /* 宣言 / 介绍 */
+/* 介绍 / 理念共享一段柔和底色，从上一区块自然过渡 */
 .landing-statement {
     padding: clamp(64px, 9vw, 130px) 0;
-    background: var(--color-bg);
+    background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-alt) 100%);
 }
 
 .landing-narrow {
@@ -4140,6 +4204,8 @@ html { overflow-x: clip; }
     overflow: hidden;
     border: 1px solid var(--color-border);
     border-radius: 18px;
+    background: var(--color-bg-alt);
+    box-shadow: var(--shadow-md);
 }
 
 .landing-media img {
@@ -4154,10 +4220,12 @@ html[data-theme="dark"] .landing-media img { opacity: 0.88; }
 
 html[data-theme="dark"] .landing-hero__bg { opacity: 0.92; }
 
+html[data-theme="dark"] .landing-gallery__item img { opacity: 0.9; }
+
 /* 理念 */
 .landing-principles {
     padding: clamp(64px, 9vw, 130px) 0;
-    background: var(--color-bg);
+    background: var(--color-bg-alt);
 }
 
 .landing-principle-grid {
@@ -4169,16 +4237,22 @@ html[data-theme="dark"] .landing-hero__bg { opacity: 0.92; }
 .landing-principle {
     border-top: 1px solid var(--color-border);
     padding-top: var(--space-5);
+    transition: border-color 0.4s ease;
 }
 
+.landing-principle:hover { border-top-color: var(--color-accent); }
+
 .landing-principle__index {
-    display: block;
+    display: inline-block;
     margin-bottom: var(--space-5);
     color: var(--color-accent);
     font-family: var(--font-display);
-    font-size: 0.8rem;
-    letter-spacing: 0.12em;
+    font-size: 0.82rem;
+    letter-spacing: 0.14em;
+    transition: transform 0.4s var(--ease-out);
 }
+
+.landing-principle:hover .landing-principle__index { transform: translateX(5px); }
 
 .landing-principle__title {
     margin: 0 0 var(--space-3);
@@ -4198,7 +4272,7 @@ html[data-theme="dark"] .landing-hero__bg { opacity: 0.92; }
 /* 课程入口 */
 .landing-course {
     padding: clamp(64px, 9vw, 130px) 0;
-    background: var(--color-bg);
+    background: linear-gradient(180deg, var(--color-bg-alt) 0%, var(--color-bg) 100%);
 }
 
 .landing-course__actions { margin-top: var(--space-7); }
@@ -4384,9 +4458,14 @@ html.js [data-reveal].is-revealed {
     to { transform: scale(1); }
 }
 
-@keyframes landing-cue {
-    0%, 100% { opacity: 0.22; transform: translate(-50%, -5px); }
-    50% { opacity: 0.7; transform: translate(-50%, 4px); }
+@keyframes landing-cue-arrow {
+    0%, 100% { opacity: 0.55; transform: translateY(-3px); }
+    50% { opacity: 1; transform: translateY(4px); }
+}
+
+@keyframes landing-rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: none; }
 }
 
 @keyframes landing-marquee {
@@ -4401,6 +4480,7 @@ html.js [data-reveal].is-revealed {
     .landing-hero__bg { object-position: 66% center; }
     .landing-hero__title { max-width: none; font-size: clamp(1.8rem, 7.6vw, 2.5rem); }
     .landing-hero__subtitle { margin-bottom: var(--space-5); font-size: 0.95rem; }
+    .landing-hero__cue { bottom: 16px; width: 40px; height: 40px; }
     .landing-hero__actions { gap: var(--space-3); }
     .landing-hero__nav { gap: 16px 22px; }
     .landing-hero__navlink { padding: 10px 0 8px; font-size: var(--text-sm); }
@@ -4454,7 +4534,8 @@ html.js [data-reveal].is-revealed {
 @media (prefers-reduced-motion: reduce) {
     html.js [data-reveal] { opacity: 1; transform: none; transition: none; }
     .landing-hero__bg { animation: none; transform: none; }
-    .landing-hero__scroll { animation: none; }
+    .landing-hero__inner > * { animation: none; }
+    .landing-hero__cue svg { animation: none; }
     .landing-gallery__track { animation: none; }
 }
 

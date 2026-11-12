@@ -1,44 +1,95 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="日出山野插画">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="晨光山野与湖面插画">
   <defs>
     <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F7F2E7"/>
-      <stop offset="0.62" stop-color="#F1E7D3"/>
-      <stop offset="1" stop-color="#EADDC4"/>
+      <stop offset="0" stop-color="#FAF5EA"/>
+      <stop offset="0.52" stop-color="#F3E6D0"/>
+      <stop offset="1" stop-color="#E7D6B9"/>
     </linearGradient>
+    <radialGradient id="sunGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#E2AE5D" stop-opacity="0.5"/>
+      <stop offset="0.55" stop-color="#E2AE5D" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#E2AE5D" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EABE72"/>
+      <stop offset="1" stop-color="#C4704F"/>
+    </linearGradient>
+    <linearGradient id="lake" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D9C8A7"/>
+      <stop offset="0.5" stop-color="#BFBDA6"/>
+      <stop offset="1" stop-color="#9DAB9C"/>
+    </linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5F7261"/>
+      <stop offset="1" stop-color="#425446"/>
+    </linearGradient>
+    <filter id="mist" x="-15%" y="-60%" width="130%" height="220%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
   </defs>
 
   <!-- 天空 -->
   <rect width="1600" height="900" fill="url(#sky)"/>
 
   <!-- 太阳与光晕 -->
-  <circle cx="1050" cy="330" r="190" fill="#C4704F" opacity="0.16"/>
-  <circle cx="1050" cy="330" r="128" fill="#C4704F"/>
-
-  <!-- 远山（雾蓝） -->
-  <path d="M0 620 L240 470 L430 585 L640 445 L860 600 L1080 480 L1300 590 L1600 500 L1600 900 L0 900 Z"
-        fill="#A8B8C4" opacity="0.45"/>
-
-  <!-- 中景山丘（鼠尾草绿） -->
-  <path d="M0 700 Q300 560 620 668 T1240 690 T1600 640 L1600 900 L0 900 Z"
-        fill="#8A9B85"/>
-
-  <!-- 近景坡地（深绿） -->
-  <path d="M0 810 Q380 700 780 790 T1600 780 L1600 900 L0 900 Z"
-        fill="#5F7261"/>
-
-  <!-- 地平细线（深蓝） -->
-  <path d="M0 700 Q300 560 620 668 T1240 690 T1600 640" fill="none" stroke="#102956" stroke-width="3" opacity="0.5"/>
-  <path d="M0 810 Q380 700 780 790 T1600 780" fill="none" stroke="#102956" stroke-width="2.5" opacity="0.35"/>
-
-  <!-- 飞鸟 -->
-  <g stroke="#102956" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.65">
-    <path d="M420 250 q22 -20 44 0 M464 250 q22 -20 44 0"/>
-    <path d="M560 190 q17 -15 34 0 M594 190 q17 -15 34 0"/>
-  </g>
+  <circle cx="1110" cy="330" r="310" fill="url(#sunGlow)"/>
+  <circle cx="1110" cy="330" r="186" fill="none" stroke="#C4704F" stroke-width="2" opacity="0.18"/>
+  <circle cx="1110" cy="330" r="146" fill="url(#sun)"/>
 
   <!-- 云带 -->
-  <g stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" opacity="0.55">
-    <path d="M180 330 h180 M300 372 h120"/>
-    <path d="M1240 160 h150 M1330 200 h100"/>
+  <g stroke="#FFFFFF" stroke-linecap="round" fill="none">
+    <path d="M170 292h196" stroke-width="10" opacity="0.5"/>
+    <path d="M288 336h120" stroke-width="7" opacity="0.36"/>
+    <path d="M1240 178h150" stroke-width="9" opacity="0.42"/>
+    <path d="M1340 218h96" stroke-width="6" opacity="0.3"/>
+  </g>
+
+  <!-- 远山 -->
+  <path d="M0 622 L178 474 L336 560 L524 434 L706 578 L886 472 L1064 592 L1236 502 L1404 592 L1600 520 L1600 900 L0 900 Z"
+        fill="#B9C5CB" opacity="0.55"/>
+  <path d="M0 668 L226 548 L414 642 L622 524 L822 652 L1042 562 L1262 662 L1450 588 L1600 654 L1600 900 L0 900 Z"
+        fill="#A5B5AF" opacity="0.68"/>
+
+  <!-- 山脊细线 -->
+  <g fill="none" stroke="#102956" stroke-linecap="round">
+    <path d="M0 668 L226 548 L414 642 L622 524 L822 652 L1042 562 L1262 662 L1450 588 L1600 654"
+          stroke-width="2.4" opacity="0.24"/>
+    <path d="M622 524 L704 590 M1042 562 L1118 618" stroke-width="2" opacity="0.16"/>
+  </g>
+
+  <!-- 云雾 -->
+  <g fill="#FFFFFF" filter="url(#mist)">
+    <ellipse cx="430" cy="646" rx="300" ry="26" opacity="0.46"/>
+    <ellipse cx="1210" cy="676" rx="330" ry="24" opacity="0.4"/>
+  </g>
+
+  <!-- 中景山丘 -->
+  <path d="M0 736 Q300 632 620 714 T1240 722 T1600 690 L1600 900 L0 900 Z" fill="#8A9B85"/>
+  <path d="M0 736 Q300 632 620 714 T1240 722 T1600 690" fill="none"
+        stroke="#102956" stroke-width="2.6" opacity="0.26"/>
+
+  <!-- 湖面 -->
+  <rect y="744" width="1600" height="112" fill="url(#lake)" opacity="0.94"/>
+  <ellipse cx="1086" cy="800" rx="128" ry="24" fill="#E6B768" opacity="0.28"/>
+  <g stroke="#F7F0DF" stroke-linecap="round" fill="none">
+    <path d="M840 790h120M980 816h180M760 838h150M1120 850h210M600 806h110" stroke-width="3" opacity="0.42"/>
+    <path d="M900 778h90M1040 862h140M520 866h120" stroke-width="2" opacity="0.3"/>
+  </g>
+
+  <!-- 近景坡地 -->
+  <path d="M0 812 Q330 726 700 800 T1240 812 T1600 786 L1600 900 L0 900 Z" fill="url(#front)"/>
+  <path d="M0 812 Q330 726 700 800 T1240 812 T1600 786" fill="none"
+        stroke="#2F4034" stroke-width="2.4" opacity="0.4"/>
+
+  <!-- 前景草叶 -->
+  <g stroke="#314437" stroke-width="2.2" stroke-linecap="round" opacity="0.5">
+    <path d="M120 872c10-22 16-34 34-46M150 874c2-20 4-30 16-44M1130 878c10-20 18-32 34-44M1162 880c2-18 4-28 16-40M760 884c8-16 14-26 26-36"/>
+  </g>
+
+  <!-- 飞鸟 -->
+  <g fill="none" stroke="#102956" stroke-width="4.4" stroke-linecap="round" opacity="0.6">
+    <path d="M404 248q22-20 44 0M448 248q22-20 44 0"/>
+    <path d="M540 192q17-15 34 0M574 192q17-15 34 0"/>
+    <path d="M1290 236q15-13 30 0M1320 236q15-13 30 0"/>
   </g>
 </svg>

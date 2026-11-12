@@ -1,33 +1,97 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="几何构成插画">
-  <rect width="900" height="600" fill="#F2EEE6"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="课程目录界面插画">
+  <defs>
+    <linearGradient id="bgCourse" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F8F3E9"/>
+      <stop offset="1" stop-color="#EDE1CC"/>
+    </linearGradient>
+    <linearGradient id="coverCourse" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D08A67"/>
+      <stop offset="1" stop-color="#B45F44"/>
+    </linearGradient>
+  </defs>
 
-  <!-- 大拱门（赭石） -->
-  <path d="M150 600 L150 330 A170 170 0 0 1 490 330 L490 600 Z" fill="#C4704F"/>
+  <rect width="900" height="600" fill="url(#bgCourse)"/>
 
-  <!-- 拱门内衬线 -->
-  <path d="M195 600 L195 335 A125 125 0 0 1 445 335 L445 600"
-        fill="none" stroke="#F2EEE6" stroke-width="4" opacity="0.5"/>
+  <!-- 背景拱门 -->
+  <path d="M612 600 L612 262 A148 148 0 0 1 908 262 L908 600 Z" fill="#C4704F" opacity="0.82"/>
+  <path d="M650 600 L650 272 A110 110 0 0 1 870 272 L870 600"
+        fill="none" stroke="#F8F3E9" stroke-width="4" opacity="0.4"/>
 
-  <!-- 太阳圆（赭黄） -->
-  <circle cx="660" cy="200" r="92" fill="#D9A441"/>
-  <circle cx="660" cy="200" r="128" fill="none" stroke="#102956" stroke-width="2.5" opacity="0.4"/>
+  <!-- 太阳 -->
+  <circle cx="158" cy="136" r="54" fill="#D9A441"/>
+  <circle cx="158" cy="136" r="84" fill="none" stroke="#102956" stroke-width="2" opacity="0.24"/>
 
-  <!-- 台阶（深蓝线） -->
-  <g fill="none" stroke="#102956" stroke-width="5" stroke-linecap="round">
-    <path d="M560 600 L560 520 L650 520 L650 440 L740 440 L740 360 L830 360"/>
+  <!-- 窗口阴影 -->
+  <ellipse cx="430" cy="520" rx="286" ry="20" fill="#BFA77F" opacity="0.34"/>
+
+  <!-- 课程窗口 -->
+  <rect x="150" y="120" width="560" height="372" rx="18" fill="#FCF9F2" stroke="#E0D2BC" stroke-width="3"/>
+
+  <!-- 窗口栏 -->
+  <path d="M150 156h560" stroke="#EADDC8" stroke-width="3"/>
+  <circle cx="176" cy="138" r="5.5" fill="#C4704F"/>
+  <circle cx="196" cy="138" r="5.5" fill="#D9A441"/>
+  <circle cx="216" cy="138" r="5.5" fill="#8A9B85"/>
+  <path d="M392 138h96" stroke="#E4D6BF" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- 课程封面 -->
+  <rect x="178" y="184" width="208" height="140" rx="10" fill="url(#coverCourse)"/>
+  <circle cx="282" cy="254" r="28" fill="#FCF9F2" opacity="0.94"/>
+  <path d="M274 240l24 14-24 14Z" fill="#C4704F"/>
+  <path d="M178 296c58-18 116-16 208 4v24H178Z" fill="#102956" opacity="0.16"/>
+
+  <!-- 标题区 -->
+  <path d="M414 196h216" stroke="#102956" stroke-width="9" stroke-linecap="round" opacity="0.82"/>
+  <path d="M414 222h140" stroke="#C9B89E" stroke-width="6" stroke-linecap="round"/>
+  <rect x="414" y="248" width="250" height="12" rx="6" fill="#EAE0CD"/>
+  <rect x="414" y="248" width="150" height="12" rx="6" fill="#8A9B85"/>
+  <path d="M414 276h70" stroke="#C9B89E" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- 标签 -->
+  <rect x="512" y="268" width="62" height="24" rx="12" fill="#F4ECE2"/>
+  <path d="M527 280h32" stroke="#8A6434" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+  <rect x="584" y="268" width="62" height="24" rx="12" fill="#EAF0EA"/>
+  <path d="M599 280h32" stroke="#4F6F52" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- 章节列表 -->
+  <g>
+    <rect x="178" y="348" width="486" height="34" rx="9" fill="#F6EFE2"/>
+    <circle cx="200" cy="365" r="9" fill="#8A9B85"/>
+    <path d="M224 365h210" stroke="#C9B89E" stroke-width="5" stroke-linecap="round"/>
+    <path d="M596 365h36" stroke="#C9B89E" stroke-width="5" stroke-linecap="round" opacity="0.7"/>
+
+    <rect x="178" y="392" width="486" height="34" rx="9" fill="#F6EFE2"/>
+    <circle cx="200" cy="409" r="9" fill="#D9A441"/>
+    <path d="M224 409h176" stroke="#C9B89E" stroke-width="5" stroke-linecap="round"/>
+    <path d="M596 409h36" stroke="#C9B89E" stroke-width="5" stroke-linecap="round" opacity="0.7"/>
+
+    <rect x="178" y="436" width="486" height="34" rx="9" fill="#F6EFE2" opacity="0.65"/>
+    <circle cx="200" cy="453" r="9" fill="#D8C9AF"/>
+    <path d="M224 453h146" stroke="#C9B89E" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
   </g>
-  <circle cx="830" cy="360" r="12" fill="#C4704F"/>
 
-  <!-- 地面线 -->
-  <path d="M40 600 L900 600" stroke="#102956" stroke-width="3" opacity="0.35"/>
-
-  <!-- 左上枝叶点缀 -->
-  <g fill="none" stroke="#5F7261" stroke-width="5" stroke-linecap="round">
-    <path d="M70 150 q60 -40 120 -12"/>
+  <!-- 绿植 -->
+  <g>
+    <path d="M84 520h60l-7 48H91Z" fill="#102956"/>
+    <path d="M84 520h60" stroke="#0A1C3C" stroke-width="4"/>
+    <g fill="#8A9B85">
+      <ellipse cx="90" cy="484" rx="24" ry="10" transform="rotate(-38 90 484)"/>
+      <ellipse cx="140" cy="486" rx="24" ry="10" transform="rotate(36 140 486)"/>
+      <ellipse cx="116" cy="460" rx="21" ry="9" transform="rotate(-6 116 460)"/>
+    </g>
+    <path d="M114 520v-48" stroke="#5F7261" stroke-width="3.4" stroke-linecap="round"/>
   </g>
-  <ellipse cx="105" cy="128" rx="26" ry="11" fill="#8A9B85" transform="rotate(-28 105 128)"/>
-  <ellipse cx="168" cy="128" rx="22" ry="10" fill="#D9A441" transform="rotate(14 168 128)"/>
 
-  <!-- 右下小点 -->
-  <circle cx="852" cy="520" r="7" fill="#5F7261"/>
+  <!-- 咖啡 -->
+  <g>
+    <ellipse cx="784" cy="520" rx="50" ry="10" fill="#BFA77F" opacity="0.45"/>
+    <path d="M750 462h70v38a35 35 0 0 1-70 0Z" fill="#FCF9F2" stroke="#C9A274" stroke-width="3"/>
+    <path d="M820 474h10a17 17 0 0 1 0 34h-10" fill="none" stroke="#C9A274" stroke-width="4"/>
+    <ellipse cx="785" cy="462" rx="35" ry="9" fill="#E9D9C0" stroke="#C9A274" stroke-width="3"/>
+  </g>
+
+  <!-- 点缀 -->
+  <circle cx="746" cy="196" r="8" fill="#F8F3E9" opacity="0.85"/>
+  <circle cx="776" cy="228" r="5" fill="#F8F3E9" opacity="0.7"/>
+  <path d="M96 206h64M96 230h40" stroke="#102956" stroke-width="3" stroke-linecap="round" opacity="0.28"/>
 </svg>

@@ -213,7 +213,15 @@ final class SettingsController extends AdminController
                     continue;
                 }
 
-                $map[$key][$locale] = Setting::string($key . '@' . $locale, '');
+                $value = Setting::string($key . '@' . $locale, '');
+
+                // 尚未保存译文时，用内置词典按当前原文预填，方便直接确认或微调
+                if ($value === '') {
+                    $source = Setting::string($key, (string) ($field['default'] ?? ''));
+                    $value  = (string) (I18n::dictionary($locale)[$source] ?? '');
+                }
+
+                $map[$key][$locale] = $value;
             }
         }
 

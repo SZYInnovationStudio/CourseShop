@@ -1,13 +1,85 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="日出山丘">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="晨光书桌插画">
   <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F6F2E9"/>
-      <stop offset="1" stop-color="#EFE7D8"/>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F7F2E8"/>
+      <stop offset="1" stop-color="#EFE4D2"/>
+    </linearGradient>
+    <linearGradient id="windowLight" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FCEBCB"/>
+      <stop offset="1" stop-color="#F1D3A2"/>
+    </linearGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D8B98C"/>
+      <stop offset="1" stop-color="#B98F5E"/>
     </linearGradient>
   </defs>
-  <rect width="900" height="600" fill="url(#sky)"/>
-  <circle cx="560" cy="215" r="118" fill="#C4704F"/>
-  <path d="M0 470 C 180 380 340 380 520 452 C 690 518 800 508 900 462 L 900 600 L 0 600 Z" fill="#8A9B85"/>
-  <path d="M0 540 C 200 470 420 472 620 528 C 760 566 840 558 900 538 L 900 600 L 0 600 Z" fill="#5F7261"/>
-  <path d="M110 300 C 160 250 240 250 290 300" fill="none" stroke="#102956" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
+
+  <rect width="900" height="600" fill="url(#wall)"/>
+
+  <!-- 墙面细纹 -->
+  <g stroke="#DCCDB5" stroke-width="1" opacity="0.35">
+    <path d="M0 96h900M0 208h900M0 320h900"/>
+  </g>
+
+  <!-- 拱形窗 -->
+  <path d="M112 440 L112 262 A148 148 0 0 1 408 262 L408 440 Z" fill="url(#windowLight)" stroke="#C9A274" stroke-width="10"/>
+  <path d="M260 114 L260 440M112 262 L408 262" stroke="#C9A274" stroke-width="8"/>
+  <rect x="92" y="438" width="336" height="15" rx="4" fill="#C9A274"/>
+  <circle cx="322" cy="204" r="42" fill="#E7B05E" opacity="0.85"/>
+  <g stroke="#FFFFFF" stroke-linecap="round" fill="none" opacity="0.6">
+    <path d="M150 190h74M176 218h48" stroke-width="6"/>
+  </g>
+
+  <!-- 桌面 -->
+  <rect y="452" width="900" height="148" fill="url(#wood)"/>
+  <path d="M0 452h900" stroke="#A87F51" stroke-width="4"/>
+
+  <!-- 打开的书 -->
+  <g>
+    <path d="M300 474C334 454 386 450 455 464L455 356C386 342 334 346 300 366Z"
+          fill="#FCF8EF" stroke="#DFD0B7" stroke-width="3"/>
+    <path d="M455 464C524 450 576 454 610 474L610 366C576 346 524 342 455 356Z"
+          fill="#FCF8EF" stroke="#DFD0B7" stroke-width="3"/>
+    <path d="M455 356v108" stroke="#C9A274" stroke-width="4"/>
+    <path d="M455 356l-14 108-10-4 14-106Z" fill="#C4704F" opacity="0.8"/>
+    <g stroke="#C6B69C" stroke-width="3.4" stroke-linecap="round">
+      <path d="M322 384c34-14 74-17 112-7M322 408c34-14 74-17 112-7M322 432c28-11 62-14 94-7"/>
+      <path d="M476 377c38-10 78-7 112 7M476 401c38-10 78-7 112 7M476 425c30-8 64-6 94 5"/>
+    </g>
+  </g>
+
+  <!-- 茶杯 -->
+  <g>
+    <ellipse cx="730" cy="480" rx="60" ry="12" fill="#B98F5E" opacity="0.55"/>
+    <path d="M686 398h86v56a43 43 0 0 1-86 0Z" fill="#F3EBDD" stroke="#C9A274" stroke-width="3"/>
+    <path d="M772 412h12a20 20 0 0 1 0 40h-12" fill="none" stroke="#C9A274" stroke-width="5"/>
+    <ellipse cx="729" cy="398" rx="43" ry="10" fill="#E9D9C0" stroke="#C9A274" stroke-width="3"/>
+    <g stroke="#C9A274" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7">
+      <path d="M714 380c-8-10 8-16 0-26M740 380c-8-10 8-16 0-26"/>
+    </g>
+  </g>
+
+  <!-- 绿植 -->
+  <g>
+    <path d="M126 446h84l-9 66h-66Z" fill="#C4704F"/>
+    <path d="M126 446h84" stroke="#A9563C" stroke-width="5"/>
+    <g fill="#8A9B85">
+      <ellipse cx="134" cy="394" rx="30" ry="13" transform="rotate(-38 134 394)"/>
+      <ellipse cx="196" cy="398" rx="30" ry="13" transform="rotate(36 196 398)"/>
+      <ellipse cx="160" cy="366" rx="27" ry="12" transform="rotate(-6 160 366)"/>
+    </g>
+    <path d="M168 448v-82M150 434c-14-16-16-30-10-42M186 434c14-16 16-30 10-42" fill="none" stroke="#5F7261" stroke-width="3.4" stroke-linecap="round"/>
+  </g>
+
+  <!-- 铅笔 -->
+  <g transform="rotate(-16 690 528)">
+    <rect x="620" y="518" width="130" height="16" rx="4" fill="#D9A441"/>
+    <path d="M620 518l-26 8 26 8Z" fill="#F3EBDD"/>
+    <path d="M602 524l8-4 8 4-8 4Z" fill="#102956"/>
+    <rect x="738" y="518" width="12" height="16" rx="4" fill="#C4704F"/>
+  </g>
+
+  <!-- 小物件 -->
+  <circle cx="640" cy="512" r="6" fill="#102956" opacity="0.55"/>
+  <path d="M100 520h84" stroke="#A87F51" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
 </svg>

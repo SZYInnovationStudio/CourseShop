@@ -356,6 +356,7 @@ return [
     "体系化路径|从入门到实战，每个阶段都有清晰的目标和练习。\n项目驱动|不只讲概念，用真实项目把知识变成可交付的成果。\n随时回看|课程内容长期有效，进度自动保存，按自己的节奏学习。\n持续更新|课程与资料随技术变化迭代，只保留真正有用的内容。" => "Structured paths|Clear goals and exercises at every stage, from basics to practice.\nProject-driven|Beyond concepts: real projects turn knowledge into deliverable results.\nLearn at your pace|Course access never expires, progress saves automatically, and you set the rhythm.\nAlways current|Courses and materials evolve with the technology—only what truly matters stays.",
     '选一条路径，从第一节课开始' => 'Pick a path and start with the first lesson',
     "课程目录里有完整的体系、清晰的进度和可以反复回看的章节。\n不需要一次学完，按自己的节奏往前走就好。" => "The catalog gives you a complete structure, clear progress, and lessons you can revisit anytime.\nNo need to finish it all at once—just move forward at your own pace.",
+    '向下浏览' => 'Scroll down',
     '浏览课程' => 'Browse courses',
     '点击刷新验证码' => 'Click to refresh the captcha',
     '点击试看本章' => 'Preview this chapter',
