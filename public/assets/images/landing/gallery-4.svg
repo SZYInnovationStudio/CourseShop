@@ -1,20 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="笔记本电脑上的课程页面插画">
-  <defs>
-    <linearGradient id="g4bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FBF6EC"/>
-      <stop offset="1" stop-color="#F2E7D3"/>
-    </linearGradient>
-    <linearGradient id="g4cover" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#CE7B56"/>
-      <stop offset="1" stop-color="#B35F3D"/>
-    </linearGradient>
-    <linearGradient id="g4base" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#DFCDAC"/>
-      <stop offset="1" stop-color="#CBB693"/>
-    </linearGradient>
-  </defs>
-
-  <rect width="900" height="600" fill="url(#g4bg)"/>
+  <rect width="900" height="600" fill="#F7EFE0"/>
   <circle cx="666" cy="226" r="204" fill="#EBDCBF" opacity="0.5"/>
   <path d="M0 470h900" stroke="#DDCBA8" stroke-width="2"/>
 
@@ -32,9 +17,8 @@
   <rect x="548" y="162" width="122" height="12" rx="6" fill="#EFE4CE"/>
 
   <!-- 课程封面 -->
-  <rect x="236" y="192" width="170" height="122" rx="9" fill="url(#g4cover)"/>
-  <path d="M236 286h170v19a9 9 0 0 1-9 9H245a9 9 0 0 1-9-9Z" fill="#A9522F" opacity="0.55"/>
-  <circle cx="321" cy="253" r="25" fill="#FFFDF6" opacity="0.94"/>
+  <rect x="236" y="192" width="170" height="122" rx="9" fill="#C4704F"/>
+  <circle cx="321" cy="253" r="25" fill="#FFFDF6"/>
   <path d="M314 242l18 11-18 11Z" fill="#B35F3D"/>
 
   <!-- 右侧信息 -->
@@ -64,8 +48,7 @@
 
   <!-- 底座 -->
   <rect x="212" y="456" width="476" height="8" rx="4" fill="#0B2148"/>
-  <path d="M194 462h512l22 26H172Z" fill="url(#g4base)"/>
-  <path d="M176 486h548" stroke="#BFA983" stroke-width="3" opacity="0.45"/>
+  <path d="M194 462h512l22 26H172Z" fill="#D8C7A5"/>
   <rect x="404" y="470" width="92" height="8" rx="4" fill="#C4AF8B"/>
 
   <!-- 咖啡 -->

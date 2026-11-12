@@ -1,114 +1,47 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="晨光下的湖面与远山插画">
-  <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FDF8EF"/>
-      <stop offset="0.5" stop-color="#F8EBD6"/>
-      <stop offset="0.82" stop-color="#F1DCC0"/>
-      <stop offset="1" stop-color="#E9D2B2"/>
-    </linearGradient>
-    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#F2C583" stop-opacity="0.5"/>
-      <stop offset="0.5" stop-color="#EFBE7C" stop-opacity="0.16"/>
-      <stop offset="1" stop-color="#EFBE7C" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="sun" cx="0.38" cy="0.32" r="0.7">
-      <stop offset="0" stop-color="#F7E2B4"/>
-      <stop offset="0.55" stop-color="#ECC079"/>
-      <stop offset="1" stop-color="#DE9E63"/>
-    </radialGradient>
-    <linearGradient id="ridgeFar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#CBD6D4"/>
-      <stop offset="1" stop-color="#C2CFCC"/>
-    </linearGradient>
-    <linearGradient id="ridgeMid" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#AEC1B8"/>
-      <stop offset="1" stop-color="#A3B8AD"/>
-    </linearGradient>
-    <linearGradient id="ridgeNear" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#8CA294"/>
-      <stop offset="1" stop-color="#7C9485"/>
-    </linearGradient>
-    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#DED5BE"/>
-      <stop offset="0.5" stop-color="#CAD0BC"/>
-      <stop offset="1" stop-color="#B4C1B1"/>
-    </linearGradient>
-    <linearGradient id="reflection" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F0C079" stop-opacity="0.5"/>
-      <stop offset="1" stop-color="#F0C079" stop-opacity="0"/>
-    </linearGradient>
-    <linearGradient id="bank" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#5A7462"/>
-      <stop offset="1" stop-color="#3D5447"/>
-    </linearGradient>
-    <filter id="blurSoft" x="-30%" y="-180%" width="160%" height="460%">
-      <feGaussianBlur stdDeviation="18"/>
-    </filter>
-  </defs>
+  <rect width="1600" height="900" fill="#F7EFE0"/>
 
-  <rect width="1600" height="900" fill="url(#sky)"/>
-
-  <!-- 晨光 -->
-  <circle cx="1148" cy="300" r="330" fill="url(#glow)"/>
-  <circle cx="1148" cy="300" r="116" fill="url(#sun)"/>
+  <!-- 太阳 -->
+  <circle cx="1148" cy="300" r="108" fill="#EDC079"/>
 
   <!-- 云 -->
-  <g fill="#FFFFFF" filter="url(#blurSoft)">
-    <ellipse cx="356" cy="238" rx="196" ry="17" opacity="0.55"/>
-    <ellipse cx="286" cy="278" rx="112" ry="11" opacity="0.34"/>
-    <ellipse cx="1318" cy="176" rx="150" ry="14" opacity="0.4"/>
-    <ellipse cx="852" cy="186" rx="104" ry="10" opacity="0.22"/>
+  <g fill="#FFFCF4">
+    <ellipse cx="356" cy="238" rx="188" ry="16"/>
+    <ellipse cx="286" cy="276" rx="104" ry="11"/>
+    <ellipse cx="1318" cy="176" rx="142" ry="13"/>
+    <ellipse cx="852" cy="186" rx="96" ry="10"/>
   </g>
 
   <!-- 远山 -->
   <path d="M0 640 C 150 548 302 542 452 616 C 584 682 706 558 862 546
            C 1012 536 1122 620 1272 620 C 1402 620 1492 558 1600 562 L1600 640 Z"
-        fill="url(#ridgeFar)" opacity="0.6"/>
+        fill="#C6D2CD"/>
 
   <!-- 中山 -->
   <path d="M0 640 C 186 598 336 590 476 630 C 622 672 764 602 904 598
            C 1052 594 1176 642 1342 628 C 1440 620 1516 618 1600 616 L1600 640 Z"
-        fill="url(#ridgeMid)" opacity="0.85"/>
+        fill="#A9BEB3"/>
 
   <!-- 近山 -->
   <path d="M0 640 C 196 620 372 612 556 634 C 748 656 964 620 1168 626
-           C 1352 632 1478 622 1600 626 L1600 640 Z" fill="url(#ridgeNear)"/>
-
-  <!-- 山脚薄雾 -->
-  <g fill="#FFFFFF" filter="url(#blurSoft)">
-    <ellipse cx="470" cy="634" rx="330" ry="16" opacity="0.34"/>
-    <ellipse cx="1180" cy="636" rx="340" ry="14" opacity="0.28"/>
-  </g>
+           C 1352 632 1478 622 1600 626 L1600 640 Z" fill="#86A08D"/>
 
   <!-- 湖面 -->
-  <rect y="640" width="1600" height="180" fill="url(#water)"/>
-  <g stroke="#F8E4BC" fill="none" stroke-linecap="round">
-    <path d="M1102 662q46 9 92 0" stroke-width="5" opacity="0.5"/>
-    <path d="M1092 688q56 10 112 0" stroke-width="4.4" opacity="0.4"/>
-    <path d="M1104 714q44 8 88 0" stroke-width="3.6" opacity="0.32"/>
-    <path d="M1118 740q38 7 76 0" stroke-width="3" opacity="0.23"/>
-    <path d="M1130 764q32 6 64 0" stroke-width="2.6" opacity="0.15"/>
-  </g>
-  <g stroke="#FFFFFF" fill="none" stroke-linecap="round" opacity="0.22">
+  <rect y="640" width="1600" height="180" fill="#C7D5C9"/>
+  <g stroke="#FFFFFF" fill="none" stroke-linecap="round" opacity="0.5">
     <path d="M120 676q120 10 240 0" stroke-width="3"/>
     <path d="M300 712q140 11 280 0" stroke-width="2.6"/>
     <path d="M760 700q120 10 240 0" stroke-width="3"/>
     <path d="M620 752q110 9 220 0" stroke-width="2.4"/>
+    <path d="M1060 690q130 10 260 0" stroke-width="3"/>
+    <path d="M940 754q120 9 240 0" stroke-width="2.4"/>
   </g>
 
   <!-- 近岸草坡 -->
   <path d="M0 806 C 244 762 430 800 648 790 C 866 780 1046 750 1246 768
-           C 1408 782 1512 798 1600 784 L1600 900 L0 900 Z" fill="url(#bank)"/>
+           C 1408 782 1512 798 1600 784 L1600 900 L0 900 Z" fill="#4A6353"/>
   <path d="M0 842 C 246 802 436 836 656 826 C 886 816 1052 786 1252 802
-           C 1412 814 1516 828 1600 814 L1600 900 L0 900 Z" fill="#33483C" opacity="0.45"/>
-
-  <!-- 草丛 -->
-  <g stroke="#2F4437" fill="none" stroke-linecap="round" opacity="0.55">
-    <path d="M120 856c10-26 18-40 34-54M148 862c2-24 6-38 18-56M176 866c12-22 18-34 30-46" stroke-width="2.6"/>
-    <path d="M654 856c10-24 18-38 32-50M682 862c2-22 6-36 16-52M710 864c10-20 16-32 28-44" stroke-width="2.4"/>
-    <path d="M1024 852c10-24 18-38 32-50M1052 858c2-22 6-36 16-52M1080 860c10-20 16-32 28-44" stroke-width="2.4"/>
-    <path d="M1436 840c10-24 18-38 30-50M1462 846c2-20 6-34 16-48" stroke-width="2.4"/>
-  </g>
+           C 1412 814 1516 828 1600 814 L1600 900 L0 900 Z" fill="#384F42"/>
 
   <!-- 岸边小树 -->
   <g>
@@ -121,7 +54,6 @@
     <path d="M232 812v-56" stroke="#33483C" stroke-width="7" stroke-linecap="round"/>
     <path d="M232 758c-28 0-46-16-46-34 0-20 18-34 40-31 4-21 24-32 43-27 20 5 29 20 27 36 17 4 27 16 25 28-2 16-17 28-39 28z"
           fill="#3E5547"/>
-    <path d="M232 758c-14-2-25-9-31-19 11 5 20 7 31 7z" fill="#2F4437" opacity="0.5"/>
   </g>
   <g>
     <path d="M1386 806v-46" stroke="#33483C" stroke-width="6" stroke-linecap="round"/>

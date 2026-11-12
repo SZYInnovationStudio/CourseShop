@@ -3920,18 +3920,13 @@ html { overflow-x: clip; }
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform: scale(1.04);
-    filter: saturate(1.08) contrast(1.02);
-    animation: landing-zoom 20s var(--ease-out) forwards;
 }
 
 .landing-hero__shade {
     position: absolute;
     inset: 0;
-    /* 居中构图：上下略深、中间留出画面细节，四周再加一层柔和暗角，保证白色标题始终可读 */
-    background:
-        radial-gradient(125% 85% at 50% 42%, rgba(38, 30, 18, 0) 36%, rgba(38, 30, 18, 0.32) 100%),
-        linear-gradient(180deg, rgba(34, 30, 20, 0.4) 0%, rgba(34, 30, 20, 0.16) 46%, rgba(22, 26, 18, 0.58) 100%);
+    /* 扁平化：只保留一层极简的冷调压暗，保证白色标题可读 */
+    background: linear-gradient(180deg, rgba(26, 38, 32, 0.32) 0%, rgba(26, 38, 32, 0.34) 46%, rgba(18, 26, 22, 0.66) 100%);
 }
 
 .landing-hero__inner {
@@ -4069,6 +4064,41 @@ html { overflow-x: clip; }
 .landing-hero--image .landing-hero__cue:hover {
     border-color: rgba(255, 255, 255, 0.72);
     background: rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
+}
+
+/* 扁平浅色首屏：亮色主题下去掉压暗层，文字改为深墨色，与插画风格统一 */
+html:not([data-theme="dark"]) .landing-hero__shade { display: none; }
+
+html:not([data-theme="dark"]) .landing-hero--image .landing-kicker,
+html:not([data-theme="dark"]) .landing-hero--image .landing-hero__title { color: #1E2A24; }
+
+html:not([data-theme="dark"]) .landing-hero--image .landing-kicker::before { background: rgba(30, 42, 36, 0.5); }
+
+html:not([data-theme="dark"]) .landing-hero--image .landing-hero__subtitle { color: rgba(30, 42, 36, 0.74); }
+
+html:not([data-theme="dark"]) .landing-hero--image .landing-link,
+html:not([data-theme="dark"]) .landing-hero--image .landing-hero__navlink { color: #1E2A24; }
+
+html:not([data-theme="dark"]) .landing-hero--image .landing-link:hover,
+html:not([data-theme="dark"]) .landing-hero--image .landing-hero__navlink:hover { color: rgba(30, 42, 36, 0.68); }
+
+html:not([data-theme="dark"]) .landing-hero--image .landing-link--muted { color: rgba(30, 42, 36, 0.66); }
+
+html:not([data-theme="dark"]) .landing-hero--image .landing-kicker,
+html:not([data-theme="dark"]) .landing-hero--image .landing-hero__title,
+html:not([data-theme="dark"]) .landing-hero--image .landing-hero__subtitle,
+html:not([data-theme="dark"]) .landing-hero--image .landing-link,
+html:not([data-theme="dark"]) .landing-hero--image .landing-hero__navlink { text-shadow: none; }
+
+html:not([data-theme="dark"]) .landing-hero--image .landing-hero__cue {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+html:not([data-theme="dark"]) .landing-hero--image .landing-hero__cue:hover {
+    border-color: rgba(255, 255, 255, 0.78);
+    background: rgba(255, 255, 255, 0.14);
     color: #FFFFFF;
 }
 
@@ -4352,6 +4382,10 @@ body.page-landing .bottom-nav { display: none !important; }
     letter-spacing: 0.14em;
     text-indent: 0.14em;
 }
+
+/* 扁平浅色头图：亮色主题下去掉压暗层，标题与移动端一致使用深墨色 */
+html:not([data-theme="dark"]) .about-hero__shade { display: none; }
+html:not([data-theme="dark"]) .about-hero__title { color: #1E2A24; }
 
 .about-body {
     padding: clamp(64px, 10vw, 150px) var(--space-4) clamp(72px, 11vw, 160px);

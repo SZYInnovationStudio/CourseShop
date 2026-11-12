@@ -1,30 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="课程目录界面与咖啡、绿植插画">
-  <defs>
-    <linearGradient id="cBg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FBF6EC"/>
-      <stop offset="1" stop-color="#F0E3CD"/>
-    </linearGradient>
-    <linearGradient id="cArch" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#C98E6C"/>
-      <stop offset="1" stop-color="#B36E4E"/>
-    </linearGradient>
-    <linearGradient id="cTable" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#E9D9BC"/>
-      <stop offset="1" stop-color="#D9C49F"/>
-    </linearGradient>
-    <linearGradient id="cCover" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#CE7B56"/>
-      <stop offset="1" stop-color="#B35F3D"/>
-    </linearGradient>
-  </defs>
-
-  <rect width="900" height="600" fill="url(#cBg)"/>
-
-  <!-- 背景柔光圆 -->
-  <circle cx="706" cy="238" r="212" fill="#EBDCBF" opacity="0.55"/>
+  <rect width="900" height="600" fill="#F7EFE0"/>
 
   <!-- 桌面 -->
-  <rect y="500" width="900" height="100" fill="url(#cTable)"/>
+  <rect y="500" width="900" height="100" fill="#E4D3B5"/>
   <path d="M0 500h900" stroke="#D3BE99" stroke-width="2.5"/>
 
   <ellipse cx="800" cy="502" rx="44" ry="8" fill="#C9B394" opacity="0.4"/>
@@ -40,9 +18,8 @@
   <rect x="544" y="113" width="120" height="12" rx="6" fill="#EFE4CE"/>
 
   <!-- 封面 -->
-  <rect x="186" y="156" width="196" height="136" rx="9" fill="url(#cCover)"/>
-  <path d="M186 258h196v25a9 9 0 0 1-9 9H195a9 9 0 0 1-9-9Z" fill="#A9522F" opacity="0.5"/>
-  <circle cx="284" cy="221" r="27" fill="#FFFDF6" opacity="0.94"/>
+  <rect x="186" y="156" width="196" height="136" rx="9" fill="#C4704F"/>
+  <circle cx="284" cy="221" r="27" fill="#FFFDF6"/>
   <path d="M277 209l19 12-19 12Z" fill="#B35F3D"/>
 
   <!-- 右侧信息 -->

@@ -1,21 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="摊开的笔记本、便签与铅笔">
-  <defs>
-    <linearGradient id="g2bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FBF6EC"/>
-      <stop offset="1" stop-color="#F2E7D3"/>
-    </linearGradient>
-    <linearGradient id="g2paper" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFFEFA"/>
-      <stop offset="1" stop-color="#FBF4E6"/>
-    </linearGradient>
-  </defs>
-
-  <rect width="900" height="600" fill="url(#g2bg)"/>
+  <rect width="900" height="600" fill="#F7EFE0"/>
   <circle cx="664" cy="196" r="208" fill="#EBDCBF" opacity="0.5"/>
 
   <g transform="rotate(-7 460 320)">
     <rect x="344" y="168" width="290" height="372" rx="14" fill="#C9B394" opacity="0.32"/>
-    <rect x="330" y="150" width="290" height="372" rx="14" fill="url(#g2paper)"/>
+    <rect x="330" y="150" width="290" height="372" rx="14" fill="#FFFDF6"/>
     <g fill="#D3BE99">
       <circle cx="352" cy="186" r="4"/><circle cx="352" cy="214" r="4"/>
       <circle cx="352" cy="242" r="4"/><circle cx="352" cy="270" r="4"/>

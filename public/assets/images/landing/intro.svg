@@ -1,56 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="拱窗前的书桌、摊开的书与咖啡">
-  <defs>
-    <linearGradient id="iBg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FBF6EC"/>
-      <stop offset="1" stop-color="#F1E5D0"/>
-    </linearGradient>
-    <linearGradient id="iArch" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#9FAF98"/>
-      <stop offset="1" stop-color="#81947C"/>
-    </linearGradient>
-    <radialGradient id="iGlow" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#F3C988" stop-opacity="0.5"/>
-      <stop offset="1" stop-color="#F3C988" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="iSun" cx="0.38" cy="0.32" r="0.7">
-      <stop offset="0" stop-color="#F9E6BC"/>
-      <stop offset="0.55" stop-color="#EEC47F"/>
-      <stop offset="1" stop-color="#DFA066"/>
-    </radialGradient>
-    <linearGradient id="iTable" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#E9D9BC"/>
-      <stop offset="1" stop-color="#DCC8A4"/>
-    </linearGradient>
-  </defs>
-
-  <rect width="900" height="600" fill="url(#iBg)"/>
+  <rect width="900" height="600" fill="#F7EFE0"/>
 
   <!-- 拱窗 -->
-  <path d="M500 600V276a156 156 0 0 1 312 0v324Z" fill="url(#iArch)"/>
-  <path d="M522 600V284a134 134 0 0 1 268 0v316" fill="none" stroke="#FBF6EC" stroke-width="3" opacity="0.35"/>
-  <circle cx="656" cy="258" r="70" fill="url(#iSun)"/>
-  <circle cx="656" cy="258" r="120" fill="url(#iGlow)"/>
+  <path d="M500 600V276a156 156 0 0 1 312 0v324Z" fill="#8CA08A"/>
+  <path d="M522 600V284a134 134 0 0 1 268 0v316" fill="none" stroke="#F7EFE0" stroke-width="3" opacity="0.4"/>
+  <circle cx="656" cy="258" r="66" fill="#EDC079"/>
 
   <!-- 桌面 -->
-  <rect y="470" width="900" height="130" fill="url(#iTable)"/>
+  <rect y="470" width="900" height="130" fill="#E4D3B5"/>
   <path d="M0 470h900" stroke="#D3BE99" stroke-width="2.5"/>
 
-  <!-- 书与杯子投影 -->
-  <ellipse cx="300" cy="474" rx="142" ry="9" fill="#C9B394" opacity="0.3"/>
-  <ellipse cx="762" cy="534" rx="56" ry="9" fill="#C9B394" opacity="0.32"/>
+  <!-- 投影 -->
+  <ellipse cx="300" cy="474" rx="132" ry="8" fill="#C9B394" opacity="0.28"/>
+  <ellipse cx="762" cy="534" rx="54" ry="8" fill="#C9B394" opacity="0.3"/>
 
-  <!-- 摊开的书：平放，封面在下、书页在上 -->
+  <!-- 摊开的书 -->
   <g>
-    <path d="M300 351C250 348 196 352 148 357V470H452V357C404 352 350 348 300 351Z" fill="#C4704F"/>
-    <path d="M300 356C250 353 196 357 158 362V462H300Z" fill="#FFFDF6"/>
-    <path d="M300 356C350 353 404 357 442 362V462H300Z" fill="#FFFDF6"/>
-    <path d="M300 356V462" stroke="#DCCDAF" stroke-width="2.6"/>
-    <g stroke="#DFD0B6" stroke-width="3" stroke-linecap="round">
-      <path d="M178 402H280M178 420H264M178 438H242"/>
-      <path d="M320 402H422M336 420H422M358 438H422"/>
+    <rect x="170" y="278" width="260" height="192" rx="3" fill="#C4704F"/>
+    <rect x="178" y="278" width="122" height="184" fill="#FFFDF6"/>
+    <rect x="300" y="278" width="122" height="184" fill="#FFFDF6"/>
+    <path d="M300 278V462" stroke="#E0D0B4" stroke-width="2.4"/>
+    <path d="M196 306H252" stroke="#C4704F" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
+    <path d="M348 306H404" stroke="#C4704F" stroke-width="6" stroke-linecap="round" opacity="0.4"/>
+    <g stroke="#DFD0B6" stroke-width="3.4" stroke-linecap="round">
+      <path d="M196 330H288M196 352H272M196 374H288M196 396H266M196 418H280M196 440H252"/>
+      <path d="M312 330H404M328 352H404M312 374H404M334 396H404M320 418H404M348 440H404"/>
     </g>
-    <path d="M178 382H234" stroke="#C4704F" stroke-width="5" stroke-linecap="round" opacity="0.75"/>
-    <path d="M366 382H422" stroke="#C4704F" stroke-width="5" stroke-linecap="round" opacity="0.38"/>
   </g>
 
   <!-- 咖啡 -->

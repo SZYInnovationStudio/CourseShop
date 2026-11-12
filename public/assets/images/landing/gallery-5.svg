@@ -1,12 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="叠放的书与盆栽插画">
-  <defs>
-    <linearGradient id="g5bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FBF6EC"/>
-      <stop offset="1" stop-color="#F2E7D3"/>
-    </linearGradient>
-  </defs>
-
-  <rect width="900" height="600" fill="url(#g5bg)"/>
+  <rect width="900" height="600" fill="#F7EFE0"/>
   <circle cx="452" cy="260" r="218" fill="#EBDCBF" opacity="0.45"/>
 
   <ellipse cx="450" cy="512" rx="212" ry="14" fill="#C9B394" opacity="0.38"/>

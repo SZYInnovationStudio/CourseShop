@@ -1,50 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="沿山路走向山顶的插画">
-  <defs>
-    <linearGradient id="g6sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FCF6EA"/>
-      <stop offset="0.7" stop-color="#F5E5CD"/>
-      <stop offset="1" stop-color="#EFDCC0"/>
-    </linearGradient>
-    <radialGradient id="g6glow" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#F2C583" stop-opacity="0.45"/>
-      <stop offset="1" stop-color="#F2C583" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="g6sun" cx="0.38" cy="0.32" r="0.7">
-      <stop offset="0" stop-color="#F8E4B8"/>
-      <stop offset="0.55" stop-color="#EDC27C"/>
-      <stop offset="1" stop-color="#DE9E63"/>
-    </radialGradient>
-    <linearGradient id="g6far" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#C8D4CF"/>
-      <stop offset="1" stop-color="#BDCCC6"/>
-    </linearGradient>
-    <linearGradient id="g6mid" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#AABFB4"/>
-      <stop offset="1" stop-color="#9DB3A7"/>
-    </linearGradient>
-    <linearGradient id="g6near" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#87A08F"/>
-      <stop offset="1" stop-color="#6E8878"/>
-    </linearGradient>
-  </defs>
-
-  <rect width="900" height="600" fill="url(#g6sky)"/>
-  <circle cx="738" cy="152" r="150" fill="url(#g6glow)"/>
-  <circle cx="738" cy="152" r="54" fill="url(#g6sun)"/>
+  <rect width="900" height="600" fill="#F7EFE0"/>
+  <circle cx="738" cy="152" r="54" fill="#EDC079"/>
 
   <!-- 远山 -->
   <path d="M0 430 C 130 356 252 352 372 408 C 472 454 542 378 662 384
-           C 762 389 832 350 900 356 L900 600 L0 600 Z" fill="url(#g6far)"/>
+           C 762 389 832 350 900 356 L900 600 L0 600 Z" fill="#C6D2CD"/>
 
   <!-- 中山 -->
   <path d="M0 488 C 150 428 292 430 424 476 C 544 518 644 448 764 452
-           C 832 455 872 470 900 466 L900 600 L0 600 Z" fill="url(#g6mid)"/>
+           C 832 455 872 470 900 466 L900 600 L0 600 Z" fill="#A9BEB3"/>
 
   <!-- 近处坡地 -->
   <path d="M0 566 C 160 514 322 522 472 552 C 622 582 764 528 900 542 L900 600 L0 600 Z"
-        fill="url(#g6near)"/>
+        fill="#86A08D"/>
   <path d="M0 584 C 170 546 330 554 480 578 C 632 602 772 560 900 572 L900 600 L0 600 Z"
-        fill="#5F7969" opacity="0.4"/>
+        fill="#6E8878"/>
 
   <!-- 上山小路：由远及近逐渐变宽 -->
   <path d="M402 602 C 392 546 452 518 508 494 C 566 468 618 458 668 450
