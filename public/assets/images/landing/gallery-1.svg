@@ -33,18 +33,18 @@
 
   <ellipse cx="620" cy="476" rx="142" ry="9" fill="#C9B394" opacity="0.3"/>
 
-  <!-- 摊开的书 -->
+  <!-- 摊开的书：平放，封面在下、书页在上 -->
   <g>
-    <path d="M478 398L620 380L762 398L762 470L620 452L478 470Z" fill="#C4704F"/>
-    <path d="M620 376L486 394L486 460L620 446Z" fill="#FFFDF6"/>
-    <path d="M620 376L754 394L754 460L620 446Z" fill="#FFFDF6"/>
-    <path d="M620 376V446" stroke="#E6D8C1" stroke-width="2.6"/>
+    <path d="M620 371C570 368 516 372 470 377V470H770V377C724 372 670 368 620 371Z" fill="#C4704F"/>
+    <path d="M620 376C570 373 516 377 480 382V462H620Z" fill="#FFFDF6"/>
+    <path d="M620 376C670 373 724 377 760 382V462H620Z" fill="#FFFDF6"/>
+    <path d="M620 376V462" stroke="#DCCDAF" stroke-width="2.6"/>
     <g stroke="#DFD0B6" stroke-width="3" stroke-linecap="round">
-      <path d="M506 410L596 421M506 428L590 437M506 441L568 447"/>
-      <path d="M644 421L734 410M650 437L734 428M672 447L734 441"/>
+      <path d="M500 404H602M500 421H586M500 438H564"/>
+      <path d="M638 404H740M654 421H740M676 438H740"/>
     </g>
-    <path d="M508 400L566 406" stroke="#C4704F" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
-    <path d="M674 406L732 400" stroke="#C4704F" stroke-width="5" stroke-linecap="round" opacity="0.4"/>
+    <path d="M500 392H556" stroke="#C4704F" stroke-width="5" stroke-linecap="round" opacity="0.75"/>
+    <path d="M684 392H740" stroke="#C4704F" stroke-width="5" stroke-linecap="round" opacity="0.38"/>
   </g>
 
   <!-- 咖啡 -->
