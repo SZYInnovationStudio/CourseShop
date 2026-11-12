@@ -1733,7 +1733,8 @@ html:not([data-theme="dark"]) .theme-toggle__icon--moon { display: none; }
     /* 主页极简顶栏没有抽屉，语言切换直接留在页头，仅保留图标以节省宽度 */
     body.page-landing .lang-menu { display: block !important; }
     body.page-landing .lang-menu__label { display: none; }
-    body.page-landing .lang-menu__trigger { width: 38px; padding: 0; justify-content: center; }
+    /* 与深浅色按钮保持同宽同高（移动端统一 44px 触控尺寸） */
+    body.page-landing .lang-menu__trigger { width: 44px; height: 44px; padding: 0; justify-content: center; }
 }
 
 @media (max-width: 479px) {
