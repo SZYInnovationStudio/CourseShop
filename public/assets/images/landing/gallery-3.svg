@@ -1,60 +1,50 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="耳机与声波插画">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F7F1E6"/>
-      <stop offset="1" stop-color="#EDE2CF"/>
+    <linearGradient id="g3bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FBF6EC"/>
+      <stop offset="1" stop-color="#F2E7D3"/>
     </linearGradient>
-    <linearGradient id="cupWarm" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#D08A67"/>
-      <stop offset="1" stop-color="#B45F44"/>
+    <linearGradient id="g3cupL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#CE7B56"/>
+      <stop offset="1" stop-color="#B35F3D"/>
     </linearGradient>
-    <linearGradient id="cupGreen" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#9CAD98"/>
-      <stop offset="1" stop-color="#718875"/>
+    <linearGradient id="g3cupR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#94A88D"/>
+      <stop offset="1" stop-color="#7A9074"/>
+    </linearGradient>
+    <linearGradient id="g3band" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1B3766"/>
+      <stop offset="1" stop-color="#102956"/>
     </linearGradient>
   </defs>
 
-  <rect width="900" height="600" fill="url(#bg)"/>
-  <circle cx="450" cy="336" r="236" fill="#E8DCC6" opacity="0.7"/>
-  <circle cx="450" cy="336" r="236" fill="none" stroke="#102956" stroke-width="2" opacity="0.16"/>
+  <rect width="900" height="600" fill="url(#g3bg)"/>
+  <circle cx="450" cy="300" r="206" fill="#EEDFC6" opacity="0.5"/>
 
   <!-- 声波 -->
-  <g fill="none" stroke="#102956" stroke-linecap="round">
-    <path d="M186 302a98 98 0 0 0 0 132" stroke-width="4" opacity="0.34"/>
-    <path d="M148 276a138 138 0 0 0 0 184" stroke-width="3.4" opacity="0.22"/>
-    <path d="M714 302a98 98 0 0 1 0 132" stroke-width="4" opacity="0.34"/>
-    <path d="M752 276a138 138 0 0 1 0 184" stroke-width="3.4" opacity="0.22"/>
+  <g fill="none" stroke="#C9B8A2" stroke-linecap="round">
+    <path d="M212 398a54 54 0 0 0 0 84" stroke-width="4"/>
+    <path d="M190 376a82 82 0 0 0 0 128" stroke-width="3.4" opacity="0.6"/>
+    <path d="M688 398a54 54 0 0 1 0 84" stroke-width="4"/>
+    <path d="M710 376a82 82 0 0 1 0 128" stroke-width="3.4" opacity="0.6"/>
   </g>
+
+  <!-- 耳罩阴影 -->
+  <ellipse cx="280" cy="496" rx="58" ry="10" fill="#C9B394" opacity="0.35"/>
+  <ellipse cx="620" cy="496" rx="58" ry="10" fill="#C9B394" opacity="0.35"/>
 
   <!-- 头梁 -->
-  <path d="M272 354A180 180 0 0 1 628 354" fill="none" stroke="#102956" stroke-width="26" stroke-linecap="round"/>
-  <path d="M272 354A180 180 0 0 1 628 354" fill="none" stroke="#3B4F6E" stroke-width="10" stroke-linecap="round" opacity="0.55"/>
+  <path d="M280 378C280 186 620 186 620 378" fill="none" stroke="url(#g3band)"
+        stroke-width="30" stroke-linecap="round"/>
 
-  <!-- 左耳罩 -->
-  <g>
-    <rect x="220" y="330" width="104" height="160" rx="46" fill="url(#cupWarm)"/>
-    <rect x="240" y="354" width="64" height="112" rx="30" fill="#8E4B37" opacity="0.45"/>
-    <rect x="220" y="330" width="104" height="160" rx="46" fill="none" stroke="#102956" stroke-width="3.4" opacity="0.5"/>
-  </g>
+  <!-- 左右耳罩 -->
+  <rect x="240" y="356" width="80" height="136" rx="38" fill="url(#g3cupL)"/>
+  <rect x="258" y="374" width="44" height="100" rx="22" fill="#A9522F" opacity="0.55"/>
+  <rect x="580" y="356" width="80" height="136" rx="38" fill="url(#g3cupR)"/>
+  <rect x="598" y="374" width="44" height="100" rx="22" fill="#6B8267" opacity="0.5"/>
 
-  <!-- 右耳罩 -->
-  <g>
-    <rect x="576" y="330" width="104" height="160" rx="46" fill="url(#cupGreen)"/>
-    <rect x="596" y="354" width="64" height="112" rx="30" fill="#4F6655" opacity="0.4"/>
-    <rect x="576" y="330" width="104" height="160" rx="46" fill="none" stroke="#102956" stroke-width="3.4" opacity="0.5"/>
-  </g>
-
-  <!-- 音符 -->
-  <g fill="#102956" opacity="0.72">
-    <circle cx="666" cy="196" r="11"/>
-    <path d="M676 196v-52l30 8v12l-20-6v38Z"/>
-    <circle cx="262" cy="228" r="9" opacity="0.8"/>
-    <path d="M270 228v-42l24 6v10l-16-4v30Z" opacity="0.8"/>
-  </g>
-
-  <!-- 点缀 -->
-  <circle cx="152" cy="170" r="7" fill="#C4704F"/>
-  <circle cx="768" cy="452" r="9" fill="#D9A441"/>
-  <path d="M738 142l7 16 16 7-16 7-7 16-7-16-16-7 16-7Z" fill="#D9A441" opacity="0.75"/>
-  <path d="M120 470h74" stroke="#102956" stroke-width="3" stroke-linecap="round" opacity="0.3"/>
+  <path d="M252 372c8-8 22-12 36-12" fill="none" stroke="#FBF6EC" stroke-width="4"
+        stroke-linecap="round" opacity="0.25"/>
+  <path d="M592 372c8-8 22-12 36-12" fill="none" stroke="#FBF6EC" stroke-width="4"
+        stroke-linecap="round" opacity="0.25"/>
 </svg>

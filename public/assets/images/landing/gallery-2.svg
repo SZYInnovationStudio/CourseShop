@@ -1,67 +1,54 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="笔记与几何图形插画">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="摊开的笔记本、便签与铅笔">
   <defs>
-    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FEFBF4"/>
-      <stop offset="1" stop-color="#F7F0E2"/>
+    <linearGradient id="g2bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FBF6EC"/>
+      <stop offset="1" stop-color="#F2E7D3"/>
+    </linearGradient>
+    <linearGradient id="g2paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFEFA"/>
+      <stop offset="1" stop-color="#FBF4E6"/>
     </linearGradient>
   </defs>
 
-  <rect width="900" height="600" fill="#F1EEE6"/>
-  <circle cx="694" cy="196" r="168" fill="#E7DDC9" opacity="0.75"/>
+  <rect width="900" height="600" fill="url(#g2bg)"/>
+  <circle cx="664" cy="196" r="208" fill="#EBDCBF" opacity="0.5"/>
 
-  <!-- 太阳弧 -->
-  <circle cx="694" cy="196" r="62" fill="#D9A441" opacity="0.9"/>
-  <circle cx="694" cy="196" r="96" fill="none" stroke="#102956" stroke-width="2.4" opacity="0.28"/>
-
-  <!-- 笔记本 -->
-  <g transform="rotate(-6 450 300)">
-    <rect x="278" y="150" width="312" height="396" rx="12" fill="#E4D6BF" opacity="0.6"/>
-    <rect x="262" y="136" width="312" height="396" rx="12" fill="url(#paper)" stroke="#E0D2BC" stroke-width="3"/>
-    <path d="M300 136v396" stroke="#E6D8C2" stroke-width="3"/>
-    <g fill="#C9A274">
-      <circle cx="286" cy="172" r="5"/><circle cx="286" cy="210" r="5"/>
-      <circle cx="286" cy="248" r="5"/><circle cx="286" cy="286" r="5"/>
-      <circle cx="286" cy="324" r="5"/><circle cx="286" cy="362" r="5"/>
-      <circle cx="286" cy="400" r="5"/><circle cx="286" cy="438" r="5"/>
+  <g transform="rotate(-7 460 320)">
+    <rect x="344" y="168" width="290" height="372" rx="14" fill="#C9B394" opacity="0.32"/>
+    <rect x="330" y="150" width="290" height="372" rx="14" fill="url(#g2paper)"/>
+    <g fill="#D3BE99">
+      <circle cx="352" cy="186" r="4"/><circle cx="352" cy="214" r="4"/>
+      <circle cx="352" cy="242" r="4"/><circle cx="352" cy="270" r="4"/>
+      <circle cx="352" cy="298" r="4"/><circle cx="352" cy="326" r="4"/>
+      <circle cx="352" cy="354" r="4"/><circle cx="352" cy="382" r="4"/>
+      <circle cx="352" cy="410" r="4"/><circle cx="352" cy="438" r="4"/>
+      <circle cx="352" cy="466" r="4"/>
     </g>
-
-    <path d="M330 194h186" stroke="#102956" stroke-width="7" stroke-linecap="round" opacity="0.78"/>
-    <path d="M330 220h118" stroke="#C4704F" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
-
-    <g stroke="#C6B69C" stroke-width="3.6" stroke-linecap="round">
-      <path d="M330 262h204M330 288h188M330 314h204M330 340h146"/>
-      <path d="M330 384h204M330 410h172M330 436h196M330 462h128"/>
+    <rect x="392" y="204" width="196" height="8" rx="4" fill="#102956"/>
+    <rect x="392" y="230" width="136" height="6" rx="3" fill="#C4704F" opacity="0.8"/>
+    <g fill="#DFD0B6">
+      <rect x="392" y="266" width="198" height="4" rx="2"/>
+      <rect x="392" y="292" width="176" height="4" rx="2"/>
+      <rect x="392" y="318" width="198" height="4" rx="2"/>
+      <rect x="392" y="344" width="152" height="4" rx="2"/>
+      <rect x="392" y="396" width="192" height="4" rx="2"/>
+      <rect x="392" y="422" width="164" height="4" rx="2"/>
+      <rect x="392" y="448" width="188" height="4" rx="2"/>
     </g>
-
-    <!-- 便签 -->
-    <g transform="rotate(7 520 420)">
-      <rect x="452" y="368" width="112" height="104" rx="6" fill="#E8C98B"/>
-      <path d="M452 420h112M452 444h84" stroke="#C4704F" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
-      <path d="M564 368v26h-26" fill="#D9B36C"/>
+    <g transform="rotate(3 552 424)">
+      <rect x="494" y="372" width="118" height="106" rx="4" fill="#EFD6A2"/>
+      <rect x="494" y="372" width="118" height="10" rx="4" fill="#E6C98E"/>
+      <rect x="514" y="404" width="76" height="4" rx="2" fill="#C8A96F"/>
+      <rect x="514" y="424" width="56" height="4" rx="2" fill="#C8A96F" opacity="0.8"/>
     </g>
   </g>
 
   <!-- 铅笔 -->
-  <g transform="rotate(32 600 520)">
-    <rect x="512" y="512" width="150" height="16" rx="4" fill="#C4704F"/>
-    <path d="M512 512l-28 8 28 8Z" fill="#F7F0E2"/>
-    <path d="M492 518l10-4 10 4-10 4Z" fill="#102956"/>
-    <rect x="650" y="512" width="14" height="16" rx="4" fill="#8A9B85"/>
+  <g transform="rotate(13 690 508)">
+    <ellipse cx="686" cy="524" rx="100" ry="8" fill="#C9B394" opacity="0.3"/>
+    <rect x="606" y="498" width="152" height="17" rx="4" fill="#D9A441"/>
+    <path d="M606 498l-25 8.5 25 8.5Z" fill="#E9D3AC"/>
+    <path d="M593 502.4L581 506.5l12 4.1Z" fill="#102956"/>
+    <rect x="748" y="498" width="13" height="17" rx="4" fill="#C4704F"/>
   </g>
-
-  <!-- 几何点缀 -->
-  <circle cx="700" cy="452" r="54" fill="#8A9B85" opacity="0.9"/>
-  <path d="M666 452h68" stroke="#F1EEE6" stroke-width="3" opacity="0.6"/>
-
-  <g transform="rotate(12 150 170)">
-    <rect x="118" y="138" width="64" height="64" rx="4" fill="none" stroke="#102956" stroke-width="4" opacity="0.55"/>
-  </g>
-
-  <path d="M118 540h250" stroke="#102956" stroke-width="3" opacity="0.35"/>
-  <g stroke="#102956" stroke-width="2.4" opacity="0.35">
-    <path d="M140 534v12M172 534v8M204 534v12M236 534v8M268 534v12M300 534v8M332 534v12"/>
-  </g>
-
-  <circle cx="196" cy="330" r="9" fill="#C4704F"/>
-  <circle cx="760" cy="340" r="6" fill="#102956" opacity="0.5"/>
 </svg>

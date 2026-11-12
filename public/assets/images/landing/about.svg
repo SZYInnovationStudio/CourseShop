@@ -1,41 +1,79 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="拱门与光影插画">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="晨光下的层叠山峦插画">
   <defs>
-    <linearGradient id="aboutSky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F7F3EA"/>
-      <stop offset="1" stop-color="#EFE6D6"/>
+    <linearGradient id="aSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FDF8EF"/>
+      <stop offset="0.45" stop-color="#F8EBD6"/>
+      <stop offset="1" stop-color="#EFDCC0"/>
     </linearGradient>
+    <radialGradient id="aGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#F2C583" stop-opacity="0.42"/>
+      <stop offset="0.55" stop-color="#EFBE7C" stop-opacity="0.13"/>
+      <stop offset="1" stop-color="#EFBE7C" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="aSun" cx="0.38" cy="0.32" r="0.7">
+      <stop offset="0" stop-color="#F8E5B8"/>
+      <stop offset="0.55" stop-color="#EDC27C"/>
+      <stop offset="1" stop-color="#DE9E63"/>
+    </radialGradient>
+    <linearGradient id="aFar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D5DDDA"/>
+      <stop offset="1" stop-color="#C8D4CF"/>
+    </linearGradient>
+    <linearGradient id="aMid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#B0C3B8"/>
+      <stop offset="1" stop-color="#9FB5A8"/>
+    </linearGradient>
+    <linearGradient id="aNear" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8CA294"/>
+      <stop offset="1" stop-color="#6E8878"/>
+    </linearGradient>
+    <filter id="aBlur" x="-40%" y="-220%" width="180%" height="540%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
   </defs>
 
-  <rect width="1600" height="900" fill="url(#aboutSky)"/>
+  <rect width="1600" height="900" fill="url(#aSky)"/>
 
-  <!-- 右侧拱门（鼠尾草绿） -->
-  <path d="M980 900 L980 300 A270 270 0 0 1 1520 300 L1520 900 Z" fill="#8A9B85" opacity="0.9"/>
-  <path d="M1040 900 L1040 312 A210 210 0 0 1 1460 312 L1460 900"
-        fill="none" stroke="#F7F3EA" stroke-width="5" opacity="0.5"/>
+  <!-- 晨光：太阳完整落在头图可见带内 -->
+  <circle cx="1148" cy="352" r="300" fill="url(#aGlow)"/>
+  <circle cx="1148" cy="352" r="94" fill="url(#aSun)"/>
 
-  <!-- 左侧地平色带（陶土） -->
-  <path d="M0 700 Q220 610 470 700 T940 690 L940 900 L0 900 Z" fill="#C4704F" opacity="0.85"/>
-  <path d="M0 700 Q220 610 470 700 T940 690" fill="none" stroke="#102956" stroke-width="3" opacity="0.35"/>
-
-  <!-- 赭黄日轮与细环 -->
-  <circle cx="520" cy="330" r="118" fill="#D9A441"/>
-  <circle cx="520" cy="330" r="168" fill="none" stroke="#102956" stroke-width="2.5" opacity="0.35"/>
-
-  <!-- 深蓝细线构成 -->
-  <g fill="none" stroke="#102956" stroke-width="3" opacity="0.55" stroke-linecap="round">
-    <path d="M120 800 h260"/>
-    <path d="M1180 690 h210"/>
-    <path d="M860 170 q60 -34 120 -8"/>
+  <!-- 云 -->
+  <g fill="#FFFFFF" filter="url(#aBlur)">
+    <ellipse cx="372" cy="272" rx="188" ry="15" opacity="0.5"/>
+    <ellipse cx="288" cy="308" rx="110" ry="10" opacity="0.3"/>
+    <ellipse cx="906" cy="228" rx="126" ry="11" opacity="0.28"/>
   </g>
 
-  <!-- 枝叶点缀 -->
-  <g>
-    <path d="M150 520 q80 -70 168 -40" fill="none" stroke="#5F7261" stroke-width="6" stroke-linecap="round"/>
-    <ellipse cx="212" cy="452" rx="34" ry="14" fill="#8A9B85" transform="rotate(-26 212 452)"/>
-    <ellipse cx="300" cy="470" rx="28" ry="12" fill="#C4704F" transform="rotate(12 300 470)"/>
-    <ellipse cx="176" cy="486" rx="24" ry="10" fill="#D9A441" transform="rotate(-8 176 486)"/>
+  <!-- 远山 -->
+  <path d="M0 556 C 168 470 330 464 486 534 C 626 596 748 482 908 474
+           C 1064 466 1170 546 1320 546 C 1440 546 1520 496 1600 502 L1600 900 L0 900 Z"
+        fill="url(#aFar)" opacity="0.7"/>
+
+  <!-- 中山 -->
+  <path d="M0 590 C 190 552 344 544 488 582 C 636 622 780 556 922 552
+           C 1066 548 1192 594 1356 580 C 1452 572 1530 570 1600 568 L1600 900 L0 900 Z"
+        fill="url(#aMid)" opacity="0.92"/>
+
+  <!-- 近山 -->
+  <path d="M0 632 C 204 610 380 602 566 622 C 756 642 972 604 1176 610
+           C 1358 616 1484 606 1600 610 L1600 900 L0 900 Z" fill="url(#aNear)"/>
+
+  <!-- 山脚薄雾 -->
+  <g fill="#FFFFFF" filter="url(#aBlur)">
+    <ellipse cx="436" cy="600" rx="320" ry="14" opacity="0.26"/>
+    <ellipse cx="1216" cy="604" rx="310" ry="12" opacity="0.22"/>
   </g>
 
-  <!-- 底部小点 -->
-  <circle cx="1310" cy="800" r="8" fill="#C4704F"/>
+  <!-- 近景坡地 -->
+  <path d="M0 726 C 250 692 452 722 664 714 C 880 706 1060 682 1258 698
+           C 1416 710 1518 724 1600 712 L1600 900 L0 900 Z" fill="#5A7462"/>
+  <path d="M0 782 C 250 748 448 778 668 770 C 892 762 1058 738 1258 752
+           C 1418 762 1520 776 1600 764 L1600 900 L0 900 Z" fill="#3C5346" opacity="0.55"/>
+
+  <!-- 飞鸟 -->
+  <g stroke="#5A6F72" fill="none" stroke-width="3.2" stroke-linecap="round" opacity="0.42">
+    <path d="M648 336q15-12 30 0M678 336q15-12 30 0"/>
+    <path d="M782 300q12-10 24 0M806 300q12-10 24 0"/>
+  </g>
 </svg>

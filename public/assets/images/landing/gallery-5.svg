@@ -1,64 +1,45 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="书堆与绿植插画">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="叠放的书与盆栽插画">
   <defs>
-    <linearGradient id="bg5" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F7F2E8"/>
-      <stop offset="1" stop-color="#ECE1CE"/>
+    <linearGradient id="g5bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FBF6EC"/>
+      <stop offset="1" stop-color="#F2E7D3"/>
     </linearGradient>
   </defs>
 
-  <rect width="900" height="600" fill="url(#bg5)"/>
-  <circle cx="704" cy="164" r="62" fill="#D9A441" opacity="0.92"/>
-  <circle cx="704" cy="164" r="96" fill="none" stroke="#102956" stroke-width="2.2" opacity="0.26"/>
+  <rect width="900" height="600" fill="url(#g5bg)"/>
+  <circle cx="452" cy="260" r="218" fill="#EBDCBF" opacity="0.45"/>
 
-  <!-- 桌面 -->
-  <path d="M120 532h660" stroke="#102956" stroke-width="3" stroke-linecap="round" opacity="0.3"/>
-  <ellipse cx="450" cy="538" rx="284" ry="18" fill="#C4AC86" opacity="0.34"/>
+  <ellipse cx="450" cy="512" rx="212" ry="14" fill="#C9B394" opacity="0.38"/>
 
-  <!-- 最下层书 -->
+  <!-- 书堆（自下而上，每本露出书页断面） -->
   <g>
-    <rect x="198" y="478" width="474" height="48" rx="7" fill="#5F7261"/>
-    <rect x="620" y="482" width="42" height="40" rx="4" fill="#F4EBDC" opacity="0.9"/>
-    <path d="M226 494h300M226 512h250" stroke="#F4EBDC" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
+    <rect x="240" y="452" width="420" height="37" rx="8" fill="#4F6A58"/>
+    <rect x="248" y="489" width="404" height="9" rx="3" fill="#E4D3B3"/>
+    <path d="M252 494h396" stroke="#D3BF9B" stroke-width="2" opacity="0.8"/>
+
+    <rect x="268" y="408" width="380" height="35" rx="8" fill="#C4704F"/>
+    <rect x="276" y="443" width="364" height="9" rx="3" fill="#E8D8B8"/>
+    <path d="M280 448h356" stroke="#D6C29F" stroke-width="2" opacity="0.8"/>
+
+    <rect x="300" y="366" width="330" height="33" rx="8" fill="#D9A441"/>
+    <rect x="308" y="399" width="314" height="9" rx="3" fill="#EBDCB9"/>
+    <path d="M312 404h306" stroke="#DBC9A5" stroke-width="2" opacity="0.8"/>
+
+    <rect x="330" y="326" width="280" height="31" rx="8" fill="#102956"/>
+    <rect x="338" y="357" width="264" height="9" rx="3" fill="#E6D6B6"/>
+    <path d="M342 362h256" stroke="#D3BF9B" stroke-width="2" opacity="0.8"/>
   </g>
 
-  <!-- 第二层 -->
-  <g transform="rotate(-1.2 450 450)">
-    <rect x="238" y="430" width="416" height="44" rx="7" fill="#C4704F"/>
-    <rect x="612" y="434" width="34" height="36" rx="4" fill="#F4EBDC" opacity="0.9"/>
-    <path d="M266 444h268M266 462h214" stroke="#F4EBDC" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
-    <path d="M566 430v58l-16-10-16 10v-58Z" fill="#D9A441"/>
-  </g>
+  <ellipse cx="450" cy="328" rx="44" ry="6" fill="#0A1D3D" opacity="0.18"/>
 
-  <!-- 第三层 -->
-  <g transform="rotate(1 450 402)">
-    <rect x="268" y="386" width="352" height="40" rx="6" fill="#D9A441"/>
-    <rect x="580" y="390" width="30" height="32" rx="4" fill="#F4EBDC" opacity="0.9"/>
-    <path d="M296 400h236M296 416h180" stroke="#F4EBDC" stroke-width="3.6" stroke-linecap="round" opacity="0.5"/>
-  </g>
-
-  <!-- 顶层 -->
+  <!-- 盆栽 -->
   <g>
-    <rect x="304" y="344" width="288" height="38" rx="6" fill="#102956"/>
-    <rect x="556" y="348" width="28" height="30" rx="4" fill="#F4EBDC" opacity="0.85"/>
-    <path d="M332 358h172M332 372h128" stroke="#F4EBDC" stroke-width="3.4" stroke-linecap="round" opacity="0.45"/>
+    <path d="M450 298v-104" stroke="#546B58" stroke-width="4" stroke-linecap="round"/>
+    <path d="M450 266c-34-4-52-30-44-52 26 6 44 28 44 52Z" fill="#7C9078"/>
+    <path d="M450 240c34-4 52-30 44-52-26 6-44 28-44 52Z" fill="#8A9B85"/>
+    <path d="M450 220c-26-6-39-26-31-43 20 5 31 22 31 43Z" fill="#8A9B85"/>
+    <path d="M450 198c26-6 39-26 31-43-20 5-31 22-31 43Z" fill="#7C9078"/>
+    <path d="M418 298h64l-8 28h-48Z" fill="#C4704F"/>
+    <rect x="412" y="288" width="76" height="12" rx="4" fill="#B4633F"/>
   </g>
-
-  <!-- 花盆 -->
-  <g>
-    <path d="M406 344h90l-10-46h-70Z" fill="#C4704F"/>
-    <path d="M406 344h90" stroke="#A9563C" stroke-width="4"/>
-    <g fill="#8A9B85">
-      <ellipse cx="418" cy="278" rx="30" ry="12" transform="rotate(-40 418 278)"/>
-      <ellipse cx="486" cy="280" rx="30" ry="12" transform="rotate(38 486 280)"/>
-      <ellipse cx="452" cy="256" rx="28" ry="11" transform="rotate(-4 452 256)"/>
-      <ellipse cx="440" cy="304" rx="26" ry="10" transform="rotate(-24 440 304)"/>
-      <ellipse cx="472" cy="310" rx="24" ry="9" transform="rotate(22 472 310)"/>
-    </g>
-    <path d="M452 344v-56M424 332c-12-14-16-26-12-38M480 332c12-14 16-26 12-38" fill="none" stroke="#5F7261" stroke-width="3.2" stroke-linecap="round"/>
-  </g>
-
-  <!-- 点缀 -->
-  <circle cx="172" cy="212" r="8" fill="#C4704F"/>
-  <circle cx="748" cy="372" r="7" fill="#5F7261"/>
-  <path d="M128 190h70M128 214h44" stroke="#102956" stroke-width="3" stroke-linecap="round" opacity="0.28"/>
 </svg>

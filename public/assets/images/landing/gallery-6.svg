@@ -1,70 +1,93 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="通往山顶的小路插画">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-label="沿山路走向山顶的插画">
   <defs>
-    <linearGradient id="bg6" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F9F4E9"/>
-      <stop offset="1" stop-color="#EDDFC6"/>
+    <linearGradient id="g6sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FCF6EA"/>
+      <stop offset="0.7" stop-color="#F5E5CD"/>
+      <stop offset="1" stop-color="#EFDCC0"/>
     </linearGradient>
-    <linearGradient id="hill6" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#7E927E"/>
-      <stop offset="1" stop-color="#5A6F5E"/>
+    <radialGradient id="g6glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#F2C583" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#F2C583" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g6sun" cx="0.38" cy="0.32" r="0.7">
+      <stop offset="0" stop-color="#F8E4B8"/>
+      <stop offset="0.55" stop-color="#EDC27C"/>
+      <stop offset="1" stop-color="#DE9E63"/>
+    </radialGradient>
+    <linearGradient id="g6far" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C8D4CF"/>
+      <stop offset="1" stop-color="#BDCCC6"/>
+    </linearGradient>
+    <linearGradient id="g6mid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#AABFB4"/>
+      <stop offset="1" stop-color="#9DB3A7"/>
+    </linearGradient>
+    <linearGradient id="g6near" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#87A08F"/>
+      <stop offset="1" stop-color="#6E8878"/>
     </linearGradient>
   </defs>
 
-  <rect width="900" height="600" fill="url(#bg6)"/>
-
-  <!-- 太阳 -->
-  <circle cx="656" cy="182" r="74" fill="#D9A441"/>
-  <circle cx="656" cy="182" r="108" fill="none" stroke="#102956" stroke-width="2.2" opacity="0.24"/>
-
-  <!-- 云与飞鸟 -->
-  <g stroke="#FFFFFF" stroke-linecap="round" fill="none" opacity="0.55">
-    <path d="M164 196h112" stroke-width="7"/>
-    <path d="M208 224h70" stroke-width="5"/>
-  </g>
-  <g fill="none" stroke="#102956" stroke-width="3.4" stroke-linecap="round" opacity="0.5">
-    <path d="M410 188q13-12 26 0M438 188q13-12 26 0"/>
-    <path d="M512 152q11-10 22 0M534 152q11-10 22 0"/>
-  </g>
+  <rect width="900" height="600" fill="url(#g6sky)"/>
+  <circle cx="738" cy="152" r="150" fill="url(#g6glow)"/>
+  <circle cx="738" cy="152" r="54" fill="url(#g6sun)"/>
 
   <!-- 远山 -->
-  <path d="M0 430 L168 316 L318 412 L470 300 L640 424 L790 340 L900 410 L900 600 L0 600 Z"
-        fill="#B8C4C6" opacity="0.52"/>
-  <path d="M0 478 L210 378 L392 470 L560 372 L740 476 L900 396 L900 600 L0 600 Z"
-        fill="#9EAFAA" opacity="0.65"/>
+  <path d="M0 430 C 130 356 252 352 372 408 C 472 454 542 378 662 384
+           C 762 389 832 350 900 356 L900 600 L0 600 Z" fill="url(#g6far)"/>
 
-  <!-- 主山体 -->
-  <path d="M0 600 L250 408 C330 348 420 372 470 430 C520 488 600 486 660 432 C700 396 760 388 900 470 L900 600 Z"
-        fill="url(#hill6)"/>
-  <path d="M250 408 C330 348 420 372 470 430 C520 488 600 486 660 432"
-        fill="none" stroke="#102956" stroke-width="2.6" opacity="0.3"/>
+  <!-- 中山 -->
+  <path d="M0 488 C 150 428 292 430 424 476 C 544 518 644 448 764 452
+           C 832 455 872 470 900 466 L900 600 L0 600 Z" fill="url(#g6mid)"/>
 
-  <!-- 山路 -->
-  <path d="M356 600 C338 548 424 532 452 486 C478 444 526 426 560 392 C586 366 620 352 658 338"
-        fill="none" stroke="#F6ECD7" stroke-width="34" stroke-linecap="round"/>
-  <path d="M356 600 C338 548 424 532 452 486 C478 444 526 426 560 392 C586 366 620 352 658 338"
-        fill="none" stroke="#C9A274" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 16" opacity="0.75"/>
+  <!-- 近处坡地 -->
+  <path d="M0 566 C 160 514 322 522 472 552 C 622 582 764 528 900 542 L900 600 L0 600 Z"
+        fill="url(#g6near)"/>
+  <path d="M0 584 C 170 546 330 554 480 578 C 632 602 772 560 900 572 L900 600 L0 600 Z"
+        fill="#5F7969" opacity="0.4"/>
 
-  <!-- 里程碑 -->
-  <g fill="#F6ECD7" stroke="#C9A274" stroke-width="2.4">
-    <circle cx="398" cy="552" r="7"/>
-    <circle cx="468" cy="470" r="7"/>
-    <circle cx="540" cy="408" r="7"/>
-    <circle cx="606" cy="360" r="7"/>
-  </g>
+  <!-- 上山小路：由远及近逐渐变宽 -->
+  <path d="M402 602 C 392 546 452 518 508 494 C 566 468 618 458 668 450
+           L 678 459
+           C 626 470 574 482 522 506 C 470 530 436 558 486 602 Z"
+        fill="#F4EAD4"/>
+  <path d="M402 602 C 392 546 452 518 508 494 C 566 468 618 458 668 450"
+        fill="none" stroke="#E3D2B1" stroke-width="2.2" opacity="0.8"/>
+  <path d="M486 602 C 436 558 470 530 522 506 C 574 482 626 470 678 459"
+        fill="none" stroke="#E3D2B1" stroke-width="2.2" opacity="0.45"/>
 
   <!-- 山顶旗帜 -->
+  <path d="M672 456v-82" stroke="#3A4E5F" stroke-width="5" stroke-linecap="round"/>
+  <path d="M674 376l44 14-44 16Z" fill="#C4704F"/>
+  <circle cx="672" cy="370" r="6" fill="#3A4E5F"/>
+
+  <!-- 树木 -->
   <g>
-    <path d="M662 340v-72" stroke="#102956" stroke-width="4" stroke-linecap="round"/>
-    <path d="M664 270h54l-16 17 16 17h-54Z" fill="#C4704F"/>
-    <circle cx="662" cy="268" r="5" fill="#102956"/>
+    <path d="M150 556v-38" stroke="#31463A" stroke-width="6" stroke-linecap="round"/>
+    <path d="M150 520c-24 0-40-13-40-29 0-18 16-30 35-27 4-18 20-28 37-23 17 5 25 18 23 31 15 3 24 14 22 25-2 14-15 23-35 23z"
+          fill="#3E5547"/>
+  </g>
+  <g>
+    <path d="M246 570v-30" stroke="#31463A" stroke-width="5" stroke-linecap="round"/>
+    <path d="M246 542c-19 0-31-10-31-23 0-14 12-24 27-22 3-14 16-22 29-18 14 4 20 14 18 25 12 3 19 11 17 20-2 11-12 18-28 18z"
+          fill="#38503F"/>
+  </g>
+  <g>
+    <path d="M838 552v-34" stroke="#31463A" stroke-width="5" stroke-linecap="round"/>
+    <path d="M838 520c-21 0-34-11-34-25 0-15 13-26 30-24 3-15 17-24 31-19 15 4 22 15 19 27 13 3 21 12 19 21-2 12-13 20-30 20z"
+          fill="#3E5547"/>
   </g>
 
-  <!-- 前景草木 -->
-  <g stroke="#3F5144" stroke-width="2.4" stroke-linecap="round" opacity="0.55">
-    <path d="M120 596c8-20 14-30 28-42M148 598c2-16 4-26 14-38M782 598c8-18 14-28 26-38M810 600c2-16 4-24 12-34"/>
+  <!-- 低矮灌木 -->
+  <g fill="#3E5547" opacity="0.55">
+    <path d="M70 592c4-16 22-22 34-12 10-8 26-4 28 10 10-3 20 3 20 12H70Z"/>
+    <path d="M556 598c3-13 18-18 28-10 8-6 21-3 23 8 8-2 16 3 16 10H556Z"/>
+    <path d="M790 594c4-14 19-19 30-10 8-7 22-3 24 9 9-2 17 3 17 10H790Z"/>
   </g>
-  <g fill="#5F7261">
-    <path d="M212 596l-16-52h32Z"/>
-    <path d="M758 600l-14-44h28Z"/>
+
+  <!-- 飞鸟 -->
+  <g stroke="#5A6F72" fill="none" stroke-width="2.8" stroke-linecap="round" opacity="0.5">
+    <path d="M486 258q12-10 24 0M508 258q12-10 24 0"/>
+    <path d="M596 208q10-9 20 0M614 208q10-9 20 0"/>
   </g>
 </svg>
