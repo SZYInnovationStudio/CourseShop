@@ -296,6 +296,8 @@ pre {
     -webkit-backdrop-filter: saturate(140%) blur(10px);
     backdrop-filter: saturate(140%) blur(10px);
     border-bottom: 1px solid var(--color-border);
+    transition: background-color 0.4s var(--ease-out), border-color 0.4s var(--ease-out),
+        box-shadow 0.4s var(--ease-out);
 }
 
 .site-header__inner {
@@ -3925,8 +3927,10 @@ html { overflow-x: clip; }
 .landing-hero__shade {
     position: absolute;
     inset: 0;
-    /* 扁平化：只保留一层极简的冷调压暗，保证白色标题可读 */
-    background: linear-gradient(180deg, rgba(26, 38, 32, 0.32) 0%, rgba(26, 38, 32, 0.34) 46%, rgba(18, 26, 22, 0.66) 100%);
+    /* 居中构图：上下略深、中间留出画面细节，四周再加一层柔和暗角，保证白色标题始终可读 */
+    background:
+        radial-gradient(125% 85% at 50% 42%, rgba(38, 30, 18, 0) 36%, rgba(38, 30, 18, 0.32) 100%),
+        linear-gradient(180deg, rgba(34, 30, 20, 0.4) 0%, rgba(34, 30, 20, 0.16) 46%, rgba(22, 26, 18, 0.58) 100%);
 }
 
 .landing-hero__inner {
@@ -4067,39 +4071,63 @@ html { overflow-x: clip; }
     color: #FFFFFF;
 }
 
-/* 扁平浅色首屏：亮色主题下去掉压暗层，文字改为深墨色，与插画风格统一 */
-html:not([data-theme="dark"]) .landing-hero__shade { display: none; }
-
-html:not([data-theme="dark"]) .landing-hero--image .landing-kicker,
-html:not([data-theme="dark"]) .landing-hero--image .landing-hero__title { color: #1E2A24; }
-
-html:not([data-theme="dark"]) .landing-hero--image .landing-kicker::before { background: rgba(30, 42, 36, 0.5); }
-
-html:not([data-theme="dark"]) .landing-hero--image .landing-hero__subtitle { color: rgba(30, 42, 36, 0.74); }
-
-html:not([data-theme="dark"]) .landing-hero--image .landing-link,
-html:not([data-theme="dark"]) .landing-hero--image .landing-hero__navlink { color: #1E2A24; }
-
-html:not([data-theme="dark"]) .landing-hero--image .landing-link:hover,
-html:not([data-theme="dark"]) .landing-hero--image .landing-hero__navlink:hover { color: rgba(30, 42, 36, 0.68); }
-
-html:not([data-theme="dark"]) .landing-hero--image .landing-link--muted { color: rgba(30, 42, 36, 0.66); }
-
-html:not([data-theme="dark"]) .landing-hero--image .landing-kicker,
-html:not([data-theme="dark"]) .landing-hero--image .landing-hero__title,
-html:not([data-theme="dark"]) .landing-hero--image .landing-hero__subtitle,
-html:not([data-theme="dark"]) .landing-hero--image .landing-link,
-html:not([data-theme="dark"]) .landing-hero--image .landing-hero__navlink { text-shadow: none; }
-
-html:not([data-theme="dark"]) .landing-hero--image .landing-hero__cue {
-    border-color: rgba(255, 255, 255, 0.5);
-    color: rgba(255, 255, 255, 0.9);
+/* ---------------- 首页顶栏：浮在首屏大图上 ----------------
+   滚到顶部时背景透明，只留一层极淡的暗色渐变保证白色文字可读；
+   下滑后恢复毛玻璃白底。过渡统一走 background/border/opacity。 */
+body.page-landing .site-header {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    background: transparent;
+    border-bottom-color: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
 }
 
-html:not([data-theme="dark"]) .landing-hero--image .landing-hero__cue:hover {
-    border-color: rgba(255, 255, 255, 0.78);
+body.page-landing .site-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(20, 16, 10, 0.3) 0%, rgba(20, 16, 10, 0) 100%);
+    opacity: 1;
+    transition: opacity 0.4s var(--ease-out);
+}
+
+body.page-landing .site-header:not(.is-floating) {
+    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    -webkit-backdrop-filter: saturate(140%) blur(10px);
+    backdrop-filter: saturate(140%) blur(10px);
+    border-bottom-color: var(--color-border);
+    box-shadow: 0 10px 30px rgba(28, 24, 16, 0.07);
+}
+
+body.page-landing .site-header:not(.is-floating)::before { opacity: 0; }
+
+body.page-landing .site-header__inner {
+    position: relative;
+    z-index: 1;
+}
+
+body.page-landing .site-header .brand,
+body.page-landing .site-header .btn--ghost {
+    transition: color 0.3s var(--ease-out), background-color 0.3s var(--ease-out);
+}
+
+body.page-landing .site-header.is-floating .brand { color: #FFFFFF; }
+
+body.page-landing .site-header.is-floating .btn--ghost { color: rgba(255, 255, 255, 0.88); }
+
+body.page-landing .site-header.is-floating .btn--ghost:hover {
     background: rgba(255, 255, 255, 0.14);
     color: #FFFFFF;
+}
+
+/* 顶栏改为固定定位后，首屏需要占满整个视口 */
+body.page-landing .landing-hero {
+    min-height: 100vh;
+    min-height: 100svh;
 }
 
 /* 文字链接（替代按钮，降低界面感） */
@@ -4382,10 +4410,6 @@ body.page-landing .bottom-nav { display: none !important; }
     letter-spacing: 0.14em;
     text-indent: 0.14em;
 }
-
-/* 扁平浅色头图：亮色主题下去掉压暗层，标题与移动端一致使用深墨色 */
-html:not([data-theme="dark"]) .about-hero__shade { display: none; }
-html:not([data-theme="dark"]) .about-hero__title { color: #1E2A24; }
 
 .about-body {
     padding: clamp(64px, 10vw, 150px) var(--space-4) clamp(72px, 11vw, 160px);

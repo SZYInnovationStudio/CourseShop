@@ -29,6 +29,37 @@
         });
     }, 3000);
 
+    /* ---------------- 首页顶栏：滚到顶部时透明 ----------------
+       顶栏固定浮在首屏大图上，页面回到顶部时去掉背景，只保留图标与按钮；
+       下滑后恢复毛玻璃白底。用 rAF 合并滚动事件，避免频繁重排。 */
+    (function () {
+        var header = document.querySelector('.site-header');
+
+        if (!header || !document.body.classList.contains('page-landing')) {
+            return;
+        }
+
+        var ticking = false;
+
+        var sync = function () {
+            header.classList.toggle('is-floating', window.scrollY <= 4);
+            ticking = false;
+        };
+
+        var schedule = function () {
+            if (ticking) {
+                return;
+            }
+
+            ticking = true;
+            window.requestAnimationFrame(sync);
+        };
+
+        sync();
+        window.addEventListener('scroll', schedule, { passive: true });
+        window.addEventListener('resize', schedule, { passive: true });
+    })();
+
     /* ---------------- 表单提交前的原生约束校验 ----------------
        不少表单标记 novalidate 以使用站点自己的提示样式，但校验失败会整页刷新，
        导致密码、已选附件等已填内容丢失。提交前先用浏览器约束校验拦截，避免刷新。 */
