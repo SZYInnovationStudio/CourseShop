@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Models\Announcement;
 use App\Models\Enrollment;
 use App\Models\Package;
 use App\Support\Auth;
@@ -35,11 +36,12 @@ final class PackageController extends Controller
         $packages = Package::publishedList(self::PER_PAGE, ($page - 1) * self::PER_PAGE);
 
         $this->view('packages.index', [
-            'pageTitle'  => t('优惠套餐'),
-            'packages'   => $packages,
-            'total'      => $total,
-            'page'       => $page,
-            'totalPages' => $totalPages,
+            'pageTitle'     => t('优惠套餐'),
+            'packages'      => $packages,
+            'total'         => $total,
+            'page'          => $page,
+            'totalPages'    => $totalPages,
+            'announcements' => Announcement::latest(3),
         ]);
     }
 

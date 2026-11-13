@@ -210,3 +210,5 @@ $windowEnd   = min($totalPages, $windowStart + 4);
         </div>
     <?php endif; ?>
 </div>
+
+<?php require VIEW_PATH . '/partials/announcements.php'; ?>

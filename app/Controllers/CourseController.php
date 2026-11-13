@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Models\Announcement;
 use App\Models\Category;
 use App\Models\Course;
 use App\Models\Enrollment;
@@ -57,6 +58,7 @@ final class CourseController extends Controller
             'tagId'         => $tagId,
             'sort'          => $sort,
             'sortOptions'   => Course::SORTS,
+            'announcements' => Announcement::latest(3),
         ]);
     }
 
